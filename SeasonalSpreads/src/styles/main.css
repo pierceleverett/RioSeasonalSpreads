@@ -1,0 +1,92 @@
+/* Base Styles */
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers all child elements horizontally */
+  text-align: center; /* Centers text content */
+}
+
+/* Header */
+.app h1 {
+  margin-bottom: 30px;
+  text-align: center;
+  width: 100%;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center; /* Centers tab buttons */
+}
+
+.tab {
+  padding: 8px 16px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: #007bff;
+  color: white;
+}
+
+/* Dropdown */
+.month-selector {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers label and dropdown */
+  gap: 8px;
+  width: 100%;
+}
+
+.month-selector select {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  text-align: center; /* Centers dropdown text */
+}
+
+/* Graph Container */
+.graph-container {
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers content inside graph box */
+}
+
+.graph-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.spread-chart {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 0 auto; /* Ensures image is centered */
+}
+
+.prompt {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  margin: 40px 0;
+  width: 100%;
+}
