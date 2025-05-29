@@ -1,14 +1,15 @@
-export type ContractType = "MN" | "NQ" | "MV";
+export type MonthCode =
+  | "F"
+  | "G"
+  | "H"
+  | "J"
+  | "K"
+  | "M"
+  | "N"
+  | "Q"
+  | "U"
+  | "V"
+  | "X"
+  | "Z";
 export type ProductType = "RBOB" | "HO";
-
-export interface DropdownProps {
-  label: string;
-  options: string[];
-  selected: string;
-  onSelect: (value: string) => void;
-}
-
-export interface TabProps {
-  activeTab: ProductType;
-  onTabChange: (tab: ProductType) => void;
-}
+export type SpreadCode = `${MonthCode}${MonthCode}`; // e.g. "FX", "MN"
