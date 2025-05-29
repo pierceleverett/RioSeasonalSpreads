@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { FaUndo} from "react-icons/fa"
+import React, { useState, useEffect, useRef} from "react";
 import "./styles/main.css";
 import { Line } from "react-chartjs-2";
 import {
@@ -12,6 +13,9 @@ import {
   Legend,
   Filler,
 } from "chart.js";
+import zoomPlugin from "chartjs-plugin-zoom";
+
+import type { ChartOptions, ChartData } from "chart.js";
 
 ChartJS.register(
   CategoryScale,
@@ -21,7 +25,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  zoomPlugin
 );
 
 type ProductType = "RBOB" | "HO";
@@ -48,6 +53,7 @@ const App: React.FC = () => {
   >(new Map());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const chartRef = useRef<ChartJS<"line"> | null>(null);
 
   const monthOptions: MonthCode[] = [
     "F",
@@ -70,6 +76,12 @@ const App: React.FC = () => {
     setEndMonth("");
     setSpreadData(new Map());
   };
+
+    const handleResetZoom = () => {
+      if (chartRef.current) {
+        chartRef.current.resetZoom();
+      }
+    };
 
   useEffect(() => {
     if (startMonth && endMonth) {
@@ -105,25 +117,43 @@ const App: React.FC = () => {
     }
   };
 
-const getAllDates = (): string[] => {
-  if (spreadData.size === 0) return [];
+  const getAllDates = (): string[] => {
+    const allDates = new Set<string>();
+    spreadData.forEach((yearData) => {
+      yearData.forEach((_val, date) => allDates.add(date));
+    });
+    return Array.from(allDates).sort((a, b) => {
+      const [aMonth, aDay] = a.split("/").map(Number);
+      const [bMonth, bDay] = b.split("/").map(Number);
+      return (
+        new Date(2000, aMonth - 1, aDay).getTime() -
+        new Date(2000, bMonth - 1, bDay).getTime()
+      );
+    });
+  };
 
-  // Collect all dates from all datasets
-  const allDates = new Set<string>();
-  spreadData.forEach((yearData) => {
-    yearData.forEach((_, date) => allDates.add(date));
-  });
+  const calculateMinMaxRange = () => {
+    const rangeData: { min: Array<number | null>; max: Array<number | null> } =
+      { min: [], max: [] };
+    const allDates = getAllDates();
 
-  // Convert to array and sort chronologically
-  return Array.from(allDates).sort((a, b) => {
-    const [aMonth, aDay] = a.split("/").map(Number);
-    const [bMonth, bDay] = b.split("/").map(Number);
-    return (
-      new Date(2000, aMonth - 1, aDay).getTime() -
-      new Date(2000, bMonth - 1, bDay).getTime()
-    );
-  });
-};
+    allDates.forEach((date) => {
+      const values = Array.from(spreadData.entries())
+        .filter(([year]) => year !== "5YEARAVG")
+        .map(([_, yearData]) => yearData.get(date))
+        .filter((val): val is number => val !== null && val !== undefined);
+
+      if (values.length > 0) {
+        rangeData.min.push(Math.min(...values));
+        rangeData.max.push(Math.max(...values));
+      } else {
+        rangeData.min.push(null);
+        rangeData.max.push(null);
+      }
+    });
+
+    return rangeData;
+  };
 
   const getYearColor = (year: string, opacity = 1): string => {
     const colors: Record<string, string> = {
@@ -139,10 +169,31 @@ const getAllDates = (): string[] => {
   };
 
   const allDates = getAllDates();
+  const rangeData = calculateMinMaxRange();
+  const last30Dates = allDates.slice(-30).reverse();
 
-  const chartData = {
+  const chartData: ChartData<"line"> = {
     labels: allDates,
     datasets: [
+      // Grey shading between min and max
+      {
+        label: "Value Range",
+        data: rangeData.max,
+        backgroundColor: "rgba(200, 200, 200, 0.2)",
+        borderColor: "rgba(200, 200, 200, 0)",
+        borderWidth: 0,
+        pointRadius: 0,
+        fill: "+1",
+      },
+      {
+        label: "",
+        data: rangeData.min,
+        backgroundColor: "rgba(200, 200, 200, 0.2)",
+        borderColor: "rgba(200, 200, 200, 0)",
+        borderWidth: 0,
+        pointRadius: 0,
+      },
+      // Individual years (2020-2024) - thin dotted lines
       ...Array.from(spreadData.entries())
         .filter(([year]) => parseInt(year) >= 2020 && parseInt(year) <= 2024)
         .map(([year, yearData]) => ({
@@ -155,6 +206,7 @@ const getAllDates = (): string[] => {
           tension: 0.1,
           pointRadius: 0,
         })),
+      // 2025 - bold solid line
       ...(spreadData.has("2025")
         ? [
             {
@@ -170,6 +222,7 @@ const getAllDates = (): string[] => {
             },
           ]
         : []),
+      // 5YEARAVG - bold solid line
       ...(spreadData.has("5YEARAVG")
         ? [
             {
@@ -188,19 +241,42 @@ const getAllDates = (): string[] => {
     ],
   };
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<"line"> = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
+      zoom: {
+        zoom: {
+          wheel: { enabled: true },
+          pinch: { enabled: true },
+          mode: "xy",
+        },
+        pan: {
+          enabled: true,
+          mode: "xy",
+        },
+      },
       legend: {
-        position: "top" as const,
+        position: "top",
+        labels: {
+          font: {
+            size: 14,
+            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          },
+        },
       },
       title: {
         display: true,
         text: `${activeTab} Spread Analysis (${startMonth}-${endMonth})`,
+        font: {
+          size: 18,
+          weight: "bold",
+          family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        },
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
+          label: (context) => {
             const label = context.dataset.label || "";
             const value = context.parsed.y;
             return `${label}: ${value?.toFixed(4) ?? "N/A"}`;
@@ -213,24 +289,16 @@ const getAllDates = (): string[] => {
         title: {
           display: true,
           text: "Date (MM/DD)",
+          font: {
+            size: 14,
+            weight: "bold",
+            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          },
         },
-        min: allDates[0], // Set first date as min
-        max: allDates[allDates.length - 1], // Set last date as max
         ticks: {
-          autoSkip: true,
-          maxRotation: 0,
-          maxTicksLimit: 12, // Show about one tick per month
-          callback: (value: string | number) => {
-            if (typeof value === "string") return value;
-            // Only show every nth label to prevent crowding
-            const index = Number(value);
-            if (
-              allDates.length <= 12 ||
-              index % Math.ceil(allDates.length / 12) === 0
-            ) {
-              return allDates[index];
-            }
-            return "";
+          font: {
+            size: 12,
+            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
           },
         },
       },
@@ -238,6 +306,17 @@ const getAllDates = (): string[] => {
         title: {
           display: true,
           text: "Spread ($/gal)",
+          font: {
+            size: 14,
+            weight: "bold",
+            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          },
+        },
+        ticks: {
+          font: {
+            size: 12,
+            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          },
         },
       },
     },
@@ -247,32 +326,93 @@ const getAllDates = (): string[] => {
         spanGaps: true,
       },
       point: {
-        radius: 0, // Hide points
+        radius: 0,
       },
     },
   };
-  return (
-    <div className="app">
-      <h1>Energy Futures Dashboard</h1>
 
-      <div className="tabs">
-        {["RBOB", "HO"].map((tab) => (
+  return (
+    <div
+      className="app"
+      style={{
+        maxWidth: "1400px",
+        margin: "0 auto",
+        padding: "20px",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      }}
+    >
+      <h1
+        style={{
+          textAlign: "center",
+          color: "#2c3e50",
+          fontSize: "2.2rem",
+          marginBottom: "20px",
+          fontWeight: "bold",
+          textShadow: "1px 1px 2px rgba(0,0,0,0.1)",
+        }}
+      >
+        Energy Futures Dashboard
+      </h1>
+
+      <div
+        className="tabs"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        {(["RBOB", "HO"] as ProductType[]).map((tab) => (
           <button
             key={tab}
-            className={`tab ${activeTab === tab ? "active" : ""}`}
-            onClick={() => handleTabChange(tab as ProductType)}
+            style={{
+              padding: "10px 20px",
+              border: "none",
+              borderRadius: "4px",
+              background: activeTab === tab ? "#3498db" : "#ecf0f1",
+              color: activeTab === tab ? "white" : "#2c3e50",
+              cursor: "pointer",
+              fontWeight: "bold",
+              transition: "all 0.3s ease",
+            }}
+            onClick={() => handleTabChange(tab)}
           >
             {tab}
           </button>
         ))}
       </div>
 
-      <div className="month-selector">
-        <div className="month-dropdown">
-          <label>Start month: </label>
+      <div
+        className="month-selector"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "20px",
+          marginBottom: "20px",
+          flexWrap: "wrap",
+        }}
+      >
+        <div className="month-dropdown" style={{ minWidth: "200px" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "8px",
+              fontWeight: "bold",
+              color: "#2c3e50",
+            }}
+          >
+            Start month:
+          </label>
           <select
             value={startMonth}
             onChange={(e) => setStartMonth(e.target.value as MonthCode | "")}
+            style={{
+              width: "100%",
+              padding: "8px",
+              borderRadius: "4px",
+              border: "1px solid #bdc3c7",
+            }}
           >
             <option value="">-- Select --</option>
             {monthOptions.map((month) => (
@@ -283,11 +423,26 @@ const getAllDates = (): string[] => {
           </select>
         </div>
 
-        <div className="month-dropdown">
-          <label>End month: </label>
+        <div className="month-dropdown" style={{ minWidth: "200px" }}>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "8px",
+              fontWeight: "bold",
+              color: "#2c3e50",
+            }}
+          >
+            End month:
+          </label>
           <select
             value={endMonth}
             onChange={(e) => setEndMonth(e.target.value as MonthCode | "")}
+            style={{
+              width: "100%",
+              padding: "8px",
+              borderRadius: "4px",
+              border: "1px solid #bdc3c7",
+            }}
           >
             <option value="">-- Select --</option>
             {monthOptions.map((month) => (
@@ -299,23 +454,176 @@ const getAllDates = (): string[] => {
         </div>
       </div>
 
-      <div className="graph-container">
+      <div
+        className="graph-container"
+        style={{
+          height: "500px",
+          width: "100%",
+          marginBottom: "40px",
+          backgroundColor: "#fff",
+          borderRadius: "8px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          padding: "20px",
+          position: "relative", // Add this for positioning the reset button
+        }}
+      >
         {isLoading ? (
-          <p>Loading data...</p>
+          <p style={{ textAlign: "center" }}>Loading data...</p>
         ) : error ? (
-          <p className="error">{error}</p>
+          <p
+            style={{
+              textAlign: "center",
+              color: "#e74c3c",
+              fontWeight: "bold",
+            }}
+          >
+            {error}
+          </p>
         ) : startMonth && endMonth ? (
           spreadData.size > 0 ? (
-            <Line data={chartData} options={chartOptions} />
+            <>
+              <button
+                onClick={handleResetZoom}
+                style={{
+                  position: "absolute",
+                  top: "30px",
+                  right: "30px",
+                  zIndex: 100,
+                  background: "#3498db",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  fontSize: "14px",
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = "#2980b9";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = "#3498db";
+                }}
+              >
+                <FaUndo />
+                Reset Zoom
+              </button>
+              <Line ref={chartRef} data={chartData} options={chartOptions} />
+            </>
           ) : (
-            <p>No data available for the selected months</p>
+            <p style={{ textAlign: "center" }}>
+              No data available for the selected months
+            </p>
           )
         ) : (
-          <p className="prompt">
+          <p
+            style={{
+              textAlign: "center",
+              color: "#7f8c8d",
+              fontStyle: "italic",
+            }}
+          >
             Please select both start and end months to view data
           </p>
         )}
       </div>
+      {spreadData.size > 0 && (
+        <div
+          className="data-table"
+          style={{
+            marginTop: "20px",
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            padding: "20px",
+            overflowX: "auto",
+          }}
+        >
+          <h2
+            style={{
+              color: "#2c3e50",
+              fontSize: "1.5rem",
+              marginBottom: "15px",
+              fontWeight: "bold",
+            }}
+          >
+            Last 30 Days Data
+          </h2>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: "14px",
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: "#f8f9fa" }}>
+                <th
+                  style={{
+                    padding: "12px",
+                    textAlign: "left",
+                    borderBottom: "1px solid #ddd",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Date
+                </th>
+                {Array.from(spreadData.keys()).map((year) => (
+                  <th
+                    key={year}
+                    style={{
+                      padding: "12px",
+                      textAlign: "right",
+                      borderBottom: "1px solid #ddd",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {year}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {last30Dates.map((date, index) => (
+                <tr
+                  key={index}
+                  style={{
+                    borderBottom: "1px solid #eee",
+                    backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
+                  }}
+                >
+                  <td
+                    style={{
+                      padding: "12px",
+                      borderBottom: "1px solid #eee",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {date}
+                  </td>
+                  {Array.from(spreadData.keys()).map((year) => (
+                    <td
+                      key={year}
+                      style={{
+                        padding: "12px",
+                        textAlign: "right",
+                        borderBottom: "1px solid #eee",
+                        fontFamily: "'Courier New', Courier, monospace",
+                      }}
+                    >
+                      {spreadData.get(year)?.get(date)?.toFixed(4) ?? "N/A"}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
