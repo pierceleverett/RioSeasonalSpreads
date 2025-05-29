@@ -1,4 +1,4 @@
-package Parser;
+package Utilities.Parser;
 
 import java.util.List;
 

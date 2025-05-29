@@ -1,10 +1,11 @@
-package Parser;
+package Utilities.Parser;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @param <T>
@@ -70,7 +71,8 @@ public class Parser<T> {
         isEmpty = false;
         String[] result = regexSplitCSVRow.split(line);
         try {
-          List<String> lineToArr = Arrays.stream(result).toList();
+          List<String> lineToArr = Arrays.stream(result)
+              .collect(Collectors.toList());
           T newRow = creator.create(lineToArr);
           parsedContent.add(newRow);
         } catch (FactoryFailureException e) {
