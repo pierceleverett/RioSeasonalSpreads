@@ -93,9 +93,9 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `http://localhost:3232/getSpread?product=${activeTab}&startMonth=${startMonth}&endMonth=${endMonth}`
-      );
+    const response = await fetch(
+      `http://localhost:3232/getSpread?commodity=${activeTab}&startMonth=${startMonth}&endMonth=${endMonth}`
+    );
       if (!response.ok) {
         throw new Error("Failed to fetch spread data");
       }
@@ -168,9 +168,43 @@ const App: React.FC = () => {
     return colors[year] || `rgba(0, 0, 0, ${opacity})`;
   };
 
+
   const allDates = getAllDates();
   const rangeData = calculateMinMaxRange();
-  const last30Dates = allDates.slice(-30).reverse();
+
+const get30DatesWith2025Data = () => {
+  // Get ALL dates with 2025 data, sorted newest to oldest
+  const allDatesWith2025Data = allDates
+    .filter((date) => {
+      return (
+        spreadData.get("2025")?.get(date) !== null &&
+        spreadData.get("2025")?.get(date) !== undefined
+      );
+    })
+    .reverse();
+
+  // If we have at least 30 dates with data, take the most recent 30
+  if (allDatesWith2025Data.length >= 30) {
+    return allDatesWith2025Data.slice(0, 30);
+  }
+  // If we have some but less than 30, take all available
+  else if (allDatesWith2025Data.length > 0) {
+    return allDatesWith2025Data;
+  }
+  // If no 2025 data exists at all, fall back to last 30 days regardless
+  else {
+    return allDates.slice(-30).reverse();
+  }
+};
+
+const datesToDisplay = get30DatesWith2025Data();
+
+// Update the table header logic
+const tableHeaderText = spreadData.has("2025")
+  ? datesToDisplay.some((date) => spreadData.get("2025")?.get(date))
+    ? `Last ${datesToDisplay.length} Days (With 2025 Data)`
+    : "Last 30 Days (No 2025 Data)"
+  : "Last 30 Days Data";
 
   const chartData: ChartData<"line"> = {
     labels: allDates,
@@ -551,7 +585,7 @@ const App: React.FC = () => {
               fontWeight: "bold",
             }}
           >
-            Last 30 Days Data
+            Last 30 Days Data -2025
           </h2>
           <table
             style={{
@@ -588,38 +622,65 @@ const App: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {last30Dates.map((date, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    borderBottom: "1px solid #eee",
-                    backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
-                  }}
-                >
-                  <td
-                    style={{
-                      padding: "12px",
-                      borderBottom: "1px solid #eee",
-                      fontWeight: "500",
-                    }}
-                  >
-                    {date}
-                  </td>
-                  {Array.from(spreadData.keys()).map((year) => (
-                    <td
-                      key={year}
+              {datesToDisplay.length > 0 ? (
+                datesToDisplay.map((date, index) => {
+                  const has2025Data =
+                    spreadData.get("2025")?.get(date) !== undefined;
+                  return (
+                    <tr
+                      key={index}
                       style={{
-                        padding: "12px",
-                        textAlign: "right",
                         borderBottom: "1px solid #eee",
-                        fontFamily: "'Courier New', Courier, monospace",
+                        backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
+                        ...(has2025Data ? { fontWeight: "bold" } : {}),
                       }}
                     >
-                      {spreadData.get(year)?.get(date)?.toFixed(4) ?? "N/A"}
-                    </td>
-                  ))}
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom: "1px solid #eee",
+                          fontWeight: has2025Data ? "bold" : "500",
+                          color: has2025Data ? "#2c3e50" : "inherit",
+                        }}
+                      >
+                        {date}
+                      </td>
+                      {Array.from(spreadData.keys()).map((year) => {
+                        const value = spreadData.get(year)?.get(date);
+                        return (
+                          <td
+                            key={year}
+                            style={{
+                              padding: "12px",
+                              textAlign: "right",
+                              borderBottom: "1px solid #eee",
+                              fontFamily: "'Courier New', Courier, monospace",
+                              fontWeight: year === "2025" ? "bold" : "normal",
+                              color: year === "2025" ? "#2c3e50" : "inherit",
+                            }}
+                          >
+                            {value?.toFixed(4) ?? "N/A"}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td
+                    colSpan={spreadData.size + 1}
+                    style={{
+                      textAlign: "center",
+                      padding: "20px",
+                      fontStyle: "italic",
+                      color: "#7f8c8d",
+                    }}
+                  >
+                    No data available for the selected criteria
+                  </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
