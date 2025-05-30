@@ -25,13 +25,6 @@ public class SpreadCalculator {
     MONTH_CONFIG.put("X", new String[]{"11", "01", "10", "31", "-1", "0"});  // Nov (prev year) - Oct (current)
     MONTH_CONFIG.put("Z", new String[]{"12", "01", "11", "30", "-1", "0"});  // Dec (prev year) - Nov (current)
   }
-  public static void main(String[] args) {
-    try {
-      System.out.println(spreadCalculator("H", "U", "2023"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   public static Map<String, String> getFuturesDates(String year, String monthCode) {
     if (!MONTH_CONFIG.containsKey(monthCode)) {
@@ -59,14 +52,14 @@ public class SpreadCalculator {
     return result;
   }
 
-  public static Map<String, Float> spreadCalculator(String startMonth, String endMonth, String year)
+  public static Map<String, Float> spreadCalculator(String commodity, String startMonth, String endMonth, String year)
       throws IOException {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy");
     LocalDate startDate = LocalDate.parse(getFuturesDates(year, startMonth).get("startDate"), formatter);
     LocalDate endDate = LocalDate.parse(getFuturesDates(year, startMonth).get("endDate"), formatter);
     System.out.println(startDate);
     System.out.println(endDate);
-    String csvFilename = "data/RBOB" + year +".csv";
+    String csvFilename = "data/" + commodity + year +".csv";
     Parser csvParser = new Parser(csvFilename, new TrivialCreator(), false);
     csvParser.parse();
     List<List<String>> sheet = csvParser.getParsedContent();

@@ -21,16 +21,17 @@ public class SpreadHandler implements Route {
     try {
       String startMonth = request.queryParams("startMonth");
       String endMonth = request.queryParams("endMonth");
+      String commodity = request.queryParams("commodity");
       if (startMonth == null || endMonth == null) {
         throw new IOException("Please input months");
       }
 
-      Map<String, Float> spreadMap2020 = spreadCalculator(startMonth, endMonth, "2020");
-      Map<String, Float> spreadMap2021 = spreadCalculator(startMonth, endMonth, "2021");
-      Map<String, Float> spreadMap2022 = spreadCalculator(startMonth, endMonth, "2022");
-      Map<String, Float> spreadMap2023 = spreadCalculator(startMonth, endMonth, "2023");
-      Map<String, Float> spreadMap2024 = spreadCalculator(startMonth, endMonth, "2024");
-      Map<String, Float> spreadMap2025 = spreadCalculator(startMonth, endMonth, "2025");
+      Map<String, Float> spreadMap2020 = spreadCalculator(commodity, startMonth, endMonth, "2020");
+      Map<String, Float> spreadMap2021 = spreadCalculator(commodity, startMonth, endMonth, "2021");
+      Map<String, Float> spreadMap2022 = spreadCalculator(commodity, startMonth, endMonth, "2022");
+      Map<String, Float> spreadMap2023 = spreadCalculator(commodity, startMonth, endMonth, "2023");
+      Map<String, Float> spreadMap2024 = spreadCalculator(commodity, startMonth, endMonth, "2024");
+      Map<String, Float> spreadMap2025 = spreadCalculator(commodity, startMonth, endMonth, "2025");
       Map<String, Map<String, Float>> allYearSpreads = new LinkedHashMap<>();
       allYearSpreads.put("2020", spreadMap2020);
       allYearSpreads.put("2021", spreadMap2021);
