@@ -59,7 +59,7 @@ public class SpreadCalculator {
     LocalDate endDate = LocalDate.parse(getFuturesDates(year, startMonth).get("endDate"), formatter);
     System.out.println(startDate);
     System.out.println(endDate);
-    String csvFilename = "data/" + commodity + year +".csv";
+    String csvFilename = "data/spreads/" + commodity + year +".csv";
     Parser csvParser = new Parser(csvFilename, new TrivialCreator(), false);
     csvParser.parse();
     List<List<String>> sheet = csvParser.getParsedContent();

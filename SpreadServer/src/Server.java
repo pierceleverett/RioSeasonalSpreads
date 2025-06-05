@@ -1,9 +1,15 @@
 
 import static spark.Spark.after;
+import static spark.Spark.before;
 import static spark.Spark.options;
+import static spark.Spark.post;
 
 import Handlers.SpreadHandler;
+import javax.servlet.MultipartConfigElement;
 import spark.Spark;
+
+import Handlers.InventoryUploadHandler;
+import Handlers.InventoryDownloadHandler;
 
 
 /**
@@ -22,10 +28,15 @@ public final class Server {
     int port = 3232;
     Spark.port(port);
 
+    before((req, res) -> {
+      req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
+    });
+
+
     after((request, response) -> {
       response.header("Access-Control-Allow-Origin", "*");
       response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      response.header("Access-Control-Allow-Headers", "Content-Type");
+      response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     });
 
     // Handle OPTIONS requests
@@ -36,6 +47,8 @@ public final class Server {
 
     // csv endpoints
     Spark.get("/getSpread", new SpreadHandler());
+    Spark.post("/upload-inventory", new InventoryUploadHandler());
+    Spark.get("/get-inventory-sheet", new InventoryDownloadHandler());
     Spark.init();
     Spark.awaitInitialization();
     System.out.println("Server started at http://localhost:" + port);
