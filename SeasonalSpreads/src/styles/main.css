@@ -1,112 +1,253 @@
-/* Base Styles */
-.app {
-  max-width: 1200px;
+/* main.css */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2980b9;
+  --background-color: #f5f7fa;
+  --text-color: #2c3e50;
+  --light-gray: #ecf0f1;
+  --border-color: #bdc3c7;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.app-container {
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
-  font-family: sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centers all child elements horizontally */
-  text-align: center; /* Centers text content */
+  padding: 2rem;
 }
 
-/* Header */
-.app h1 {
-  margin-bottom: 30px;
+/* Header styles */
+.header {
   text-align: center;
-  width: 100%;
+  margin-bottom: 2rem;
 }
 
-/* Tabs */
+.header h1 {
+  color: var(--text-color);
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Tab styles */
 .tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  justify-content: center; /* Centers tab buttons */
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.tab {
-  padding: 8px 16px;
-  background: #f0f0f0;
+.tab-button {
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.5rem;
+  background: var(--light-gray);
+  color: var(--text-color);
+  font-weight: bold;
   cursor: pointer;
-}
-
-.tab.active {
-  background: #007bff;
-  color: white;
-}
-
-/* Dropdown */
-.month-selector {
-  margin: 20px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centers label and dropdown */
-  gap: 8px;
-  width: 100%;
-}
-
-.month-selector select {
-  padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  text-align: center; /* Centers dropdown text */
-}
-
-/* Graph Container */
-.graph-container {
-  border: 1px solid #ddd;
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 20px;
-  width: 100%;
-  max-width: 1000px;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centers content inside graph box */
-}
-
-.graph-content {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.spread-chart {
-  max-width: 100%;
-  height: auto;
-  border: 1px solid #eee;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin: 0 auto; /* Ensures image is centered */
-}
-
-.prompt {
-  color: #666;
-  font-style: italic;
-  text-align: center;
-  margin: 40px 0;
-  width: 100%;
-}
-
-/* Add smooth transitions */
-.app {
   transition: all 0.3s ease;
 }
 
-/* Better scrollbar for table */
-.data-table::-webkit-scrollbar {
-  height: 8px;
+.tab-button.active {
+  background: var(--primary-color);
+  color: white;
 }
-.data-table::-webkit-scrollbar-track {
-  background: #f1f1f1;
+
+/* Month selector styles */
+.month-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
-.data-table::-webkit-scrollbar-thumb {
-  background: #888;
+
+.month-dropdown {
+  min-width: 200px;
+}
+
+.month-dropdown label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.month-dropdown select {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  background-color: white;
+}
+
+/* Graph container styles */
+/* Add this to your main.css */
+.graph-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.graph-container {
+  height: 500px;
+  width: 95%; /* Slightly less than full width */
+  max-width: 1200px; /* Match your table width */
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 20px;
+  position: relative;
+}
+
+.reset-zoom-button {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  z-index: 100;
+  background: #3498db;
+  color: white;
+  border: none;
   border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
 }
-.data-table::-webkit-scrollbar-thumb:hover {
-  background: #555;
+
+.reset-zoom-button:hover {
+  background: #2980b9;
+}
+
+.error-message {
+  text-align: center;
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.message {
+  text-align: center;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+/* Message styles */
+.message {
+  text-align: center;
+  color: #7f8c8d;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Login page styles */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.login-card {
+  background-color: white;
+  padding: 3rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.login-title {
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+}
+
+.login-description {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+}
+
+.sign-in-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: rgb(255, 253, 253);
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 1rem;
+}
+
+.sign-in-button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Update these styles in your main.css */
+.data-table {
+  margin: 20px auto; /* Center the table */
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 15px;
+  overflow-x: auto;
+  max-width: 1000px; /* Reduced from full width */
+  font-size: 0.9em; /* Slightly smaller font */
+}
+
+.data-table h2 {
+  color: #2c3e50;
+  font-size: 1.3rem; /* Smaller heading */
+  margin-bottom: 12px;
+  padding: 0 10px;
+}
+
+.data-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th, 
+.data-table td {
+  padding: 8px 10px; /* Reduced padding */
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  line-height: 1.4;
+}
+
+.data-table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  font-size: 0.95em; /* Slightly smaller header text */
+}
+
+.data-table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+/* Make numeric cells more compact */
+.data-table td {
+  font-family: 'Courier New', Courier, monospace;
+  white-space: nowrap; /* Prevent wrapping */
+}
+
+/* Highlight current year */
+.data-table td.highlight {
+  font-weight: bold;
+  color: #2c3e50;
 }
