@@ -16,60 +16,61 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
 
-public class InventoryUploadHandler implements Route {
-  private static final String UPLOAD_DIR = "data/pdfToAdd/";
+  public class InventoryUploadHandler implements Route {
 
-  public Object handle(Request request, Response response) throws Exception {
-    response.type("application/json");
+    private static final String UPLOAD_DIR = "data/pdfToAdd/";
+    private static final Object PROCESSING_LOCK = new Object();
 
-    try {
-      // 1. Validate upload directory
-      Path uploadPath = Paths.get(UPLOAD_DIR);
-      Files.createDirectories(uploadPath);
+    public Object handle(Request request, Response response) throws Exception {
+      response.type("application/json");
 
-      if (!Files.isWritable(uploadPath)) {
-        throw new IOException("Upload directory not writable: " + uploadPath);
+      try {
+        // 1. Validate upload directory
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        Files.createDirectories(uploadPath);
+
+        if (!Files.isWritable(uploadPath)) {
+          throw new IOException("Upload directory not writable");
+        }
+
+        // 2. Process single file (Spark processes multipart sequentially)
+        Part filePart = request.raw().getPart("file");
+        if (filePart == null) {
+          response.status(400);
+          return "{\"error\":\"No file uploaded\"}";
+        }
+
+        // 3. Validate PDF
+        if (!"application/pdf".equals(filePart.getContentType())) {
+          response.status(400);
+          return "{\"error\":\"Only PDF files are accepted\"}";
+        }
+
+        // 4. Process with thread-safe lock
+        synchronized (PROCESSING_LOCK) {
+          String tempFilename = UUID.randomUUID() + ".pdf";
+          Path tempFilePath = uploadPath.resolve(tempFilename);
+
+          try (InputStream fileContent = filePart.getInputStream()) {
+            Files.copy(fileContent, tempFilePath, StandardCopyOption.REPLACE_EXISTING);
+          }
+
+          System.out.println("Processing PDF: " + tempFilePath);
+          ExcelUpdater.processSinglePdf(tempFilePath.toFile());
+          Files.deleteIfExists(tempFilePath);
+        }
+
+        return new Moshi.Builder()
+            .build()
+            .adapter(Map.class)
+            .toJson(Map.of(
+                "status", "success",
+                "message", "File processed successfully"
+            ));
+
+      } catch (Exception e) {
+        response.status(500);
+        return "{\"error\":\"" + e.getMessage().replace("\"", "'") + "\"}";
       }
-
-      // 2. Process uploaded file
-      Part filePart = request.raw().getPart("file");
-      if (filePart == null) {
-        response.status(400);
-        return "{\"error\":\"No file uploaded\"}";
-      }
-
-      // 3. Validate PDF
-      if (!"application/pdf".equals(filePart.getContentType())) {
-        response.status(400);
-        return "{\"error\":\"Only PDF files are accepted\"}";
-      }
-
-      // 4. Save to temp file
-      String tempFilename = UUID.randomUUID() + ".pdf";
-      Path tempFilePath = uploadPath.resolve(tempFilename);
-
-      try (InputStream fileContent = filePart.getInputStream()) {
-        Files.copy(fileContent, tempFilePath, StandardCopyOption.REPLACE_EXISTING);
-      }
-
-      // 5. Process with ExcelUpdater
-      System.out.println("Processing PDF: " + tempFilePath);
-      ExcelUpdater.processSinglePdf(tempFilePath.toFile());
-
-      // 6. Clean up
-      Files.deleteIfExists(tempFilePath);
-
-      // 7. Return success
-      return new Moshi.Builder().build()
-          .adapter(Map.class)
-          .toJson(Map.of(
-              "status", "success",
-              "message", "Inventory updated successfully"
-          ));
-
-    } catch (Exception e) {
-      response.status(500);
-      return "{\"error\":\"" + e.getMessage().replace("\"", "'") + "\"}";
     }
   }
-}

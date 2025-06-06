@@ -25,7 +25,10 @@ public class SpreadCalculator {
     MONTH_CONFIG.put("X", new String[]{"11", "01", "10", "31", "-1", "0"});  // Nov (prev year) - Oct (current)
     MONTH_CONFIG.put("Z", new String[]{"12", "01", "11", "30", "-1", "0"});  // Dec (prev year) - Nov (current)
   }
-
+public static void main(String[] args) throws IOException {
+    Map<String, Float> map = spreadCalculator("HO", "G", "U", "2022");
+  System.out.println(map);
+}
   public static Map<String, String> getFuturesDates(String year, String monthCode) {
     if (!MONTH_CONFIG.containsKey(monthCode)) {
       throw new IllegalArgumentException("Invalid month code: " + monthCode);
@@ -60,9 +63,11 @@ public class SpreadCalculator {
     System.out.println(startDate);
     System.out.println(endDate);
     String csvFilename = "data/spreads/" + commodity + year +".csv";
+    System.out.println(csvFilename);
     Parser csvParser = new Parser(csvFilename, new TrivialCreator(), false);
     csvParser.parse();
     List<List<String>> sheet = csvParser.getParsedContent();
+    System.out.println("successfully parsed");
 
     HashMap<String, Integer> headerMap = new LinkedHashMap<String, Integer>();
     HashMap<String, Float> firstMonthValues = new LinkedHashMap<String, Float>();
@@ -76,10 +81,13 @@ public class SpreadCalculator {
 
       }
     }
+    System.out.println("headers found");
 
 
     Integer firstIndex = headerMap.get(startMonth);
+    System.out.println(firstIndex);
     Integer secondIndex = headerMap.get(endMonth);
+    System.out.println(secondIndex);
     sheet.remove(0);
 
     for (List<String> row : sheet) {
@@ -87,9 +95,11 @@ public class SpreadCalculator {
       if (row.get(0) != "Date") {
         for (int i = 1; i < row.size(); i++){
           if (i == firstIndex && (!date.isBefore(startDate) && !date.isAfter(endDate))) {
+            System.out.println("first index adding: " + date);
             firstMonthValues.put(date.toString().substring(5), Float.parseFloat(row.get(i)));
           }
           if (i == secondIndex && (!date.isBefore(startDate) && !date.isAfter(endDate))) {
+            System.out.println("second index adding: " + date);
             secondMonthValues.put(date.toString().substring(5), Float.parseFloat(row.get(i)));
           }
         }
@@ -97,6 +107,8 @@ public class SpreadCalculator {
     }
 
     HashMap<String, Float> spreadMap = new LinkedHashMap<>();
+
+    System.out.println("calculating differences");
 
     for (String d : firstMonthValues.keySet()) {
       Float firstValue = firstMonthValues.get(d);

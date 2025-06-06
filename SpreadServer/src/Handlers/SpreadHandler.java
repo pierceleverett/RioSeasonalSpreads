@@ -19,6 +19,7 @@ import Utilities.FiveYearAvgCalc;
 public class SpreadHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
     try {
+      System.out.println("entered handler");
       String startMonth = request.queryParams("startMonth");
       String endMonth = request.queryParams("endMonth");
       String commodity = request.queryParams("commodity");
@@ -27,11 +28,17 @@ public class SpreadHandler implements Route {
       }
 
       Map<String, Float> spreadMap2020 = spreadCalculator(commodity, startMonth, endMonth, "2020");
+      System.out.println("2020 spread calculated");
       Map<String, Float> spreadMap2021 = spreadCalculator(commodity, startMonth, endMonth, "2021");
+      System.out.println("2021 spread calculated");
       Map<String, Float> spreadMap2022 = spreadCalculator(commodity, startMonth, endMonth, "2022");
+      System.out.println("2022 spread calculated");
       Map<String, Float> spreadMap2023 = spreadCalculator(commodity, startMonth, endMonth, "2023");
+      System.out.println("2023 spread calculated");
       Map<String, Float> spreadMap2024 = spreadCalculator(commodity, startMonth, endMonth, "2024");
+      System.out.println("2024 spread calculated");
       Map<String, Float> spreadMap2025 = spreadCalculator(commodity, startMonth, endMonth, "2025");
+      System.out.println("all data gathered");
       Map<String, Map<String, Float>> allYearSpreads = new LinkedHashMap<>();
       allYearSpreads.put("2020", spreadMap2020);
       allYearSpreads.put("2021", spreadMap2021);
@@ -39,8 +46,11 @@ public class SpreadHandler implements Route {
       allYearSpreads.put("2023", spreadMap2023);
       allYearSpreads.put("2024", spreadMap2024);
       Map<String, Float> fiveyearavg = AvgCalc(allYearSpreads);
+      System.out.println("5 year avg calculated");
       allYearSpreads.put("2025", spreadMap2025);
       allYearSpreads.put("5YEARAVG", fiveyearavg);
+
+      System.out.println("final map created");
 
 
       // Set up Moshi

@@ -4,6 +4,7 @@ import static spark.Spark.before;
 import static spark.Spark.options;
 import static spark.Spark.post;
 
+import Handlers.LastestUploadHandler;
 import Handlers.SpreadHandler;
 import javax.servlet.MultipartConfigElement;
 import spark.Spark;
@@ -49,6 +50,7 @@ public final class Server {
     Spark.get("/getSpread", new SpreadHandler());
     Spark.post("/upload-inventory", new InventoryUploadHandler());
     Spark.get("/get-inventory-sheet", new InventoryDownloadHandler());
+    Spark.get("/getLatestDate", new LastestUploadHandler());
     Spark.init();
     Spark.awaitInitialization();
     System.out.println("Server started at http://localhost:" + port);
