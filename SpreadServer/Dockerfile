@@ -1,11 +1,15 @@
-# Build stage with Maven
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+# Stage 1: Build with Maven
+FROM maven:3.8.6-openjdk-17 AS build
 WORKDIR /app
-COPY . .
+COPY pom.xml .
+# Download dependencies first (cached unless pom.xml changes)
+RUN mvn dependency:go-offline
+COPY src ./src
 RUN mvn clean package
 
-# Runtime stage with Java only
-FROM eclipse-temurin:17
+# Stage 2: Runtime with JRE only
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
