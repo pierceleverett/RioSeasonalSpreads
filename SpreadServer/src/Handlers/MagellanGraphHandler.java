@@ -34,8 +34,10 @@ public class MagellanGraphHandler implements Route {
 
     String filePath = "data/Fuel_Inventory_Report.xlsx";
     try (FileInputStream file = new FileInputStream(filePath);
-        Workbook workbook = WorkbookFactory.create(file)) {
-
+        Workbook workbook = WorkbookFactory.create(file)
+    ) {
+      FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+      evaluator.evaluateAll();
       // Get the sheet for the fuel type
       String sheetName = FUEL_SHEET_MAP.get(fuelCode);
       Sheet sheet = workbook.getSheet(sheetName);
