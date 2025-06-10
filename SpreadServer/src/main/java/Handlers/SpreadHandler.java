@@ -3,7 +3,6 @@ package Handlers;
 import static Utilities.FiveYearAvgCalc.AvgCalc;
 import static Utilities.SpreadCalculator.spreadCalculator;
 
-import Utilities.FiveYearAvgCalc;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
@@ -14,7 +13,6 @@ import java.util.Map;
 import spark.Request;
 import spark.Response;
 import spark.Route;
-import Utilities.FiveYearAvgCalc;
 
 public class SpreadHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {

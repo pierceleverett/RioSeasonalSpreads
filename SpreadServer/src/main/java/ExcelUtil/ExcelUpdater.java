@@ -8,7 +8,6 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 public class ExcelUpdater {
     private static final String EXCEL_PATH = "data/Fuel_Inventory_Report.xlsx";
