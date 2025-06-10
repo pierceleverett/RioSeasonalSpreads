@@ -5,6 +5,7 @@ import static spark.Spark.options;
 import static spark.Spark.post;
 
 import Handlers.LastestUploadHandler;
+import Handlers.MagellanGraphHandler;
 import Handlers.SpreadHandler;
 import javax.servlet.MultipartConfigElement;
 import spark.Spark;
@@ -51,6 +52,7 @@ public final class Server {
     Spark.post("/upload-inventory", new InventoryUploadHandler());
     Spark.get("/get-inventory-sheet", new InventoryDownloadHandler());
     Spark.get("/getLatestDate", new LastestUploadHandler());
+    Spark.get("/getMagellanData", new MagellanGraphHandler());
     Spark.init();
     Spark.awaitInitialization();
     System.out.println("Server started at http://localhost:" + port);
