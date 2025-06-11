@@ -109,7 +109,10 @@ body {
 }
 
 .graph-container {
-  height: clamp(300px, 60vh, 500px);
+  
+  height: clamp(60vh, 70vh, 100vh);
+  max-height: 1000px;
+  min-height: 400px;
   width: 95%;
   max-width: 2000px;
   background-color: #fff;

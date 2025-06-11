@@ -359,7 +359,7 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
         width: "100%", // Ensure full width
       }}
     >
-      <div className="graph-container" style={{ height: "500px" }}>
+      <div className="graph-container" style={{ height: "800px" }}>
         {isLoading ? (
           <p style={{ textAlign: "center" }}>Loading inventory data...</p>
         ) : error ? (
@@ -396,8 +396,8 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
 
       {/* Add this table section */}
       {chartData.size > 0 && (
+        // Update the table container styling
         <div
-          className="data-table"
           style={{
             marginTop: "20px",
             backgroundColor: "#fff",
@@ -405,14 +405,19 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
             padding: "20px",
             overflowX: "auto",
+            width: "100%",
+            maxWidth: "1400px", // Increased from 1000px
+            marginLeft: "auto",
+            marginRight: "auto",
           }}
         >
           <h2
             style={{
               color: "#2c3e50",
-              fontSize: "1.5rem",
+              fontSize: "clamp(1.2rem, 2vw, 1.8rem)", // Responsive font size
               marginBottom: "15px",
               fontWeight: "bold",
+              textAlign: "center", // Center the heading
             }}
           >
             Last 30 Days Data - 2025
@@ -421,17 +426,18 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
             style={{
               width: "100%",
               borderCollapse: "collapse",
-              fontSize: "14px",
+              fontSize: "clamp(0.8rem, 1.5vw, 1rem)", // Responsive font size
             }}
           >
             <thead>
               <tr style={{ backgroundColor: "#f8f9fa" }}>
                 <th
                   style={{
-                    padding: "12px",
+                    padding: "clamp(8px, 1.5vw, 12px)", // Responsive padding
                     textAlign: "left",
                     borderBottom: "1px solid #ddd",
                     fontWeight: "bold",
+                    fontSize: "clamp(0.9rem, 1.7vw, 1.1rem)", // Slightly larger for headers
                   }}
                 >
                   Date
@@ -455,10 +461,11 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
                     <th
                       key={year}
                       style={{
-                        padding: "12px",
+                        padding: "clamp(8px, 1.5vw, 12px)",
                         textAlign: "right",
                         borderBottom: "1px solid #ddd",
                         fontWeight: "bold",
+                        fontSize: "clamp(0.9rem, 1.7vw, 1.1rem)",
                       }}
                     >
                       {year}
@@ -482,7 +489,7 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
                     >
                       <td
                         style={{
-                          padding: "12px",
+                          padding: "clamp(8px, 1.5vw, 12px)",
                           borderBottom: "1px solid #eee",
                           fontWeight: has2025Data ? "bold" : "500",
                           color: has2025Data ? "#2c3e50" : "inherit",
@@ -511,7 +518,7 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
                             <td
                               key={year}
                               style={{
-                                padding: "12px",
+                                padding: "clamp(8px, 1.5vw, 12px)",
                                 textAlign: "right",
                                 borderBottom: "1px solid #eee",
                                 fontFamily: "'Courier New', Courier, monospace",
