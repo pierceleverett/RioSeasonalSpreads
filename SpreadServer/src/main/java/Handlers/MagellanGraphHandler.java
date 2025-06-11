@@ -38,7 +38,7 @@ public class MagellanGraphHandler implements Route {
       return "Invalid fuel type. Supported types: " + FUEL_SHEET_MAP.keySet();
     }
 
-    String filePath = System.getenv().getOrDefault("DATA_FILE_PATH", "data/OnlyA.xlsx");
+    String filePath = System.getenv().getOrDefault("DATA_FILE_PATH", "data/Fuel_Inventory_Report.xlsx");
     File fileCheck = new File(filePath);
     System.out.println("📄 Checking file: " + fileCheck.getAbsolutePath());
 
