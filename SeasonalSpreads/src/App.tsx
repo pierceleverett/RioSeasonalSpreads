@@ -204,12 +204,6 @@ const App: React.FC = () => {
 
   const datesToDisplay = get30DatesWith2025Data();
 
-  const tableHeaderText = spreadData.has("2025")
-    ? datesToDisplay.some((date) => spreadData.get("2025")?.get(date))
-      ? `Last ${datesToDisplay.length} Days (With 2025 Data)`
-      : "Last 30 Days (No 2025 Data)"
-    : "Last 30 Days Data";
-
   const chartData: ChartData<"line"> = {
     labels: allDates,
     datasets: [
