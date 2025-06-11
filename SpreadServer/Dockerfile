@@ -8,7 +8,7 @@ COPY data ./data
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /app/target/app.jar app.jar
 COPY --from=builder /app/data ./data
