@@ -7,7 +7,7 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import spark.Request;
 import spark.Response;
 import spark.Route;
-
+import java.io.File;
 import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
@@ -37,11 +37,18 @@ public class MagellanGraphHandler implements Route {
       return "Invalid fuel type. Supported types: " + FUEL_SHEET_MAP.keySet();
     }
 
-    String filePath = "data/Fuel_Inventory_Report.xlsx";
-    System.out.println("Attempting to open file: " + filePath);
 
-    try (FileInputStream file = new FileInputStream(filePath);
-        Workbook workbook = WorkbookFactory.create(file)) {
+    String filePath = "data/Fuel_Inventory_Report.xlsx";
+    File fileCheck = new File(filePath);
+    System.out.println("Attempting to open file: " + filePath);
+    System.out.println("Absolute path: " + fileCheck.getAbsolutePath());
+    System.out.println("Exists: " + fileCheck.exists());
+    System.out.println("Is file: " + fileCheck.isFile());
+    System.out.println("Length: " + fileCheck.length());
+
+    try (FileInputStream file = new FileInputStream(fileCheck);
+  Workbook workbook = WorkbookFactory.create(file)) {
+
 
       FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
       evaluator.evaluateAll();
