@@ -2,6 +2,7 @@ package Handlers;
 
 import com.google.gson.Gson;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -44,7 +45,7 @@ public class MagellanGraphHandler implements Route {
     }
 
     try (FileInputStream file = new FileInputStream(fileCheck);
-        Workbook workbook = WorkbookFactory.create(file)) {
+        Workbook workbook = new XSSFWorkbook(file);) {
 
       String sheetName = FUEL_SHEET_MAP.get(fuelCode);
       Sheet sheet = workbook.getSheet(sheetName);
