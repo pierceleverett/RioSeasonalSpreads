@@ -51,6 +51,8 @@ public class MagellanGraphHandler implements Route {
     try (FileInputStream file = new FileInputStream(fileCheck);
         Workbook workbook = new XSSFWorkbook(file)) {
 
+      System.out.println("✅ Excel file opened successfully");
+
       String sheetName = FUEL_SHEET_MAP.get(fuelCode);
       Sheet sheet = workbook.getSheet(sheetName);
       System.out.println("📄 Accessing sheet: " + sheetName);
@@ -73,6 +75,7 @@ public class MagellanGraphHandler implements Route {
         return "Header row not found in sheet";
       }
 
+      System.out.println("🔍 Reading header row...");
       Map<Integer, String> headers = new LinkedHashMap<>();
       for (int j = FIRST_DATA_COL; j <= headerRow.getLastCellNum(); j++) {
         Cell cell = headerRow.getCell(j);
@@ -84,32 +87,40 @@ public class MagellanGraphHandler implements Route {
         }
       }
 
+      System.out.println("🔍 Iterating over data rows...");
       Map<String, Map<String, Object>> result = new LinkedHashMap<>();
-      for (int i = FIRST_DATA_ROW; i <= sheet.getLastRowNum(); i++) {
-        Row row = sheet.getRow(i);
-        if (row == null) continue;
+      try {
+        for (int i = FIRST_DATA_ROW; i <= sheet.getLastRowNum(); i++) {
+          Row row = sheet.getRow(i);
+          if (row == null) continue;
 
-        String date = extractDate(row.getCell(DATE_COL));
-        if (date == null || date.isEmpty()) continue;
+          String date = extractDate(row.getCell(DATE_COL));
+          if (date == null || date.isEmpty()) continue;
 
-        Map<String, Object> rowData = new LinkedHashMap<>();
-        boolean hasData = false;
+          Map<String, Object> rowData = new LinkedHashMap<>();
+          boolean hasData = false;
 
-        for (Map.Entry<Integer, String> entry : headers.entrySet()) {
-          int colIndex = entry.getKey();
-          String header = entry.getValue();
-          Cell dataCell = row.getCell(colIndex);
-          Object value = getCellValue(dataCell);
-          rowData.put(header, value);
-          if (value != null) hasData = true;
+          for (Map.Entry<Integer, String> entry : headers.entrySet()) {
+            int colIndex = entry.getKey();
+            String header = entry.getValue();
+            Cell dataCell = row.getCell(colIndex);
+            Object value = getCellValue(dataCell);
+            rowData.put(header, value);
+            if (value != null) hasData = true;
+          }
+
+          if (hasData) {
+            result.put(date, rowData);
+          }
         }
-
-        if (hasData) {
-          result.put(date, rowData);
-        }
+      } catch (Exception rowEx) {
+        System.err.println("❌ Error while processing rows: " + rowEx.getMessage());
+        rowEx.printStackTrace();
+        response.status(500);
+        return "Error while processing Excel rows: " + rowEx.getMessage();
       }
 
-      System.out.println("✅ Returning JSON response with " + result.size() + " entries.");
+      System.out.println("✅ Finished processing rows. Total entries: " + result.size());
       response.type("application/json");
       return new Gson().toJson(result);
 
