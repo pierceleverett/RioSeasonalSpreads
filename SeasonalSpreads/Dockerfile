@@ -18,8 +18,8 @@ RUN npm run build
 
 # 5. Runtime configuration
 ENV NODE_ENV=production
-ENV PORT=3000
-EXPOSE 3000
+ENV PORT=5173
+EXPOSE 5173
 
 # 6. Start command (adjust if using different dev server)
 CMD ["npm", "run", "dev"]
