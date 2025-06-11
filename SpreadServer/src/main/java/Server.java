@@ -26,7 +26,7 @@ public final class Server {
    * @param args command-line arguments passed to the program
    */
   public static void main(String[] args) {
-    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "3232"));
+    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
     Spark.port(port);
 
 

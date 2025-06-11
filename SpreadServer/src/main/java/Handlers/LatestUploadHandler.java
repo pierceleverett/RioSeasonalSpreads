@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -37,7 +38,7 @@ public class LatestUploadHandler implements Route {
 
       String lastDate = "";
       try (FileInputStream fis = new FileInputStream(excelFile);
-          Workbook workbook = WorkbookFactory.create(fis)) {
+          Workbook workbook = new XSSFWorkbook(fis)) {
 
         Sheet sheet = workbook.getSheet("A PREMIUM UNLEADED GASOLINE");
         if (sheet == null) {

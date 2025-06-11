@@ -45,7 +45,7 @@ public class MagellanGraphHandler implements Route {
     }
 
     try (FileInputStream file = new FileInputStream(fileCheck);
-        Workbook workbook = new XSSFWorkbook(file);) {
+        Workbook workbook = new XSSFWorkbook(file)) {
 
       String sheetName = FUEL_SHEET_MAP.get(fuelCode);
       Sheet sheet = workbook.getSheet(sheetName);
