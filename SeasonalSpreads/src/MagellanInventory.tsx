@@ -73,10 +73,13 @@ const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("http://localhost:3232/upload-inventory", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        "http://rioseasonalspreads-production.up.railway.app/upload-inventory",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const error = await response.text();
@@ -96,7 +99,9 @@ const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
 
   const handleGetLastDate = async () => {
     try {
-      const response = await fetch("http://localhost:3232/getLatestDate");
+      const response = await fetch(
+        "http://rioseasonalspreads-production.up.railway.app/getLatestDate"
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch last updated date");
       }
@@ -132,7 +137,9 @@ const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
   const handleGetSheet = async () => {
     setIsLoadingSheet(true);
     try {
-      const response = await fetch("http://localhost:3232/get-inventory-sheet");
+      const response = await fetch(
+        "http://rioseasonalspreads-production.up.railway.app/get-inventory-sheet"
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch spreadsheet");
       }
