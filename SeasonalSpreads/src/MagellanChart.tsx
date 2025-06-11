@@ -60,19 +60,18 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
 
       const yearMap: Map<string, Map<string, number>> = new Map();
 
-
-
-
-Object.entries(data).forEach(([date, entries]) => {
-  Object.entries(entries as Record<string, number>).forEach(([year, value]) => {
-    const normalizedYear = year.includes(".") ? String(parseInt(year)) : year;
-    if (!yearMap.has(normalizedYear)) yearMap.set(normalizedYear, new Map());
-    yearMap.get(normalizedYear)!.set(date, value);
-  });
-});
-
-
-
+      Object.entries(data).forEach(([date, entries]) => {
+        Object.entries(entries as Record<string, number>).forEach(
+          ([year, value]) => {
+            const normalizedYear = year.includes(".")
+              ? String(parseInt(year))
+              : year;
+            if (!yearMap.has(normalizedYear))
+              yearMap.set(normalizedYear, new Map());
+            yearMap.get(normalizedYear)!.set(date, value);
+          }
+        );
+      });
 
       setChartData(yearMap);
     } catch (err) {
@@ -325,9 +324,39 @@ Object.entries(data).forEach(([date, entries]) => {
       },
     },
   };
+  // Add this new function to your existing MagellanChart component
+  const get30DatesWith2025Data = () => {
+    const allDatesWith2025Data = allDates
+      .filter((date) => {
+        return (
+          chartData.get("2025")?.get(date) !== null &&
+          chartData.get("2025")?.get(date) !== undefined
+        );
+      })
+      .reverse();
 
+    if (allDatesWith2025Data.length >= 30) {
+      return allDatesWith2025Data.slice(0, 30);
+    } else if (allDatesWith2025Data.length > 0) {
+      return allDatesWith2025Data;
+    } else {
+      return allDates.slice(-30).reverse();
+    }
+  };
+
+  const datesToDisplay = get30DatesWith2025Data();
+
+  // Update your return statement to include the table
   return (
-    <div className="graph-wrapper" style={{ marginTop: "20px" }}>
+    <div
+      className="graph-wrapper"
+      style={{
+        marginTop: "20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
+      }}
+    >
       <div className="graph-container" style={{ height: "500px" }}>
         {isLoading ? (
           <p style={{ textAlign: "center" }}>Loading inventory data...</p>
@@ -362,6 +391,138 @@ Object.entries(data).forEach(([date, entries]) => {
           <p style={{ textAlign: "center" }}>No inventory data available</p>
         )}
       </div>
+
+      {/* Add this table section */}
+      {chartData.size > 0 && (
+        <div
+          style={{
+            marginTop: "20px",
+            backgroundColor: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            padding: "20px",
+            overflowX: "auto",
+          }}
+        >
+          <h2
+            style={{
+              color: "#2c3e50",
+              fontSize: "1.5rem",
+              marginBottom: "15px",
+              fontWeight: "bold",
+            }}
+          >
+            Last 30 Days Data - 2025
+          </h2>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: "14px",
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: "#f8f9fa" }}>
+                <th
+                  style={{
+                    padding: "12px",
+                    textAlign: "left",
+                    borderBottom: "1px solid #ddd",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Date
+                </th>
+
+                {Array.from(chartData.keys())
+                  .filter(
+                    (year) => !["MAX", "MIN", "10-YEAR-RANGE"].includes(year)
+                  )
+                  .map((year) => (
+                    <th
+                      key={year}
+                      style={{
+                        padding: "12px",
+                        textAlign: "right",
+                        borderBottom: "1px solid #ddd",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {year}
+                    </th>
+                  ))}
+              </tr>
+            </thead>
+            <tbody>
+              {datesToDisplay.length > 0 ? (
+                datesToDisplay.map((date, index) => {
+                  const has2025Data =
+                    chartData.get("2025")?.get(date) !== undefined;
+                  return (
+                    <tr
+                      key={index}
+                      style={{
+                        borderBottom: "1px solid #eee",
+                        backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
+                        ...(has2025Data ? { fontWeight: "bold" } : {}),
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "12px",
+                          borderBottom: "1px solid #eee",
+                          fontWeight: has2025Data ? "bold" : "500",
+                          color: has2025Data ? "#2c3e50" : "inherit",
+                        }}
+                      >
+                        {date}
+                      </td>
+
+                      {Array.from(chartData.keys())
+                        .filter(
+                          (year) =>
+                            !["MAX", "MIN", "10-YEAR-RANGE"].includes(year)
+                        )
+                        .map((year) => {
+                          const value = chartData.get(year)?.get(date);
+                          return (
+                            <td
+                              key={year}
+                              style={{
+                                padding: "12px",
+                                textAlign: "right",
+                                borderBottom: "1px solid #eee",
+                                fontFamily: "'Courier New', Courier, monospace",
+                                fontWeight: year === "2025" ? "bold" : "normal",
+                                color: year === "2025" ? "#2c3e50" : "inherit",
+                              }}
+                            >
+                              {value?.toFixed(2) ?? "N/A"}
+                            </td>
+                          );
+                        })}
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td
+                    colSpan={chartData.size + 1}
+                    style={{
+                      textAlign: "center",
+                      padding: "20px",
+                      fontStyle: "italic",
+                      color: "#7f8c8d",
+                    }}
+                  >
+                    No data available for the selected criteria
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
