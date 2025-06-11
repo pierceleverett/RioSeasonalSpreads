@@ -2,18 +2,16 @@ package Handlers;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import spark.Request;
 import spark.Response;
 import spark.Route;
-
 import com.google.gson.JsonObject;
 
 public class LatestUploadHandler implements Route {
@@ -21,15 +19,16 @@ public class LatestUploadHandler implements Route {
   private static final String EXCEL_PATH = "data/Fuel_Inventory_Report.xlsx";
   private static final Logger LOGGER = Logger.getLogger(LatestUploadHandler.class.getName());
 
-  public Object handle(Request request, Response response) throws Exception {
+  public Object handle(Request request, Response response) {
     response.type("application/json");
     JsonObject jsonResponse = new JsonObject();
 
     try {
       File excelFile = new File(EXCEL_PATH);
+      LOGGER.info("Checking file at: " + excelFile.getAbsolutePath());
 
-      if (!excelFile.exists()) {
-        String errorMsg = "Inventory file not found at path: " + EXCEL_PATH;
+      if (!excelFile.exists() || !excelFile.isFile() || excelFile.length() == 0) {
+        String errorMsg = "Excel file not found or is empty at: " + excelFile.getAbsolutePath();
         LOGGER.warning(errorMsg);
         response.status(404);
         jsonResponse.addProperty("error", errorMsg);
@@ -38,11 +37,11 @@ public class LatestUploadHandler implements Route {
 
       String lastDate = "";
       try (FileInputStream fis = new FileInputStream(excelFile);
-          XSSFWorkbook workbook = new XSSFWorkbook(fis)) {
+          Workbook workbook = WorkbookFactory.create(fis)) {
 
-        XSSFSheet sheet = workbook.getSheet("A PREMIUM UNLEADED GASOLINE");
+        Sheet sheet = workbook.getSheet("A PREMIUM UNLEADED GASOLINE");
         if (sheet == null) {
-          String errorMsg = "Sheet 'A PREMIUM UNLEADED GASOLINE' not found in Excel file.";
+          String errorMsg = "Sheet 'A PREMIUM UNLEADED GASOLINE' not found.";
           LOGGER.warning(errorMsg);
           response.status(404);
           jsonResponse.addProperty("error", errorMsg);
@@ -72,8 +71,14 @@ public class LatestUploadHandler implements Route {
       jsonResponse.addProperty("lastUpdated", lastDate);
       return jsonResponse.toString();
 
+    } catch (IOException e) {
+      String errorMsg = "Error reading Excel file: " + e.getMessage();
+      LOGGER.log(Level.SEVERE, errorMsg, e);
+      response.status(500);
+      jsonResponse.addProperty("error", errorMsg);
+      return jsonResponse.toString();
     } catch (Exception e) {
-      String errorMsg = "Error processing file: " + e.getMessage();
+      String errorMsg = "Unhandled exception: " + e.getMessage();
       LOGGER.log(Level.SEVERE, errorMsg, e);
       response.status(500);
       jsonResponse.addProperty("error", errorMsg);

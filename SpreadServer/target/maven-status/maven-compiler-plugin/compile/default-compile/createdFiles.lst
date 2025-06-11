@@ -3,11 +3,11 @@ Handlers/InventoryDownloadHandler.class
 ExcelUtil/PDFInventoryExtractor.class
 Handlers/MagellanGraphHandler.class
 Handlers/InventoryUploadHandler.class
+Handlers/LatestUploadHandler.class
 Utilities/SpreadCalculator.class
 ExcelUtil/ExcelUpdater.class
 Utilities/Parser/CreatorFromRow.class
 Utilities/CsvDateFixer.class
-Handlers/LastestUploadHandler.class
 Handlers/MagellanGraphHandler$1.class
 Server.class
 Utilities/Parser/TrivialCreator.class

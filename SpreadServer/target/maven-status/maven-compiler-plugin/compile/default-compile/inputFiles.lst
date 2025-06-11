@@ -4,13 +4,13 @@
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Handlers/MagellanGraphHandler.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/ExcelUtil/PDFToExcel.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/ExcelUtil/ExcelUpdater.java
-/Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Handlers/LastestUploadHandler.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Handlers/SpreadHandler.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Server.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/ExcelUtil/PDFInventoryExtractor.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Handlers/InventoryUploadHandler.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Utilities/FiveYearAvgCalc.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Utilities/CsvDateFixer.java
+/Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Handlers/LatestUploadHandler.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Utilities/Parser/TrivialCreator.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Utilities/Parser/CreatorFromRow.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Utilities/Parser/FactoryFailureException.java

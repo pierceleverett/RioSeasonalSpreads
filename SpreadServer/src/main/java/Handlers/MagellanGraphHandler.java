@@ -1,14 +1,14 @@
 package Handlers;
 
 import com.google.gson.Gson;
-import java.io.FileNotFoundException;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.usermodel.DateUtil;
 import spark.Request;
 import spark.Response;
 import spark.Route;
+
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,41 +25,31 @@ public class MagellanGraphHandler implements Route {
   );
 
   @Override
-  public Object handle(Request request, Response response) throws Exception {
+  public Object handle(Request request, Response response) {
     System.out.println("Received request to /getMagellanData");
 
     String fuelCode = request.queryParams("fuel");
-    System.out.println("Fuel code received: " + fuelCode);
-
     if (fuelCode == null || !FUEL_SHEET_MAP.containsKey(fuelCode)) {
       response.status(400);
-      System.out.println("Invalid fuel type: " + fuelCode);
       return "Invalid fuel type. Supported types: " + FUEL_SHEET_MAP.keySet();
     }
 
-
     String filePath = System.getenv().getOrDefault("DATA_FILE_PATH", "data/Fuel_Inventory_Report.xlsx");
     File fileCheck = new File(filePath);
-    System.out.println("Attempting to open file: " + filePath);
-    System.out.println("Absolute path: " + fileCheck.getAbsolutePath());
-    System.out.println("Exists: " + fileCheck.exists());
-    System.out.println("Is file: " + fileCheck.isFile());
-    System.out.println("Length: " + fileCheck.length());
+    System.out.println("Checking file: " + fileCheck.getAbsolutePath());
+
+    if (!fileCheck.exists() || !fileCheck.isFile() || fileCheck.length() == 0) {
+      response.status(404);
+      return "Excel file not found or is empty at: " + fileCheck.getAbsolutePath();
+    }
 
     try (FileInputStream file = new FileInputStream(fileCheck);
-  Workbook workbook = WorkbookFactory.create(file)) {
-
-
-      FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-      evaluator.evaluateAll();
+        Workbook workbook = WorkbookFactory.create(file)) {
 
       String sheetName = FUEL_SHEET_MAP.get(fuelCode);
       Sheet sheet = workbook.getSheet(sheetName);
-      System.out.println("Accessing sheet: " + sheetName);
-
       if (sheet == null) {
         response.status(404);
-        System.out.println("Sheet not found for fuel type: " + fuelCode);
         return "Sheet not found for fuel type: " + fuelCode;
       }
 
@@ -71,7 +61,6 @@ public class MagellanGraphHandler implements Route {
       Row headerRow = sheet.getRow(HEADER_ROW);
       if (headerRow == null) {
         response.status(500);
-        System.out.println("Header row not found.");
         return "Header row not found in sheet";
       }
 
@@ -101,14 +90,9 @@ public class MagellanGraphHandler implements Route {
           int colIndex = entry.getKey();
           String header = entry.getValue();
           Cell dataCell = row.getCell(colIndex);
-
           Object value = getCellValue(dataCell);
-          if (value != null) {
-            rowData.put(header, value);
-            hasData = true;
-          } else {
-            rowData.put(header, null);
-          }
+          rowData.put(header, value);
+          if (value != null) hasData = true;
         }
 
         if (hasData) {
@@ -117,35 +101,27 @@ public class MagellanGraphHandler implements Route {
       }
 
       response.type("application/json");
-      System.out.println("Returning JSON response with " + result.size() + " entries.");
       return new Gson().toJson(result);
 
-    } catch (FileNotFoundException fnfe) {
+    } catch (IOException e) {
       response.status(500);
-      System.out.println("File not found: " + filePath);
-      fnfe.printStackTrace();
-      return "File not found: " + filePath;
+      e.printStackTrace();
+      return "Error reading Excel file: " + e.getMessage();
     } catch (Exception e) {
       response.status(500);
-      System.out.println("Unhandled exception occurred:");
       e.printStackTrace();
       return "Internal server error: " + e.getMessage();
     }
   }
 
-
   private String extractDate(Cell dateCell) {
-    if (dateCell == null) {
-      return null;
-    }
-
+    if (dateCell == null) return null;
     switch (dateCell.getCellType()) {
       case STRING:
         return dateCell.getStringCellValue().trim();
       case NUMERIC:
         if (DateUtil.isCellDateFormatted(dateCell)) {
-          SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd");
-          return dateFormat.format(dateCell.getDateCellValue());
+          return new SimpleDateFormat("MM/dd").format(dateCell.getDateCellValue());
         } else {
           return String.valueOf(dateCell.getNumericCellValue());
         }
@@ -155,13 +131,10 @@ public class MagellanGraphHandler implements Route {
             return dateCell.getStringCellValue().trim();
           case NUMERIC:
             if (DateUtil.isCellDateFormatted(dateCell)) {
-              SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd");
-              return dateFormat.format(dateCell.getDateCellValue());
+              return new SimpleDateFormat("MM/dd").format(dateCell.getDateCellValue());
             } else {
               return String.valueOf(dateCell.getNumericCellValue());
             }
-          default:
-            return null;
         }
       default:
         return null;
@@ -169,19 +142,12 @@ public class MagellanGraphHandler implements Route {
   }
 
   private Object getCellValue(Cell cell) {
-    if (cell == null) {
-      return null;
-    }
-
+    if (cell == null) return null;
     switch (cell.getCellType()) {
       case STRING:
         return cell.getStringCellValue().trim();
       case NUMERIC:
-        if (DateUtil.isCellDateFormatted(cell)) {
-          return cell.getDateCellValue();
-        } else {
-          return cell.getNumericCellValue();
-        }
+        return DateUtil.isCellDateFormatted(cell) ? cell.getDateCellValue() : cell.getNumericCellValue();
       case BOOLEAN:
         return cell.getBooleanCellValue();
       case FORMULA:
@@ -189,15 +155,9 @@ public class MagellanGraphHandler implements Route {
           case STRING:
             return cell.getStringCellValue().trim();
           case NUMERIC:
-            if (DateUtil.isCellDateFormatted(cell)) {
-              return cell.getDateCellValue();
-            } else {
-              return cell.getNumericCellValue();
-            }
+            return DateUtil.isCellDateFormatted(cell) ? cell.getDateCellValue() : cell.getNumericCellValue();
           case BOOLEAN:
             return cell.getBooleanCellValue();
-          default:
-            return null;
         }
       default:
         return null;
@@ -205,33 +165,22 @@ public class MagellanGraphHandler implements Route {
   }
 
   private String getCellValueAsString(Cell cell) {
-    if (cell == null) {
-      return null;
-    }
-
+    if (cell == null) return null;
     switch (cell.getCellType()) {
       case STRING:
         return cell.getStringCellValue();
       case NUMERIC:
-        if (DateUtil.isCellDateFormatted(cell)) {
-          SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd");
-          return dateFormat.format(cell.getDateCellValue());
-        } else {
-          return String.valueOf(cell.getNumericCellValue());
-        }
+        return DateUtil.isCellDateFormatted(cell)
+            ? new SimpleDateFormat("MM/dd").format(cell.getDateCellValue())
+            : String.valueOf(cell.getNumericCellValue());
       case FORMULA:
         switch (cell.getCachedFormulaResultType()) {
           case STRING:
             return cell.getStringCellValue();
           case NUMERIC:
-            if (DateUtil.isCellDateFormatted(cell)) {
-              SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd");
-              return dateFormat.format(cell.getDateCellValue());
-            } else {
-              return String.valueOf(cell.getNumericCellValue());
-            }
-          default:
-            return null;
+            return DateUtil.isCellDateFormatted(cell)
+                ? new SimpleDateFormat("MM/dd").format(cell.getDateCellValue())
+                : String.valueOf(cell.getNumericCellValue());
         }
       default:
         return null;
