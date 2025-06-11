@@ -54,8 +54,8 @@ type MonthCode =
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ProductType>("RBOB Spreads");
-  const [startMonth, setStartMonth] = useState<MonthCode | "">("");
-  const [endMonth, setEndMonth] = useState<MonthCode | "">("");
+  const [startMonth, setStartMonth] = useState<MonthCode>("N");
+  const [endMonth, setEndMonth] = useState<MonthCode>("Q");
   const [spreadData, setSpreadData] = useState<
     Map<string, Map<string, number>>
   >(new Map());
@@ -501,7 +501,7 @@ const App: React.FC = () => {
                   <select
                     value={startMonth}
                     onChange={(e) =>
-                      setStartMonth(e.target.value as MonthCode | "")
+                      setStartMonth(e.target.value as MonthCode | "N")
                     }
                     style={{
                       width: "100%",
@@ -533,7 +533,7 @@ const App: React.FC = () => {
                   <select
                     value={endMonth}
                     onChange={(e) =>
-                      setEndMonth(e.target.value as MonthCode | "")
+                      setEndMonth(e.target.value as MonthCode | "Q")
                     }
                     style={{
                       width: "100%",
