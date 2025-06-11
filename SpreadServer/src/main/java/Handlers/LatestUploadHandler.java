@@ -15,7 +15,7 @@ import com.google.gson.JsonObject;
 
 public class LatestUploadHandler implements Route {
 
-  private static final String EXCEL_PATH = "data/Fuel_Inventory_Report.xlsx";
+  private static final String EXCEL_PATH = "data/A.xlsx";
   private static final Logger LOGGER = Logger.getLogger(LatestUploadHandler.class.getName());
 
   public Object handle(Request request, Response response) {

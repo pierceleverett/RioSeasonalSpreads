@@ -10,14 +10,13 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 public class ExcelUpdater {
-    private static final String EXCEL_PATH = "data/Fuel_Inventory_Report.xlsx";
+    private static final String EXCEL_DIR = "data/";
     private static final String PDF_DIR = "data/pdfToAdd/";
     private static final Object FILE_LOCK = new Object();
 
     public static void main(String[] args) throws IOException {
         File pdfDir = new File(PDF_DIR);
         File[] newPdfs = pdfDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
-
         if (newPdfs != null) {
             for (File pdf : newPdfs) {
                 processSinglePdf(pdf);
@@ -27,66 +26,53 @@ public class ExcelUpdater {
 
     public static void processSinglePdf(File pdfFile) throws IOException {
         synchronized (FILE_LOCK) {
-            XSSFWorkbook workbook;
-            File excelFile = new File(EXCEL_PATH);
-            if (excelFile.exists()) {
-                try (FileInputStream fis = new FileInputStream(excelFile)) {
-                    workbook = new XSSFWorkbook(fis);
-                }
-            } else {
-                workbook = new XSSFWorkbook();
-                for (String grade : PDFToExcel.PRODUCT_GRADES) {
-                    workbook.createSheet(grade);
-                }
-            }
-
             try (PDDocument document = PDDocument.load(pdfFile)) {
                 String text = new PDFTextStripper().getText(document);
                 String dateStr = extractDate(text);
                 if (dateStr == null) throw new IOException("No date found in PDF");
-                updateWorkbook(workbook, text, dateStr);
-            }
 
+                for (String grade : PDFToExcel.PRODUCT_GRADES) {
+                    File excelFile = new File(EXCEL_DIR + grade + ".xlsx");
+                    XSSFWorkbook workbook;
+                    XSSFSheet sheet;
 
-            try (FileOutputStream fos = new FileOutputStream(EXCEL_PATH)) {
-                workbook.setForceFormulaRecalculation(true); // Force Excel to recalculate formulas
-                workbook.write(fos);
-            }
+                    if (excelFile.exists()) {
+                        try (FileInputStream fis = new FileInputStream(excelFile)) {
+                            workbook = new XSSFWorkbook(fis);
+                        }
+                    } else {
+                        workbook = new XSSFWorkbook();
+                        sheet = workbook.createSheet("Sheet1");
+                    }
 
-            workbook.close();
-        }
-    }
+                    sheet = workbook.getNumberOfSheets() > 0 ? workbook.getSheetAt(0) : workbook.createSheet("Sheet1");
 
-    private static void updateWorkbook(XSSFWorkbook workbook, String pdfText, String dateStr) throws IOException {
-        LocalDate newDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("MM/dd/yyyy"));
-        boolean insertedAny = false;
+                    String[] values = extractProductData(text, grade);
+                    if (values == null || values.length < 6) continue;
 
-        for (String grade : PDFToExcel.PRODUCT_GRADES) {
-            XSSFSheet sheet = workbook.getSheet(grade);
-            if (sheet == null) sheet = workbook.createSheet(grade);
+                    LocalDate newDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+                    LocalDate lastDate = getLastDate(sheet);
+                    String[] lastThursdayData = getLastThursdayData(sheet, lastDate);
 
-            String[] values = extractProductData(pdfText, grade);
-            if (values == null || values.length < 6) continue;
+                    for (LocalDate date = lastDate.plusDays(1); date.isBefore(newDate); date = date.plusDays(1)) {
+                        DayOfWeek dow = date.getDayOfWeek();
+                        if (dow == DayOfWeek.THURSDAY) {
+                            lastThursdayData = getRowData(sheet, date);
+                        } else if ((dow == DayOfWeek.FRIDAY || dow == DayOfWeek.SATURDAY) && lastThursdayData != null) {
+                            insertRow(sheet, date, lastThursdayData, true);
+                        }
+                    }
 
-            LocalDate lastDate = getLastDate(sheet);
-            String[] lastThursdayData = getLastThursdayData(sheet, lastDate);  // Get actual last Thursday's data
+                    insertRow(sheet, newDate, values, false);
 
-            // Fill in missing days between last date and new date
-            for (LocalDate date = lastDate.plusDays(1); date.isBefore(newDate); date = date.plusDays(1)) {
-                DayOfWeek dow = date.getDayOfWeek();
-                if (dow == DayOfWeek.THURSDAY) {
-                    // Update lastThursdayData when we reach a Thursday
-                    lastThursdayData = getRowData(sheet, date);
-                } else if ((dow == DayOfWeek.FRIDAY || dow == DayOfWeek.SATURDAY) && lastThursdayData != null) {
-                    insertRow(sheet, date, lastThursdayData, true);
+                    try (FileOutputStream fos = new FileOutputStream(excelFile)) {
+                        workbook.setForceFormulaRecalculation(true);
+                        workbook.write(fos);
+                    }
+                    workbook.close();
                 }
             }
-
-            insertRow(sheet, newDate, values, false);
-            insertedAny = true;
         }
-
-        if (!insertedAny) throw new IOException("No valid data found in PDF for any product grade");
     }
 
     private static LocalDate getLastDate(XSSFSheet sheet) {
@@ -103,7 +89,7 @@ public class ExcelUpdater {
                 }
             }
         }
-        return latest;
+        return latest.equals(LocalDate.MIN) ? LocalDate.now().minusDays(7) : latest;
     }
 
     private static void insertRow(XSSFSheet sheet, LocalDate date, String[] values, boolean isSynthetic) {
@@ -129,7 +115,6 @@ public class ExcelUpdater {
     }
 
     private static String[] getLastThursdayData(XSSFSheet sheet, LocalDate lastDate) {
-        // Walk backward from lastDate to find the most recent Thursday
         LocalDate date = lastDate;
         while (date.isAfter(LocalDate.MIN)) {
             if (date.getDayOfWeek() == DayOfWeek.THURSDAY) {
