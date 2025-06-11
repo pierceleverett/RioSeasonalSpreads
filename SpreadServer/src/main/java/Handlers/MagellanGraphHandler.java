@@ -1,6 +1,7 @@
 package Handlers;
 
 import com.google.gson.Gson;
+import java.io.FileNotFoundException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.DateUtil;
 import spark.Request;
@@ -25,41 +26,48 @@ public class MagellanGraphHandler implements Route {
 
   @Override
   public Object handle(Request request, Response response) throws Exception {
+    System.out.println("Received request to /getMagellanData");
+
     String fuelCode = request.queryParams("fuel");
+    System.out.println("Fuel code received: " + fuelCode);
 
     if (fuelCode == null || !FUEL_SHEET_MAP.containsKey(fuelCode)) {
       response.status(400);
+      System.out.println("Invalid fuel type: " + fuelCode);
       return "Invalid fuel type. Supported types: " + FUEL_SHEET_MAP.keySet();
     }
 
     String filePath = "data/Fuel_Inventory_Report.xlsx";
+    System.out.println("Attempting to open file: " + filePath);
+
     try (FileInputStream file = new FileInputStream(filePath);
-        Workbook workbook = WorkbookFactory.create(file)
-    ) {
+        Workbook workbook = WorkbookFactory.create(file)) {
+
       FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
       evaluator.evaluateAll();
-      // Get the sheet for the fuel type
+
       String sheetName = FUEL_SHEET_MAP.get(fuelCode);
       Sheet sheet = workbook.getSheet(sheetName);
+      System.out.println("Accessing sheet: " + sheetName);
+
       if (sheet == null) {
         response.status(404);
+        System.out.println("Sheet not found for fuel type: " + fuelCode);
         return "Sheet not found for fuel type: " + fuelCode;
       }
 
-      // Define key positions (0-based)
-      int HEADER_ROW = 2;     // Row 3 in Excel (0-based index 2)
-      int FIRST_DATA_ROW = 3;  // Row 4 in Excel (0-based index 3)
-      int DATE_COL = 8;       // Column I (0-based index 8)
-      int FIRST_DATA_COL = 9; // Column J (0-based index 9)
+      int HEADER_ROW = 2;
+      int FIRST_DATA_ROW = 3;
+      int DATE_COL = 8;
+      int FIRST_DATA_COL = 9;
 
-      // Extract headers (from Row 3, columns J to end)
       Row headerRow = sheet.getRow(HEADER_ROW);
       if (headerRow == null) {
         response.status(500);
+        System.out.println("Header row not found.");
         return "Header row not found in sheet";
       }
 
-      // Read headers from columns J onward
       Map<Integer, String> headers = new LinkedHashMap<>();
       for (int j = FIRST_DATA_COL; j <= headerRow.getLastCellNum(); j++) {
         Cell cell = headerRow.getCell(j);
@@ -71,19 +79,14 @@ public class MagellanGraphHandler implements Route {
         }
       }
 
-      // Parse data rows (starting from row 4)
       Map<String, Map<String, Object>> result = new LinkedHashMap<>();
       for (int i = FIRST_DATA_ROW; i <= sheet.getLastRowNum(); i++) {
         Row row = sheet.getRow(i);
         if (row == null) continue;
 
-        // Extract date (from Column I)
         String date = extractDate(row.getCell(DATE_COL));
-        if (date == null || date.isEmpty()) {
-          continue; // Skip if no valid date
-        }
+        if (date == null || date.isEmpty()) continue;
 
-        // Map data values to headers
         Map<String, Object> rowData = new LinkedHashMap<>();
         boolean hasData = false;
 
@@ -106,11 +109,23 @@ public class MagellanGraphHandler implements Route {
         }
       }
 
-      // Set response type and return JSON
       response.type("application/json");
+      System.out.println("Returning JSON response with " + result.size() + " entries.");
       return new Gson().toJson(result);
+
+    } catch (FileNotFoundException fnfe) {
+      response.status(500);
+      System.out.println("File not found: " + filePath);
+      fnfe.printStackTrace();
+      return "File not found: " + filePath;
+    } catch (Exception e) {
+      response.status(500);
+      System.out.println("Unhandled exception occurred:");
+      e.printStackTrace();
+      return "Internal server error: " + e.getMessage();
     }
   }
+
 
   private String extractDate(Cell dateCell) {
     if (dateCell == null) {
