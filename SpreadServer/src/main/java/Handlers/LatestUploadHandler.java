@@ -3,13 +3,11 @@ package Handlers;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -21,16 +19,17 @@ public class LatestUploadHandler implements Route {
   private static final Logger LOGGER = Logger.getLogger(LatestUploadHandler.class.getName());
 
   public Object handle(Request request, Response response) {
+    System.out.println("➡️  /getLatestDate endpoint hit");
     response.type("application/json");
     JsonObject jsonResponse = new JsonObject();
 
     try {
       File excelFile = new File(EXCEL_PATH);
-      LOGGER.info("Checking file at: " + excelFile.getAbsolutePath());
+      System.out.println("📄 Checking file: " + excelFile.getAbsolutePath());
 
       if (!excelFile.exists() || !excelFile.isFile() || excelFile.length() == 0) {
         String errorMsg = "Excel file not found or is empty at: " + excelFile.getAbsolutePath();
-        LOGGER.warning(errorMsg);
+        System.err.println("❌ " + errorMsg);
         response.status(404);
         jsonResponse.addProperty("error", errorMsg);
         return jsonResponse.toString();
@@ -43,7 +42,7 @@ public class LatestUploadHandler implements Route {
         Sheet sheet = workbook.getSheet("A PREMIUM UNLEADED GASOLINE");
         if (sheet == null) {
           String errorMsg = "Sheet 'A PREMIUM UNLEADED GASOLINE' not found.";
-          LOGGER.warning(errorMsg);
+          System.err.println("❌ " + errorMsg);
           response.status(404);
           jsonResponse.addProperty("error", errorMsg);
           return jsonResponse.toString();
@@ -63,24 +62,27 @@ public class LatestUploadHandler implements Route {
 
       if (lastDate.isEmpty()) {
         String errorMsg = "No valid dates found in the sheet.";
-        LOGGER.warning(errorMsg);
+        System.err.println("❌ " + errorMsg);
         response.status(404);
         jsonResponse.addProperty("error", errorMsg);
         return jsonResponse.toString();
       }
 
+      System.out.println("✅ Last updated date found: " + lastDate);
       jsonResponse.addProperty("lastUpdated", lastDate);
       return jsonResponse.toString();
 
     } catch (IOException e) {
       String errorMsg = "Error reading Excel file: " + e.getMessage();
-      LOGGER.log(Level.SEVERE, errorMsg, e);
+      System.err.println("❌ " + errorMsg);
+      e.printStackTrace();
       response.status(500);
       jsonResponse.addProperty("error", errorMsg);
       return jsonResponse.toString();
     } catch (Exception e) {
       String errorMsg = "Unhandled exception: " + e.getMessage();
-      LOGGER.log(Level.SEVERE, errorMsg, e);
+      System.err.println("❌ " + errorMsg);
+      e.printStackTrace();
       response.status(500);
       jsonResponse.addProperty("error", errorMsg);
       return jsonResponse.toString();

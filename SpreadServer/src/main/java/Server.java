@@ -26,36 +26,36 @@ public final class Server {
    * @param args command-line arguments passed to the program
    */
   public static void main(String[] args) {
-    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
-    Spark.port(port);
+    try {
+      int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+      Spark.port(port);
 
+      before((req, res) -> {
+        req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
+      });
 
-    before((req, res) -> {
-      req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
-    });
+      after((request, response) -> {
+        response.header("Access-Control-Allow-Origin", "*");
+        response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+      });
 
+      options("/*", (request, response) -> "OK");
 
-    after((request, response) -> {
-      response.header("Access-Control-Allow-Origin", "*");
-      response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    });
+      // Register routes
+      System.out.println("Registering routes...");
+      Spark.get("/getSpread", new SpreadHandler());
+      Spark.post("/upload-inventory", new InventoryUploadHandler());
+      Spark.get("/get-inventory-sheet", new InventoryDownloadHandler());
+      Spark.get("/getLatestDate", new LatestUploadHandler());
+      Spark.get("/getMagellanData", new MagellanGraphHandler());
 
-    // Handle OPTIONS requests
-    options("/*", (request, response) -> {
-      return "OK";
-    });
-
-
-    // csv endpoints
-    Spark.get("/getSpread", new SpreadHandler());
-    Spark.post("/upload-inventory", new InventoryUploadHandler());
-    Spark.get("/get-inventory-sheet", new InventoryDownloadHandler());
-    Spark.get("/getLatestDate", new LatestUploadHandler());
-    Spark.get("/getMagellanData", new MagellanGraphHandler());
-    Spark.init();
-    Spark.awaitInitialization();
-    System.out.println("Server started at http://localhost:" + port);
+      Spark.init();
+      Spark.awaitInitialization();
+      System.out.println("✅ Server started at http://localhost:" + port);
+    } catch (Exception e) {
+      System.err.println("❌ Server failed to start: " + e.getMessage());
+      e.printStackTrace();
+    }
   }
 }
-

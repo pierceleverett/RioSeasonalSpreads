@@ -27,19 +27,23 @@ public class MagellanGraphHandler implements Route {
 
   @Override
   public Object handle(Request request, Response response) {
-    System.out.println("Received request to /getMagellanData");
+    System.out.println("➡️  /getMagellanData endpoint hit");
 
     String fuelCode = request.queryParams("fuel");
+    System.out.println("🔍 Fuel code received: " + fuelCode);
+
     if (fuelCode == null || !FUEL_SHEET_MAP.containsKey(fuelCode)) {
+      System.err.println("❌ Invalid fuel type: " + fuelCode);
       response.status(400);
       return "Invalid fuel type. Supported types: " + FUEL_SHEET_MAP.keySet();
     }
 
     String filePath = System.getenv().getOrDefault("DATA_FILE_PATH", "data/Fuel_Inventory_Report.xlsx");
     File fileCheck = new File(filePath);
-    System.out.println("Checking file: " + fileCheck.getAbsolutePath());
+    System.out.println("📄 Checking file: " + fileCheck.getAbsolutePath());
 
     if (!fileCheck.exists() || !fileCheck.isFile() || fileCheck.length() == 0) {
+      System.err.println("❌ Excel file not found or is empty.");
       response.status(404);
       return "Excel file not found or is empty at: " + fileCheck.getAbsolutePath();
     }
@@ -49,7 +53,10 @@ public class MagellanGraphHandler implements Route {
 
       String sheetName = FUEL_SHEET_MAP.get(fuelCode);
       Sheet sheet = workbook.getSheet(sheetName);
+      System.out.println("📄 Accessing sheet: " + sheetName);
+
       if (sheet == null) {
+        System.err.println("❌ Sheet not found for fuel type: " + fuelCode);
         response.status(404);
         return "Sheet not found for fuel type: " + fuelCode;
       }
@@ -61,6 +68,7 @@ public class MagellanGraphHandler implements Route {
 
       Row headerRow = sheet.getRow(HEADER_ROW);
       if (headerRow == null) {
+        System.err.println("❌ Header row not found.");
         response.status(500);
         return "Header row not found in sheet";
       }
@@ -101,16 +109,19 @@ public class MagellanGraphHandler implements Route {
         }
       }
 
+      System.out.println("✅ Returning JSON response with " + result.size() + " entries.");
       response.type("application/json");
       return new Gson().toJson(result);
 
     } catch (IOException e) {
-      response.status(500);
+      System.err.println("❌ IO Error: " + e.getMessage());
       e.printStackTrace();
+      response.status(500);
       return "Error reading Excel file: " + e.getMessage();
     } catch (Exception e) {
-      response.status(500);
+      System.err.println("❌ Unexpected Error: " + e.getMessage());
       e.printStackTrace();
+      response.status(500);
       return "Internal server error: " + e.getMessage();
     }
   }
@@ -121,21 +132,17 @@ public class MagellanGraphHandler implements Route {
       case STRING:
         return dateCell.getStringCellValue().trim();
       case NUMERIC:
-        if (DateUtil.isCellDateFormatted(dateCell)) {
-          return new SimpleDateFormat("MM/dd").format(dateCell.getDateCellValue());
-        } else {
-          return String.valueOf(dateCell.getNumericCellValue());
-        }
+        return DateUtil.isCellDateFormatted(dateCell)
+            ? new SimpleDateFormat("MM/dd").format(dateCell.getDateCellValue())
+            : String.valueOf(dateCell.getNumericCellValue());
       case FORMULA:
         switch (dateCell.getCachedFormulaResultType()) {
           case STRING:
             return dateCell.getStringCellValue().trim();
           case NUMERIC:
-            if (DateUtil.isCellDateFormatted(dateCell)) {
-              return new SimpleDateFormat("MM/dd").format(dateCell.getDateCellValue());
-            } else {
-              return String.valueOf(dateCell.getNumericCellValue());
-            }
+            return DateUtil.isCellDateFormatted(dateCell)
+                ? new SimpleDateFormat("MM/dd").format(dateCell.getDateCellValue())
+                : String.valueOf(dateCell.getNumericCellValue());
         }
       default:
         return null;
