@@ -4,11 +4,13 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline
 COPY src ./src
+COPY data ./data
 RUN mvn clean package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/target/app.jar app.jar
+COPY --from=builder /app/data ./data
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
