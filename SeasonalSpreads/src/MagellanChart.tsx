@@ -406,7 +406,7 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
             padding: "20px",
             overflowX: "auto",
             width: "100%",
-            maxWidth: "1400px", // Increased from 1000px
+            maxWidth: "1200px", // Increased from 1000px
             marginLeft: "auto",
             marginRight: "auto",
           }}
@@ -414,7 +414,7 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
           <h2
             style={{
               color: "#2c3e50",
-              fontSize: "clamp(1.2rem, 2vw, 1.8rem)", // Responsive font size
+              fontSize: "clamp(1rem, 2vw, 1.5rem)", // Responsive font size
               marginBottom: "15px",
               fontWeight: "bold",
               textAlign: "center", // Center the heading

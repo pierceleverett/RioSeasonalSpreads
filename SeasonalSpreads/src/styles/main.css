@@ -111,8 +111,8 @@ body {
 .graph-container {
   
   height: clamp(60vh, 70vh, 100vh);
-  max-height: 1000px;
-  min-height: 400px;
+  max-height: 1200px;
+  min-height: 800px;
   width: 95%;
   max-width: 2000px;
   background-color: #fff;
@@ -210,7 +210,7 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   padding: clamp(0.8rem, 2vw, 1.2rem);
   overflow-x: auto;
-  max-width: min(2000px, 95vw);
+  max-width: min(1200px, 95vw);
   font-size: clamp(0.8rem, 2vw, 0.9rem);
 }
 
