@@ -38,7 +38,7 @@ public class MagellanGraphHandler implements Route {
     }
 
 
-    String filePath = "data/Fuel_Inventory_Report.xlsx";
+    String filePath = System.getenv().getOrDefault("DATA_FILE_PATH", "data/Fuel_Inventory_Report.xlsx");
     File fileCheck = new File(filePath);
     System.out.println("Attempting to open file: " + filePath);
     System.out.println("Absolute path: " + fileCheck.getAbsolutePath());
