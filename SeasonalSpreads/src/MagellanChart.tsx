@@ -51,7 +51,7 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
 
     try {
       const response = await fetch(
-        `http://rioseasonalspreads-production.up.railway.app/getMagellanData?fuel=${fuelType}`
+        `https://rioseasonalspreads-production.up.railway.app/getMagellanData?fuel=${fuelType}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch Magellan inventory data");

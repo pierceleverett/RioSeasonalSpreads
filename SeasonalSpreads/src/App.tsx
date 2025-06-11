@@ -105,7 +105,7 @@ const App: React.FC = () => {
 
     try {
       const response = await fetch(
-        `http://rioseasonalspreads-production.up.railway.app/getSpread?commodity=${commodityParam}&startMonth=${startMonth}&endMonth=${endMonth}`
+        `https://rioseasonalspreads-production.up.railway.app/getSpread?commodity=${commodityParam}&startMonth=${startMonth}&endMonth=${endMonth}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch spread data");
