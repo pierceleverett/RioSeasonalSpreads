@@ -355,6 +355,8 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
         display: "flex",
         flexDirection: "column",
         gap: "20px",
+        alignItems: "center", // Add this to center children
+        width: "100%", // Ensure full width
       }}
     >
       <div className="graph-container" style={{ height: "500px" }}>
@@ -395,6 +397,7 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
       {/* Add this table section */}
       {chartData.size > 0 && (
         <div
+          className="data-table"
           style={{
             marginTop: "20px",
             backgroundColor: "#fff",
@@ -436,7 +439,17 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
 
                 {Array.from(chartData.keys())
                   .filter(
-                    (year) => !["MAX", "MIN", "10-YEAR-RANGE"].includes(year)
+                    (year) =>
+                      ![
+                        "2015",
+                        "2016",
+                        "2017",
+                        "2018",
+                        "2019",
+                        "MAX",
+                        "MIN",
+                        "10-YEAR-RANGE",
+                      ].includes(year)
                   )
                   .map((year) => (
                     <th
@@ -481,7 +494,16 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
                       {Array.from(chartData.keys())
                         .filter(
                           (year) =>
-                            !["MAX", "MIN", "10-YEAR-RANGE"].includes(year)
+                            ![
+                              "2015",
+                              "2016",
+                              "2017",
+                              "2018",
+                              "2019",
+                              "MAX",
+                              "MIN",
+                              "10-YEAR-RANGE",
+                            ].includes(year)
                         )
                         .map((year) => {
                           const value = chartData.get(year)?.get(date);

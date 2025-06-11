@@ -80,8 +80,8 @@ const App: React.FC = () => {
 
   const handleTabChange = (tab: ProductType) => {
     setActiveTab(tab);
-    setStartMonth("");
-    setEndMonth("");
+    setStartMonth("N");
+    setEndMonth("Q");
     setSpreadData(new Map());
   };
 
@@ -425,7 +425,7 @@ const App: React.FC = () => {
         <div
           className="app"
           style={{
-            maxWidth: "1400px",
+            maxWidth: "2000px",
             margin: "0 auto",
             padding: "20px",
             fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",

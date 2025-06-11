@@ -171,10 +171,14 @@ const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
   return (
     <div
       style={{
-        maxWidth: "1200px",
+        maxWidth: "2000px",
         margin: "0 auto",
         padding: "20px",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+        display: "flex", // Add flex
+        flexDirection: "column", // Column layout
+        alignItems: "center", // Center children horizontally
+        width: "100%", // Full width
       }}
     >
       <h2
