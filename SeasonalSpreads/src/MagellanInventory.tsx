@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaUpload, FaFileExcel, FaSpinner, FaChartLine } from "react-icons/fa";
+import { FaUpload, FaSpinner, FaChartLine } from "react-icons/fa";
 import MagellanChart from "./MagellanChart";
 
 interface MagellanInventoryProps {
@@ -12,7 +12,6 @@ const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
-  const [isLoadingSheet, setIsLoadingSheet] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   interface DateInfo {
@@ -139,35 +138,7 @@ const handleUpload = async () => {
     }
   };
 
-  const handleGetSheet = async () => {
-    setIsLoadingSheet(true);
-    try {
-      const response = await fetch(
-        "https://rioseasonalspreads-production.up.railway.app/get-inventory-sheet"
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch spreadsheet");
-      }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "inventory_data.xlsx";
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    } catch (error) {
-      setUploadMessage(
-        error instanceof Error
-          ? error.message
-          : "Failed to download spreadsheet"
-      );
-    } finally {
-      setIsLoadingSheet(false);
-    }
-  };
 
   useEffect(() => {
     handleGetLastDate();
