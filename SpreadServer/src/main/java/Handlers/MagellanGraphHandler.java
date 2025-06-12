@@ -52,17 +52,11 @@ public class MagellanGraphHandler implements Route {
     try (FileInputStream file = new FileInputStream(fileCheck);
         Workbook workbook = new XSSFWorkbook(file)) {
 
+      Sheet sheet = workbook.getSheetAt(0); // Always use the first sheet
+
+
       System.out.println("✅ Excel file opened successfully");
 
-      String sheetName = FUEL_SHEET_MAP.get(fuelCode);
-      Sheet sheet = workbook.getSheet(sheetName);
-      System.out.println("📄 Accessing sheet: " + sheetName);
-
-      if (sheet == null) {
-        System.err.println("❌ Sheet not found for fuel type: " + fuelCode);
-        response.status(404);
-        return "Sheet not found for fuel type: " + fuelCode;
-      }
 
       int HEADER_ROW = 2;
       int FIRST_DATA_ROW = 3;
@@ -96,7 +90,6 @@ public class MagellanGraphHandler implements Route {
           if (row == null) continue;
 
           String date = extractDate(row.getCell(DATE_COL));
-          System.out.println(date);
           if (date == null || date.isEmpty()) continue;
 
           Map<String, Object> rowData = new LinkedHashMap<>();
@@ -112,7 +105,6 @@ public class MagellanGraphHandler implements Route {
           }
 
           if (hasData) {
-            System.out.println("adding: " + date +  "with data: "+ rowData);
             result.put(date, rowData);
           }
         }
