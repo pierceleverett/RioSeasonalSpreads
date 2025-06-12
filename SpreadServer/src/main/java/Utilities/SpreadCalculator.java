@@ -60,8 +60,6 @@ public static void main(String[] args) throws IOException {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy");
     LocalDate startDate = LocalDate.parse(getFuturesDates(year, startMonth).get("startDate"), formatter);
     LocalDate endDate = LocalDate.parse(getFuturesDates(year, startMonth).get("endDate"), formatter);
-    System.out.println(startDate);
-    System.out.println(endDate);
     String csvFilename = "data/spreads/" + commodity + year +".csv";
     System.out.println(csvFilename);
     Parser csvParser = new Parser(csvFilename, new TrivialCreator(), false);
@@ -95,11 +93,9 @@ public static void main(String[] args) throws IOException {
       if (row.get(0) != "Date") {
         for (int i = 1; i < row.size(); i++){
           if (i == firstIndex && (!date.isBefore(startDate) && !date.isAfter(endDate))) {
-            System.out.println("first index adding: " + date);
             firstMonthValues.put(date.toString().substring(5), Float.parseFloat(row.get(i)));
           }
           if (i == secondIndex && (!date.isBefore(startDate) && !date.isAfter(endDate))) {
-            System.out.println("second index adding: " + date);
             secondMonthValues.put(date.toString().substring(5), Float.parseFloat(row.get(i)));
           }
         }

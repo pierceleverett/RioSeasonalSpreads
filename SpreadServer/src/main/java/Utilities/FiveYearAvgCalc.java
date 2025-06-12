@@ -1,28 +1,30 @@
 package Utilities;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class FiveYearAvgCalc {
 
 
-  public static Map<String, Float> AvgCalc(Map<String, Map<String, Float>> allYears) {
-    Map<String, Float> data2020 = allYears.get("2020");
-    Map<String, Float> data2021 = allYears.get("2021");
-    Map<String, Float> data2022 = allYears.get("2022");
-    Map<String, Float> data2023 = allYears.get("2023");
-    Map<String, Float> data2024 = allYears.get("2024");
+  public static Map<String, Float> AvgCalc
+      (Map<String, Map<String, Float>> allYears, ArrayList<String> yearList) {
+
+    Map<String, Float> year1 = allYears.get(yearList.get(0));
+    Map<String, Float> year2 = allYears.get(yearList.get(1));
+    Map<String, Float> year3 = allYears.get(yearList.get(2));
+    Map<String, Float> year4 = allYears.get(yearList.get(3));
+    Map<String, Float> year5 = allYears.get(yearList.get(4));
     Map<String, Float> avgspread = new LinkedHashMap<>();
 
 
 
 
-    for (String date : data2020.keySet()) {
+    for (String date : year1.keySet()) {
 
-      Float sum = data2020.get(date) + data2021.get(date) + data2022.get(date) + data2023.get(date) + data2024.get(date);
+      Float sum = year1.get(date) + year2.get(date) + year3.get(date) + year4.get(date) + year5.get(date);
       Float avg = sum / 5;
       avgspread.put(date, avg);
-      System.out.println(date + " average: " + avg);
     }
 
     return avgspread;
