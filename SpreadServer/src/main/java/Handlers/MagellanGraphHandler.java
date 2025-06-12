@@ -96,6 +96,7 @@ public class MagellanGraphHandler implements Route {
           if (row == null) continue;
 
           String date = extractDate(row.getCell(DATE_COL));
+          System.out.println(date);
           if (date == null || date.isEmpty()) continue;
 
           Map<String, Object> rowData = new LinkedHashMap<>();
@@ -111,6 +112,7 @@ public class MagellanGraphHandler implements Route {
           }
 
           if (hasData) {
+            System.out.println("adding: " + date +  "with data: "+ rowData);
             result.put(date, rowData);
           }
         }
