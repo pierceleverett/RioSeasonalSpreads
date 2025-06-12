@@ -97,36 +97,53 @@ const App: React.FC = () => {
     }
   }, [startMonth, endMonth, activeTab]);
 
-  const fetchSpreadData = async () => {
-    setIsLoading(true);
-    setError(null);
+const fetchSpreadData = async () => {
+  setIsLoading(true);
+  setError(null);
 
-    const commodityParam = activeTab.split(" ")[0]; // This will return "RBOB", "HO", or "Magellan"
+  const commodityParam = activeTab.split(" ")[0]; // This will return "RBOB", "HO", or "Magellan"
 
-    try {
-      const response = await fetch(
-        `https://rioseasonalspreads-production.up.railway.app/getSpread?commodity=${commodityParam}&startMonth=${startMonth}&endMonth=${endMonth}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch spread data");
-      }
-      const data = await response.json();
-      const mapData = new Map<string, Map<string, number>>(
-        Object.entries(data).map(([year, entries]) => [
-          year,
-          new Map(Object.entries(entries as Record<string, number>)),
-        ])
-      );
-      setSpreadData(mapData);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
-      );
-      setSpreadData(new Map());
-    } finally {
-      setIsLoading(false);
+  try {
+    const response = await fetch(
+      `https://rioseasonalspreads-production.up.railway.app/getSpread?commodity=${commodityParam}&startMonth=${startMonth}&endMonth=${endMonth}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch spread data");
     }
-  };
+    const data = await response.json();
+    const mapData = new Map<string, Map<string, number>>(
+      Object.entries(data).map(([year, entries]) => [
+        year,
+        new Map(Object.entries(entries as Record<string, number>)),
+      ])
+    );
+    setSpreadData(mapData);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "An unknown error occurred");
+    setSpreadData(new Map());
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+const getHistoricalYears = () => {
+  const years = Array.from(spreadData.keys())
+    .filter((key) => !["5YEARAVG", "10YEARAVG"].includes(key))
+    .sort()
+    .map((year) => parseInt(year));
+
+  // Remove the last year (current year) and return the rest
+  return years.length > 1 ? years.slice(0, -1) : [];
+};
+
+const getCurrentYear = () => {
+  const years = Array.from(spreadData.keys())
+    .filter((key) => !["5YEARAVG", "10YEARAVG"].includes(key))
+    .sort()
+    .map((year) => parseInt(year));
+
+  return years.length > 0 ? years[years.length - 1].toString() : null;
+};
 
   const getAllDates = (): string[] => {
     const allDates = new Set<string>();
@@ -167,18 +184,29 @@ const App: React.FC = () => {
     return rangeData;
   };
 
-  const getYearColor = (year: string, opacity = 1): string => {
-    const colors: Record<string, string> = {
-      "2020": `rgba(128, 0, 128, ${opacity})`,
-      "2021": `rgba(128, 128, 128, ${opacity})`,
-      "2022": `rgba(0, 128, 0, ${opacity})`,
-      "2023": `rgba(0, 0, 255, ${opacity})`,
-      "2024": `rgba(255, 165, 0, ${opacity})`,
-      "2025": `rgba(255, 140, 0, ${opacity})`,
-      "5YEARAVG": `rgba(255, 0, 0, ${opacity})`,
-    };
-    return colors[year] || `rgba(0, 0, 0, ${opacity})`;
-  };
+const yearColorMap = new Map<string, string>();
+const colorPalette = [
+  "rgba(0, 123, 255, OPACITY)",
+  "rgba(40, 167, 69, OPACITY)",
+  "rgba(255, 193, 7, OPACITY)",
+  "rgba(220, 53, 69, OPACITY)",
+  "rgba(23, 162, 184, OPACITY)",
+  "rgba(108, 117, 125, OPACITY)",
+];
+
+const getYearColor = (year: string, opacity = 1): string => {
+  if (year === "5YEARAVG") return `rgba(255, 0, 0, ${opacity})`;
+  if (year === "10YEARAVG") return `rgba(0, 0, 0, ${opacity})`;
+
+  if (!yearColorMap.has(year)) {
+    const index = yearColorMap.size % colorPalette.length;
+    const color = colorPalette[index].replace("OPACITY", opacity.toString());
+    yearColorMap.set(year, color);
+  }
+
+  return yearColorMap.get(year)!;
+};
+
 
   const allDates = getAllDates();
   const rangeData = calculateMinMaxRange();
@@ -204,70 +232,74 @@ const App: React.FC = () => {
 
   const datesToDisplay = get30DatesWith2025Data();
 
-  const chartData: ChartData<"line"> = {
-    labels: allDates,
-    datasets: [
-      {
-        label: "Value Range",
-        data: rangeData.max,
-        backgroundColor: "rgba(200, 200, 200, 0.2)",
-        borderColor: "rgba(200, 200, 200, 0)",
-        borderWidth: 0,
+const chartData: ChartData<"line"> = {
+  labels: allDates,
+  datasets: [
+    {
+      label: "Value Range",
+      data: rangeData.max,
+      backgroundColor: "rgba(200, 200, 200, 0.2)",
+      borderColor: "rgba(200, 200, 200, 0)",
+      borderWidth: 0,
+      pointRadius: 0,
+      fill: "+1",
+    },
+    {
+      label: "Min Value Range", // <-- fixed from empty string
+      data: rangeData.min,
+      backgroundColor: "rgba(200, 200, 200, 0.2)",
+      borderColor: "rgba(200, 200, 200, 0)",
+      borderWidth: 0,
+      pointRadius: 0,
+    },
+    ...getHistoricalYears().map((year) => {
+      const yearStr = year.toString();
+      return {
+        label: yearStr,
+        data: allDates.map(
+          (date) => spreadData.get(yearStr)?.get(date) ?? null
+        ),
+        borderColor: getYearColor(yearStr),
+        backgroundColor: getYearColor(yearStr, 0.5),
+        borderWidth: 1,
+        borderDash: [5, 5],
+        tension: 0.1,
         pointRadius: 0,
-        fill: "+1",
-      },
-      {
-        label: "",
-        data: rangeData.min,
-        backgroundColor: "rgba(200, 200, 200, 0.2)",
-        borderColor: "rgba(200, 200, 200, 0)",
-        borderWidth: 0,
-        pointRadius: 0,
-      },
-      ...Array.from(spreadData.entries())
-        .filter(([year]) => parseInt(year) >= 2020 && parseInt(year) <= 2024)
-        .map(([year, yearData]) => ({
-          label: year,
-          data: allDates.map((date) => yearData.get(date) ?? null),
-          borderColor: getYearColor(year),
-          backgroundColor: getYearColor(year, 0.5),
-          borderWidth: 1,
-          borderDash: [5, 5],
-          tension: 0.1,
-          pointRadius: 0,
-        })),
-      ...(spreadData.has("2025")
-        ? [
-            {
-              label: "2025",
-              data: allDates.map(
-                (date) => spreadData.get("2025")?.get(date) ?? null
-              ),
-              borderColor: getYearColor("2025"),
-              backgroundColor: getYearColor("2025", 0.5),
-              borderWidth: 3,
-              tension: 0.1,
-              pointRadius: 0,
-            },
-          ]
-        : []),
-      ...(spreadData.has("5YEARAVG")
-        ? [
-            {
-              label: "5-Year Average",
-              data: allDates.map(
-                (date) => spreadData.get("5YEARAVG")?.get(date) ?? null
-              ),
-              borderColor: getYearColor("5YEARAVG"),
-              backgroundColor: getYearColor("5YEARAVG", 0.5),
-              borderWidth: 3,
-              tension: 0.1,
-              pointRadius: 0,
-            },
-          ]
-        : []),
-    ],
-  };
+      };
+    }),
+    ...(getCurrentYear()
+      ? [
+          {
+            label: getCurrentYear()!,
+            data: allDates.map(
+              (date) => spreadData.get(getCurrentYear()!)?.get(date) ?? null
+            ),
+            borderColor: getYearColor(getCurrentYear()!),
+            backgroundColor: getYearColor(getCurrentYear()!, 0.5),
+            borderWidth: 3,
+            tension: 0.1,
+            pointRadius: 0,
+          },
+        ]
+      : []),
+    ...(spreadData.has("5YEARAVG")
+      ? [
+          {
+            label: "5-Year Average",
+            data: allDates.map(
+              (date) => spreadData.get("5YEARAVG")?.get(date) ?? null
+            ),
+            borderColor: getYearColor("5YEARAVG"),
+            backgroundColor: getYearColor("5YEARAVG", 0.5),
+            borderWidth: 3,
+            tension: 0.1,
+            pointRadius: 0,
+          },
+        ]
+      : []),
+  ],
+};
+
 
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
@@ -358,6 +390,8 @@ const App: React.FC = () => {
       },
     },
   };
+
+  const currentYear = getCurrentYear();
 
   return (
     <header>
@@ -453,7 +487,13 @@ const App: React.FC = () => {
               marginBottom: "20px",
             }}
           >
-            {(["RBOB Spreads", "HO Spreads", "Magellan Inventory"] as ProductType[]).map((tab) => (
+            {(
+              [
+                "RBOB Spreads",
+                "HO Spreads",
+                "Magellan Inventory",
+              ] as ProductType[]
+            ).map((tab) => (
               <button
                 key={tab}
                 style={{
@@ -607,7 +647,7 @@ const App: React.FC = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    Last 30 Days Data - 2025
+                    Last 30 Days Data - {currentYear || "Current Year"}
                   </h2>
                   <table
                     style={{
