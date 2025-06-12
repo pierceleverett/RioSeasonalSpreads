@@ -9,7 +9,7 @@ interface MagellanInventoryProps {
 const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
   const [activeTab, setActiveTab] = useState<"graph" | "upload">("graph");
   const [selectedFuel, setSelectedFuel] = useState("A");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState("");
   const [isLoadingSheet, setIsLoadingSheet] = useState(false);
@@ -29,46 +29,49 @@ const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
     nextDayISO: "",
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      if (selectedFile.type === "application/pdf") {
-        setFile(selectedFile);
-        setUploadMessage("");
-      } else {
-        setUploadMessage("Please upload a PDF file");
-        setFile(null);
-      }
-    }
-  };
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files) {
+    const selectedFiles = Array.from(e.target.files).filter(
+      (file) => file.type === "application/pdf"
+    );
+    setFiles(selectedFiles);
+    setUploadMessage("");
+  }
+};
+
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.type === "application/pdf") {
-        setFile(droppedFile);
-        setUploadMessage("");
-      } else {
-        setUploadMessage("Please upload a PDF file");
-        setFile(null);
-      }
+const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  e.preventDefault();
+  if (e.dataTransfer.files) {
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(
+      (file) => file.type === "application/pdf"
+    );
+
+    if (droppedFiles.length > 0) {
+      setFiles(droppedFiles);
+      setUploadMessage("");
+    } else {
+      setUploadMessage("Please upload PDF files only");
+      setFiles([]);
     }
-  };
+  }
+};
 
-  const handleUpload = async () => {
-    if (!file) {
-      setUploadMessage("Please select PDF files first");
-      return;
-    }
 
-    setIsUploading(true);
-    setUploadMessage("");
+const handleUpload = async () => {
+  if (files.length === 0) {
+    setUploadMessage("Please select PDF files first");
+    return;
+  }
 
+  setIsUploading(true);
+  setUploadMessage("");
+
+  for (const file of files) {
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -83,19 +86,21 @@ const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
 
       if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Failed to upload: ${error}`);
+        throw new Error(`Failed to upload ${file.name}: ${error}`);
       }
-
-      setUploadMessage("Successfully processed file");
-      await handleGetLastDate();
     } catch (error) {
       setUploadMessage(
         error instanceof Error ? error.message : "Upload failed"
       );
-    } finally {
-      setIsUploading(false);
+      break; // Stop on first failure
     }
-  };
+  }
+
+  setUploadMessage("All files processed successfully");
+  await handleGetLastDate();
+  setIsUploading(false);
+};
+
 
   const handleGetLastDate = async () => {
     try {
@@ -168,283 +173,245 @@ const MagellanInventory: React.FC<MagellanInventoryProps> = () => {
     handleGetLastDate();
   }, []);
 
-  return (
-    <div
+return (
+  <div
+    style={{
+      maxWidth: "2000px",
+      margin: "0 auto",
+      padding: "20px",
+      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      width: "100%",
+    }}
+  >
+    <h2
       style={{
-        maxWidth: "2000px",
-        margin: "0 auto",
-        padding: "20px",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        display: "flex", // Add flex
-        flexDirection: "column", // Column layout
-        alignItems: "center", // Center children horizontally
-        width: "100%", // Full width
+        textAlign: "center",
+        color: "#2c3e50",
+        marginBottom: "20px",
       }}
     >
-      <h2
+      Magellan Inventory Data
+    </h2>
+
+    {/* Tab Navigation */}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: "10px",
+        marginBottom: "30px",
+      }}
+    >
+      <button
+        onClick={() => setActiveTab("graph")}
         style={{
-          textAlign: "center",
-          color: "#2c3e50",
-          marginBottom: "20px",
+          padding: "10px 20px",
+          border: "none",
+          borderRadius: "4px",
+          background: activeTab === "graph" ? "#3498db" : "#ecf0f1",
+          color: activeTab === "graph" ? "white" : "#2c3e50",
+          cursor: "pointer",
+          fontWeight: "bold",
+          transition: "all 0.3s ease",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
         }}
       >
-        Magellan Inventory Data
-      </h2>
+        <FaChartLine />
+        Inventory Graphs
+      </button>
+      <button
+        onClick={() => setActiveTab("upload")}
+        style={{
+          padding: "10px 20px",
+          border: "none",
+          borderRadius: "4px",
+          background: activeTab === "upload" ? "#3498db" : "#ecf0f1",
+          color: activeTab === "upload" ? "white" : "#2c3e50",
+          cursor: "pointer",
+          fontWeight: "bold",
+          transition: "all 0.3s ease",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        }}
+      >
+        <FaUpload />
+        Data Upload
+      </button>
+    </div>
 
-      {/* Tab Navigation */}
+    {lastDate.original && (
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: "20px",
+          fontSize: "0.9rem",
+          color: "#666",
+        }}
+      >
+        <div style={{ marginTop: "5px" }}>
+          <strong>Last Uploaded Report:</strong> {lastDate.nextDay}
+        </div>
+      </div>
+    )}
+
+    {activeTab === "graph" ? (
+      <>
+        {/* Fuel Type Selector */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "10px",
+            marginBottom: "20px",
+            flexWrap: "wrap",
+          }}
+        >
+          {["A", "E", "Q", "V", "X", "Y"].map((fuel) => (
+            <button
+              key={fuel}
+              onClick={() => setSelectedFuel(fuel)}
+              style={{
+                padding: "8px 16px",
+                border: "none",
+                borderRadius: "4px",
+                background: selectedFuel === fuel ? "#3498db" : "#ecf0f1",
+                color: selectedFuel === fuel ? "white" : "#2c3e50",
+                cursor: "pointer",
+                fontWeight: "bold",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {{
+                A: "A PREMIUM",
+                E: "E DENATURED",
+                Q: "Q COMMERICAL JET FUEL",
+                V: "V SUB-OCTANE",
+                X: "X #2 ULSD",
+                Y: "Y #1 ULSD",
+              }[fuel]}
+            </button>
+          ))}
+        </div>
+
+        {/* Chart Component */}
+        <MagellanChart fuelType={selectedFuel} />
+      </>
+    ) : (
       <div
         style={{
           display: "flex",
-          justifyContent: "center",
-          gap: "10px",
+          flexDirection: "column",
+          gap: "20px",
           marginBottom: "30px",
         }}
       >
-        <button
-          onClick={() => setActiveTab("graph")}
-          style={{
-            padding: "10px 20px",
-            border: "none",
-            borderRadius: "4px",
-            background: activeTab === "graph" ? "#3498db" : "#ecf0f1",
-            color: activeTab === "graph" ? "white" : "#2c3e50",
-            cursor: "pointer",
-            fontWeight: "bold",
-            transition: "all 0.3s ease",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          <FaChartLine />
-          Inventory Graphs
-        </button>
-        <button
-          onClick={() => setActiveTab("upload")}
-          style={{
-            padding: "10px 20px",
-            border: "none",
-            borderRadius: "4px",
-            background: activeTab === "upload" ? "#3498db" : "#ecf0f1",
-            color: activeTab === "upload" ? "white" : "#2c3e50",
-            cursor: "pointer",
-            fontWeight: "bold",
-            transition: "all 0.3s ease",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          <FaUpload />
-          Data Upload
-        </button>
-      </div>
-
-      {lastDate.original && (
+        {/* File Upload Section */}
         <div
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
           style={{
+            border: "2px dashed #bdc3c7",
+            borderRadius: "8px",
+            padding: "40px",
             textAlign: "center",
-            marginBottom: "20px",
-            fontSize: "0.9rem",
-            color: "#666",
+            cursor: "pointer",
+            backgroundColor: files.length > 0 ? "#e8f5e9" : "#f8f9fa",
+            transition: "all 0.3s ease",
           }}
         >
-          <div style={{ marginTop: "5px" }}>
-            <strong>Last Uploaded Report:</strong> {lastDate.nextDay}
-          </div>
-        </div>
-      )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".pdf"
+            multiple
+            style={{ display: "none" }}
+          />
 
-      {activeTab === "graph" ? (
-        <>
-          {/* Fuel Type Selector */}
-          <div
+          {files.length > 0 ? (
+            <>
+              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                {files.length} file(s) selected:
+              </p>
+              <ul style={{ listStyle: "none", padding: 0 }}>
+                {files.map((f, i) => (
+                  <li key={i}>{f.name}</li>
+                ))}
+              </ul>
+              <p>Click to select different PDFs</p>
+            </>
+          ) : (
+            <>
+              <FaUpload size={48} style={{ marginBottom: "10px" }} />
+              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                Drag & drop PDF files, or click to select
+              </p>
+              <p>Only PDF files are accepted</p>
+            </>
+          )}
+        </div>
+
+        {uploadMessage && (
+          <p
             style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "10px",
-              marginBottom: "20px",
-              flexWrap: "wrap",
+              color: uploadMessage.includes("success")
+                ? "#2e7d32"
+                : "#c62828",
+              textAlign: "center",
             }}
           >
-            {["A", "E", "Q", "V", "X", "Y"].map((fuel) => (
-              <button
-                key={fuel}
-                onClick={() => setSelectedFuel(fuel)}
-                style={{
-                  padding: "8px 16px",
-                  border: "none",
-                  borderRadius: "4px",
-                  background: selectedFuel === fuel ? "#3498db" : "#ecf0f1",
-                  color: selectedFuel === fuel ? "white" : "#2c3e50",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  transition: "all 0.3s ease",
-                }}
-              >
-                {
-                  {
-                    A: "A PREMIUM",
-                    E: "E DENATURED",
-                    Q: "Q COMMERICAL JET FUEL",
-                    V: "V SUB-OCTANE",
-                    X: "X #2 ULSD",
-                    Y: "Y #1 ULSD",
-                  }[fuel]
-                }
-              </button>
-            ))}
-          </div>
+            {uploadMessage}
+          </p>
+        )}
 
-          {/* Chart Component */}
-          <MagellanChart fuelType={selectedFuel} />
-        </>
-      ) : (
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
+            justifyContent: "center",
             gap: "20px",
-            marginBottom: "30px",
+            marginTop: "20px",
           }}
         >
-          {/* File Upload Section */}
-          <div
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
+          <button
+            onClick={handleUpload}
+            disabled={files.length === 0 || isUploading}
             style={{
-              border: "2px dashed #bdc3c7",
-              borderRadius: "8px",
-              padding: "40px",
-              textAlign: "center",
+              padding: "12px 24px",
+              backgroundColor: "#2e7d32",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
               cursor: "pointer",
-              backgroundColor: file ? "#e8f5e9" : "#f8f9fa",
-              transition: "all 0.3s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontWeight: "bold",
+              opacity: files.length === 0 || isUploading ? 0.6 : 1,
             }}
           >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept=".pdf"
-              style={{ display: "none" }}
-            />
-            {file ? (
+            {isUploading ? (
               <>
-                <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
-                  {file.name}
-                </p>
-                <p>Click to select a different PDF</p>
+                <FaSpinner className="spin" />
+                Processing...
               </>
             ) : (
               <>
-                <FaUpload size={48} style={{ marginBottom: "10px" }} />
-                <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
-                  Drag & drop PDF files, or click to select
-                </p>
-                <p>Only PDF files are accepted</p>
+                <FaUpload />
+                Upload Files
               </>
             )}
-          </div>
-
-          {uploadMessage && (
-            <p
-              style={{
-                color: uploadMessage.includes("success")
-                  ? "#2e7d32"
-                  : "#c62828",
-                textAlign: "center",
-              }}
-            >
-              {uploadMessage}
-            </p>
-          )}
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "20px",
-              marginTop: "20px",
-            }}
-          >
-            <button
-              onClick={handleUpload}
-              disabled={!file || isUploading}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#2e7d32",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontWeight: "bold",
-                opacity: !file || isUploading ? 0.6 : 1,
-              }}
-            >
-              {isUploading ? (
-                <>
-                  <FaSpinner className="spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <FaUpload />
-                  Update Data
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={handleGetSheet}
-              disabled={isLoadingSheet}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#1565c0",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontWeight: "bold",
-                opacity: isLoadingSheet ? 0.6 : 1,
-              }}
-            >
-              {isLoadingSheet ? (
-                <>
-                  <FaSpinner className="spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <FaFileExcel />
-                  Get Spreadsheet
-                </>
-              )}
-            </button>
-          </div>
+          </button>
         </div>
-      )}
-
-      <style>
-        {`
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-          .spin {
-            animation: spin 1s linear infinite;
-          }
-        `}
-      </style>
-    </div>
-  );
-};
-
+      </div>
+    )}
+  </div>
+);
+}
 export default MagellanInventory;
