@@ -96,9 +96,8 @@ public class SpreadHandler implements Route {
       System.out.println("5 year avg calculated");
 
       // Add the new year if rolled forward
-      if (shouldRollForward) {
-        allYearSpreads.put("2026", spreadMap6);
-      }
+        allYearSpreads.put(yearList.get(5), spreadMap6);
+
 
       allYearSpreads.put("5YEARAVG", fiveyearavg);
 
