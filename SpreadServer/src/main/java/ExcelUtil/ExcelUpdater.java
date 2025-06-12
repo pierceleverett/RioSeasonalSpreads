@@ -32,7 +32,9 @@ public class ExcelUpdater {
                 if (dateStr == null) throw new IOException("No date found in PDF");
 
                 for (String grade : PDFToExcel.PRODUCT_GRADES) {
-                    File excelFile = new File(EXCEL_DIR + grade + ".xlsx");
+                    String filePrefix = grade.substring(0, 1); // Take the first letter
+                    File excelFile = new File(EXCEL_DIR + filePrefix + ".xlsx");
+                    System.out.println(excelFile);
                     XSSFWorkbook workbook;
                     XSSFSheet sheet;
 
@@ -51,6 +53,26 @@ public class ExcelUpdater {
                     if (values == null || values.length < 6) continue;
 
                     LocalDate newDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+                    System.out.println("adding: " + newDate);
+
+                    boolean dateExists = false;
+                    for (Row row : sheet) {
+                        Cell cell = row.getCell(0);
+                        if (cell != null && cell.getCellType() == CellType.STRING) {
+                            try {
+                                LocalDate existingDate = LocalDate.parse(cell.getStringCellValue(), DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+                                if (existingDate.equals(newDate)) {
+                                    dateExists = true;
+                                    break;
+                                }
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                    if (dateExists) {
+                        System.out.println("Skipping duplicate date: " + newDate + " from file: " + pdfFile.getName());
+                        return;
+                    }
+
                     LocalDate lastDate = getLastDate(sheet);
                     String[] lastThursdayData = getLastThursdayData(sheet, lastDate);
 
@@ -64,12 +86,14 @@ public class ExcelUpdater {
                     }
 
                     insertRow(sheet, newDate, values, false);
+                    System.out.println("added new date");
 
                     try (FileOutputStream fos = new FileOutputStream(excelFile)) {
                         workbook.setForceFormulaRecalculation(true);
                         workbook.write(fos);
                     }
                     workbook.close();
+                    System.out.println("closed workbook");
                 }
             }
         }
