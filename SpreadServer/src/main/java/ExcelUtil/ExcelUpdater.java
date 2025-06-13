@@ -34,7 +34,9 @@ public class ExcelUpdater {
                 for (String grade : PDFToExcel.PRODUCT_GRADES) {
                     String filePrefix = grade.substring(0, 1); // Take the first letter
                     File excelFile = new File(EXCEL_DIR + filePrefix + ".xlsx");
-                    System.out.println(excelFile);
+
+                    System.out.println("Exists: " + excelFile.exists() + ", Last Modified: " + excelFile.lastModified());
+
                     XSSFWorkbook workbook;
                     XSSFSheet sheet;
 
