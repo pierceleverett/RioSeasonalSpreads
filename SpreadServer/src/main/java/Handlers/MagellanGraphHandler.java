@@ -57,6 +57,30 @@ public class MagellanGraphHandler implements Route {
 
       System.out.println("✅ Excel file opened successfully");
 
+      int lastRowWithData = 0;
+      for (int i = sheet.getLastRowNum(); i <= 3998; i++) {
+        Row row = sheet.getRow(i);
+        if (row != null) {
+          Cell cell = row.getCell(1); // second column
+          if (cell != null) {
+            String value = getCellValueAsString(cell);
+            System.out.println("🔍 Row " + (i+1) + ", Col 1: " + value);
+            if (!value.trim().isEmpty()) {
+              lastRowWithData = i + 1;
+            }
+          } else {
+            System.out.println("⚠️ Row " + (i+1) + ", Col 1: null");
+          }
+        } else {
+          System.out.println("⚠️ Row " + (i+1) + " is null");
+        }
+      }
+      System.out.println("✅ Last row with non-empty data in column 1: " + lastRowWithData);
+
+
+
+
+
 
       int HEADER_ROW = 2;
       int FIRST_DATA_ROW = 3;
@@ -108,6 +132,10 @@ public class MagellanGraphHandler implements Route {
             result.put(date, rowData);
           }
         }
+
+
+
+
       } catch (Exception rowEx) {
         System.err.println("❌ Error while processing rows: " + rowEx.getMessage());
         rowEx.printStackTrace();
