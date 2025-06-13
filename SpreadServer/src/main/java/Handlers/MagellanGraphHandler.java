@@ -54,6 +54,10 @@ public class MagellanGraphHandler implements Route {
 
       Sheet sheet = workbook.getSheetAt(0); // Always use the first sheet
 
+      FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+      evaluator.evaluateAll();
+
+
 
       System.out.println("✅ Excel file opened successfully");
 
