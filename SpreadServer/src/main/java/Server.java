@@ -3,6 +3,8 @@ import static spark.Spark.after;
 import static spark.Spark.before;
 import static spark.Spark.options;
 import static spark.Spark.post;
+
+import Handlers.BetweenFuelSpreadHandler;
 import Handlers.LatestUploadHandler;
 import Handlers.MagellanGraphHandler;
 import Handlers.SpreadHandler;
@@ -49,6 +51,7 @@ public final class Server {
       Spark.get("/get-inventory-sheet", new InventoryDownloadHandler());
       Spark.get("/getLatestDate", new LatestUploadHandler());
       Spark.get("/getMagellanData", new MagellanGraphHandler());
+      Spark.get("/getBetweenSpreads", new BetweenFuelSpreadHandler());
 
       Spark.init();
       Spark.awaitInitialization();
