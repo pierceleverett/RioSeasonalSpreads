@@ -16,6 +16,25 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
+  const colorPalette = [
+    "rgba(0, 123, 255, OPACITY)",
+    "rgba(40, 167, 69, OPACITY)",
+    "rgba(255, 193, 7, OPACITY)",
+    "rgba(220, 53, 69, OPACITY)",
+    "rgba(23, 162, 184, OPACITY)",
+    "rgba(108, 117, 125, OPACITY)",
+  ];
+  const yearColorMap = new Map<string, string>();
+  const getYearColor = (year: string, opacity = 1): string => {
+    if (year === "5YEARAVG") return `rgba(255, 0, 0, ${opacity})`;
+    if (!yearColorMap.has(year)) {
+      const index = yearColorMap.size % colorPalette.length;
+      const color = colorPalette[index].replace("OPACITY", opacity.toString());
+      yearColorMap.set(year, color);
+    }
+    return yearColorMap.get(year)!;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -81,6 +100,15 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
 
   const rangeData = calculateMinMaxRange();
 
+  const get30DatesWith2025Data = (): string[] => {
+    const datesWith2025 = allDates.filter((date) =>
+      dataMap.get("2025")?.has(date)
+    );
+    const recent =
+      datesWith2025.length > 0 ? datesWith2025.slice(-30) : allDates.slice(-30);
+    return recent.reverse();
+  };
+
   const chartData = {
     labels: allDates,
     datasets: [
@@ -101,20 +129,16 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
         borderWidth: 0,
         pointRadius: 0,
       },
-      ...["2020", "2021", "2022", "2023", "2024", "2025"].map(
-        (year, index) => ({
-          label: year,
-          data: allDates.map((date) => dataMap.get(year)?.get(date) ?? null),
-          borderColor: `rgba(${50 + index * 30}, ${100 + index * 20}, 200, 1)`,
-          backgroundColor: `rgba(${50 + index * 30}, ${
-            100 + index * 20
-          }, 200, 0.3)`,
-          borderWidth: year === "2025" ? 3 : 1,
-          borderDash: year === "2025" ? [] : [5, 5],
-          tension: 0.1,
-          pointRadius: 0,
-        })
-      ),
+      ...["2020", "2021", "2022", "2023", "2024", "2025"].map((year) => ({
+        label: year,
+        data: allDates.map((date) => dataMap.get(year)?.get(date) ?? null),
+        borderColor: getYearColor(year),
+        backgroundColor: getYearColor(year, 0.5),
+        borderWidth: year === "2025" ? 3 : 1,
+        borderDash: year === "2025" ? [] : [5, 5],
+        tension: 0.1,
+        pointRadius: 0,
+      })),
       ...(dataMap.has("5YEARAVG")
         ? [
             {
@@ -122,8 +146,8 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
               data: allDates.map(
                 (date) => dataMap.get("5YEARAVG")?.get(date) ?? null
               ),
-              borderColor: "rgba(255, 0, 0, 1)",
-              backgroundColor: "rgba(255, 0, 0, 0.3)",
+              borderColor: getYearColor("5YEARAVG"),
+              backgroundColor: getYearColor("5YEARAVG", 0.5),
               borderWidth: 3,
               tension: 0.1,
               pointRadius: 0,
@@ -158,6 +182,8 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
     },
   };
 
+  const datesToDisplay = get30DatesWith2025Data();
+
   return (
     <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
       {isLoading ? (
@@ -173,6 +199,98 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
             <FaUndo /> Reset Zoom
           </button>
           <Line ref={chartRef} data={chartData} options={chartOptions} />
+          <div style={{ marginTop: "20px", overflowX: "auto" }}>
+            <h2 style={{ fontWeight: "bold", marginBottom: "10px" }}>
+              Last 30 Days Data - 2025
+            </h2>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: "14px",
+              }}
+            >
+              <thead>
+                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                  <th
+                    style={{
+                      padding: "8px",
+                      textAlign: "left",
+                      borderBottom: "1px solid #ddd",
+                    }}
+                  >
+                    Date
+                  </th>
+                  {[
+                    "2020",
+                    "2021",
+                    "2022",
+                    "2023",
+                    "2024",
+                    "2025",
+                    "5YEARAVG",
+                  ].map((year) => (
+                    <th
+                      key={year}
+                      style={{
+                        padding: "8px",
+                        textAlign: "right",
+                        borderBottom: "1px solid #ddd",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {year}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {datesToDisplay.map((date, index) => (
+                  <tr
+                    key={index}
+                    style={{
+                      backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
+                      fontWeight: dataMap.get("2025")?.has(date)
+                        ? "bold"
+                        : "normal",
+                    }}
+                  >
+                    <td
+                      style={{ padding: "8px", borderBottom: "1px solid #eee" }}
+                    >
+                      {date}
+                    </td>
+                    {[
+                      "2020",
+                      "2021",
+                      "2022",
+                      "2023",
+                      "2024",
+                      "2025",
+                      "5YEARAVG",
+                    ].map((year) => {
+                      const value = dataMap.get(year)?.get(date);
+                      return (
+                        <td
+                          key={year}
+                          style={{
+                            padding: "8px",
+                            textAlign: "right",
+                            borderBottom: "1px solid #eee",
+                            fontFamily: "'Courier New', Courier, monospace",
+                            fontWeight: year === "2025" ? "bold" : "normal",
+                            color: year === "2025" ? "#2c3e50" : "inherit",
+                          }}
+                        >
+                          {value?.toFixed(4) ?? "N/A"}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </div>
