@@ -104,11 +104,14 @@ const App: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (startMonth && endMonth) {
-      fetchSpreadData();
-    }
-  }, [startMonth, endMonth, activeTab]);
+
+useEffect(() => {
+  const tabsThatUseGetSpread = ["RBOB Spreads", "HO Spreads"];
+  if (tabsThatUseGetSpread.includes(activeTab) && startMonth && endMonth) {
+    fetchSpreadData();
+  }
+}, [startMonth, endMonth, activeTab]);
+
 
 const fetchSpreadData = async () => {
   setIsLoading(true);
