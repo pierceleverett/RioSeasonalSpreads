@@ -5,7 +5,7 @@ import type { ChartOptions } from "chart.js";
 import { FaUndo } from "react-icons/fa";
 
 interface CsvSpreadChartProps {
-  type: "AtoNap" | "DtoA";
+  type: "AtoNap" | "DtoA" | "91Chi" | "ChiCBOB";
 }
 
 const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
@@ -174,7 +174,18 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
       },
       title: {
         display: true,
-        text: `${type} Spread Chart`,
+
+        text:
+          type === "91Chi"
+            ? "91 Chi Less USGC 93 + Transport"
+            : type === "ChiCBOB"
+            ? "BCX RBOB - BCX CBOB"
+            : type === "AtoNap"
+            ? "A to Nap Spread"
+            : type === "DtoA"
+            ? "D to A Spread"
+            : "Spread Chart",
+
         font: {
           size: 18,
           weight: "bold",

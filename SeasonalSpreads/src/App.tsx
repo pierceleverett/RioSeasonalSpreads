@@ -46,7 +46,10 @@ type ProductType =
   | "HO Spreads"
   | "Magellan Inventory"
   | "A to Nap"
-  | "D to A";
+  | "D to A"
+  | "91 Chi"
+  | "Chi CBOB vs RBOB";
+
 
 type MonthCode =
   | "F"
@@ -504,6 +507,8 @@ const chartData: ChartData<"line"> = {
                 "Magellan Inventory",
                 "A to Nap",
                 "D to A",
+                "91 Chi",
+                "Chi CBOB vs RBOB",
               ] as ProductType[]
             ).map((tab) => (
               <button
@@ -527,9 +532,19 @@ const chartData: ChartData<"line"> = {
 
           {activeTab === "Magellan Inventory" ? (
             <MagellanInventory />
-          ) : activeTab === "A to Nap" || activeTab === "D to A" ? (
+          ) : ["A to Nap", "D to A", "91 Chi", "Chi CBOB vs RBOB"].includes(
+              activeTab
+            ) ? (
             <CsvSpreadChart
-              type={activeTab === "A to Nap" ? "AtoNap" : "DtoA"}
+              type={
+                activeTab === "A to Nap"
+                  ? "AtoNap"
+                  : activeTab === "D to A"
+                  ? "DtoA"
+                  : activeTab === "91 Chi"
+                  ? "91Chi"
+                  : "ChiCBOB"
+              }
             />
           ) : (
             <>
