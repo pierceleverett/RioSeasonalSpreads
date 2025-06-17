@@ -40,7 +40,7 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
       setIsLoading(true);
       try {
         const res = await fetch(
-          `https://rioseasonalspreads-production.up.railway.app/getBetweenSpreads?type=${type}`
+          `https://rioseasonalspreads-production.up.railway.app/getMagellanData?type=${type}`
         );
         const json = await res.json();
         const parsed = new Map<string, Map<string, number>>(
@@ -198,7 +198,15 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
           >
             <FaUndo /> Reset Zoom
           </button>
-          <Line ref={chartRef} data={chartData} options={chartOptions} />
+          <div
+            style={{
+              width: "100%",
+              aspectRatio: "2 / 1",
+              position: "relative",
+            }}
+          >
+            <Line ref={chartRef} data={chartData} options={chartOptions} />
+          </div>
           <div style={{ marginTop: "20px", overflowX: "auto" }}>
             <h2 style={{ fontWeight: "bold", marginBottom: "10px" }}>
               Last 30 Days Data - 2025
