@@ -21,10 +21,6 @@ public class BetweenFuelSpreadHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
     String type = request.queryParams("type");
     System.out.println(type);
-    if (type == null || (!type.equals("AtoNap") && !type.equals("DtoA"))) {
-      response.status(400);
-      return "{\"error\":\"Missing or invalid 'type' parameter. Use 'AtoNap' or 'DtoA'.\"}";
-    }
 
     String filePath = "data/spreads/" + type + ".csv";
     System.out.println(filePath);
