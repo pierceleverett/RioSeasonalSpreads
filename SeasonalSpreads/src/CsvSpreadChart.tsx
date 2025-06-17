@@ -40,7 +40,7 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
       setIsLoading(true);
       try {
         const res = await fetch(
-          `https://rioseasonalspreads-production.up.railway.app/getMagellanData?type=${type}`
+          `https://rioseasonalspreads-production.up.railway.app/getBetweenSpreads?type=${type}`
         );
         const json = await res.json();
         const parsed = new Map<string, Map<string, number>>(
