@@ -25,6 +25,9 @@ import type { ChartOptions, ChartData } from "chart.js";
 
 import MagellanInventory from "./MagellanInventory";
 
+import CsvSpreadChart from "./CsvSpreadChart";
+
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -37,7 +40,14 @@ ChartJS.register(
   zoomPlugin
 );
 
-type ProductType = "RBOB Spreads" | "HO Spreads" | "Magellan Inventory";
+
+type ProductType =
+  | "RBOB Spreads"
+  | "HO Spreads"
+  | "Magellan Inventory"
+  | "A to Nap"
+  | "D to A";
+
 type MonthCode =
   | "F"
   | "G"
@@ -492,6 +502,8 @@ const chartData: ChartData<"line"> = {
                 "RBOB Spreads",
                 "HO Spreads",
                 "Magellan Inventory",
+                "A to Nap",
+                "D to A",
               ] as ProductType[]
             ).map((tab) => (
               <button
@@ -515,6 +527,10 @@ const chartData: ChartData<"line"> = {
 
           {activeTab === "Magellan Inventory" ? (
             <MagellanInventory />
+          ) : activeTab === "A to Nap" || activeTab === "D to A" ? (
+            <CsvSpreadChart
+              type={activeTab === "A to Nap" ? "AtoNap" : "DtoA"}
+            />
           ) : (
             <>
               <div
