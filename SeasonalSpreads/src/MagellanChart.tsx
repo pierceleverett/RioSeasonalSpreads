@@ -32,57 +32,69 @@ interface MagellanChartProps {
   fuelType: string;
 }
 
+const DATA_OPTIONS = [
+  { value: "System Inventory", label: "System Inventory" },
+  { value: "MPL Racks Only", label: "MPL Racks Only" },
+  {
+    value: "Offlines and MPL Racks 7-Day Average",
+    label: "Offlines & MPL Racks 7-Day Avg",
+  },
+  { value: "Receipts 7-Day Average", label: "Receipts 7-Day Avg" },
+];
+
 const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
   const [chartData, setChartData] = useState<Map<string, Map<string, number>>>(
     new Map()
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedDataOption, setSelectedDataOption] = useState(
+    DATA_OPTIONS[0].value
+  );
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
   useEffect(() => {
     fetchMagellanData();
-    // eslint-disable-next-line
-  }, [fuelType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fuelType, selectedDataOption]);
 
-  const fetchMagellanData = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `https://rioseasonalspreads-production.up.railway.app/getMagellanData?fuel=${fuelType}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch Magellan inventory data");
-      }
-      const data = await response.json();
-
-      const yearMap: Map<string, Map<string, number>> = new Map();
-
-      Object.entries(data).forEach(([date, entries]) => {
-        Object.entries(entries as Record<string, number>).forEach(
-          ([year, value]) => {
-            const normalizedYear = year.includes(".")
-              ? String(parseInt(year))
-              : year;
-            if (!yearMap.has(normalizedYear))
-              yearMap.set(normalizedYear, new Map());
-            yearMap.get(normalizedYear)!.set(date, value);
-          }
-        );
-      });
-
-      setChartData(yearMap);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
-      );
-      setChartData(new Map());
-    } finally {
-      setIsLoading(false);
+const fetchMagellanData = async () => {
+  setIsLoading(true);
+  setError(null);
+  try {
+    const response = await fetch(
+      `http://localhost:8080/getMagellanData?fuel=${fuelType}&data=${encodeURIComponent(
+        selectedDataOption
+      )}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch Magellan inventory data");
     }
-  };
+    const data = await response.json();
+
+    const yearMap: Map<string, Map<string, number>> = new Map();
+
+    // Transform the new API structure
+    Object.entries(data).forEach(([date, yearValues]) => {
+      Object.entries(yearValues as Record<string, number>).forEach(
+        ([year, value]) => {
+          if (!yearMap.has(year)) {
+            yearMap.set(year, new Map());
+          }
+          yearMap.get(year)!.set(date, value);
+        }
+      );
+    });
+
+    setChartData(yearMap);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "An unknown error occurred");
+    setChartData(new Map());
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const getAllDates = (): string[] => {
     const allDatesSet = new Set<string>();
@@ -150,90 +162,90 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
     }
   };
 
-  const data = {
-    labels: allDates,
-    datasets: [
-      // Range fill
-      {
-        label: "Value Range",
-        data: rangeData.max,
-        backgroundColor: "rgba(200, 200, 200, 0.2)",
-        borderColor: "rgba(200, 200, 200, 0)",
-        borderWidth: 0,
-        pointRadius: 0,
-        fill: "+1",
-      },
-      {
-        label: "",
-        data: rangeData.min,
-        backgroundColor: "rgba(200, 200, 200, 0.2)",
-        borderColor: "rgba(200, 200, 200, 0)",
-        borderWidth: 0,
-        pointRadius: 0,
-      },
-      // Years 2020-2024
-      ...Array.from(chartData.entries())
-        .filter(([year]) => parseInt(year) >= 2020 && parseInt(year) <= 2024)
-        .map(([year, dateMap]) => ({
-          label: year,
-          data: allDates.map((date) => dateMap.get(date) ?? null),
-          borderColor: getYearColor(year),
-          backgroundColor: getYearColor(year, 0.5),
-          borderWidth: 1,
-          borderDash: [5, 5],
-          tension: 0.1,
+    const data = {
+      labels: getAllDates(),
+      datasets: [
+        // Range fill
+        {
+          label: "Value Range",
+          data: calculateMinMaxRange().max,
+          backgroundColor: "rgba(200, 200, 200, 0.2)",
+          borderColor: "rgba(200, 200, 200, 0)",
+          borderWidth: 0,
           pointRadius: 0,
-        })),
-      // 2025
-      ...(chartData.has("2025")
-        ? [
-            {
-              label: "2025",
-              data: allDates.map(
-                (date) => chartData.get("2025")?.get(date) ?? null
-              ),
-              borderColor: getYearColor("2025"),
-              backgroundColor: getYearColor("2025", 0.5),
-              borderWidth: 3,
-              tension: 0.1,
-              pointRadius: 0,
-            },
-          ]
-        : []),
-      // 5-Year Avg
-      ...(chartData.has("5YEARAVG")
-        ? [
-            {
-              label: "5-Year Average",
-              data: allDates.map(
-                (date) => chartData.get("5YEARAVG")?.get(date) ?? null
-              ),
-              borderColor: getYearColor("5YEARAVG"),
-              backgroundColor: getYearColor("5YEARAVG", 0.5),
-              borderWidth: 3,
-              tension: 0.1,
-              pointRadius: 0,
-            },
-          ]
-        : []),
-      // 10-Year Avg
-      ...(chartData.has("10YEARAVG")
-        ? [
-            {
-              label: "10-Year Average",
-              data: allDates.map(
-                (date) => chartData.get("10YEARAVG")?.get(date) ?? null
-              ),
-              borderColor: getYearColor("10YEARAVG"),
-              backgroundColor: getYearColor("10YEARAVG", 0.5),
-              borderWidth: 3,
-              tension: 0.1,
-              pointRadius: 0,
-            },
-          ]
-        : []),
-    ],
-  };
+          fill: "+1",
+        },
+        {
+          label: "",
+          data: calculateMinMaxRange().min,
+          backgroundColor: "rgba(200, 200, 200, 0.2)",
+          borderColor: "rgba(200, 200, 200, 0)",
+          borderWidth: 0,
+          pointRadius: 0,
+        },
+        // Years 2020-2024 (dotted lines)
+        ...Array.from(chartData.entries())
+          .filter(([year]) => parseInt(year) >= 2020 && parseInt(year) <= 2024)
+          .map(([year, dateMap]) => ({
+            label: year,
+            data: getAllDates().map((date) => dateMap.get(date) ?? null),
+            borderColor: getYearColor(year),
+            backgroundColor: getYearColor(year, 0.5),
+            borderWidth: 1,
+            borderDash: [5, 5],
+            tension: 0.1,
+            pointRadius: 0,
+          })),
+        // 2025 (bold line)
+        ...(chartData.has("2025")
+          ? [
+              {
+                label: "2025",
+                data: getAllDates().map(
+                  (date) => chartData.get("2025")?.get(date) ?? null
+                ),
+                borderColor: getYearColor("2025"),
+                backgroundColor: getYearColor("2025", 0.5),
+                borderWidth: 3,
+                tension: 0.1,
+                pointRadius: 0,
+              },
+            ]
+          : []),
+        // 5-Year Avg
+        ...(chartData.has("5YEARAVG")
+          ? [
+              {
+                label: "5-Year Average",
+                data: getAllDates().map(
+                  (date) => chartData.get("5YEARAVG")?.get(date) ?? null
+                ),
+                borderColor: getYearColor("5YEARAVG"),
+                backgroundColor: getYearColor("5YEARAVG", 0.5),
+                borderWidth: 3,
+                tension: 0.1,
+                pointRadius: 0,
+              },
+            ]
+          : []),
+        // 10-Year Avg
+        ...(chartData.has("10YEARAVG")
+          ? [
+              {
+                label: "10-Year Average",
+                data: getAllDates().map(
+                  (date) => chartData.get("10YEARAVG")?.get(date) ?? null
+                ),
+                borderColor: getYearColor("10YEARAVG"),
+                backgroundColor: getYearColor("10YEARAVG", 0.5),
+                borderWidth: 3,
+                tension: 0.1,
+                pointRadius: 0,
+              },
+            ]
+          : []),
+      ],
+    };
 
   const options: ChartOptions<"line"> = {
     responsive: true,
@@ -261,7 +273,7 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
       },
       title: {
         display: true,
-        text: `${fuelType} Inventory Analysis`,
+        text: `${fuelType} ${selectedDataOption}`,
         font: {
           size: 18,
           weight: "bold",
@@ -355,10 +367,41 @@ const MagellanChart: React.FC<MagellanChartProps> = ({ fuelType }) => {
         display: "flex",
         flexDirection: "column",
         gap: "20px",
-        alignItems: "center", // Add this to center children
-        width: "100%", // Ensure full width
       }}
     >
+      {/* Add the dropdown selector */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "20px",
+          alignItems: "center",
+        }}
+      >
+        <label htmlFor="data-select" style={{ fontWeight: "bold" }}>
+          Data View:
+        </label>
+        <select
+          id="data-select"
+          value={selectedDataOption}
+          onChange={(e) => setSelectedDataOption(e.target.value)}
+          style={{
+            padding: "8px 12px",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+            backgroundColor: "#fff",
+            fontSize: "16px",
+            minWidth: "250px",
+          }}
+        >
+          {DATA_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="graph-container" style={{ height: "800px" }}>
         {isLoading ? (
           <p style={{ textAlign: "center" }}>Loading inventory data...</p>
