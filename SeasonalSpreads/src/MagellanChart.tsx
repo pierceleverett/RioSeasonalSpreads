@@ -63,7 +63,7 @@ const fetchMagellanData = async () => {
   setError(null);
   try {
     const response = await fetch(
-      `http://localhost:8080/getMagellanData?fuel=${fuelType}&data=${encodeURIComponent(
+      `https://rioseasonalspreads-production.up.railway.app/getMagellanData?fuel=${fuelType}&data=${encodeURIComponent(
         selectedDataOption
       )}`
     );
