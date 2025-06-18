@@ -11,225 +11,166 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class MagellanGraphHandler implements Route {
 
-  private static final Map<String, String> FUEL_SHEET_MAP = Map.of(
-      "A", "A PREMIUM UNLEADED GASOLINE",
-      "E", "E DENATURED FUEL ETHANOL",
-      "Q", "Q COMMERCIAL JET FUEL",
-      "V", "V SUB OCTANE UNL GASOLINE",
-      "X", "X #2 ULSD",
-      "Y", "Y #1 ULSD FUEL OIL"
+  private static final List<String> YEARS = Arrays.asList(
+      "2014", "2015", "2016", "2017", "2018", "2019",
+      "2020", "2021", "2022", "2023", "2024", "2025"
   );
 
   @Override
   public Object handle(Request request, Response response) {
-    System.out.println("➡️  /getMagellanData endpoint hit");
+    String fuel = request.queryParams("fuel");
+    String dataHeader = request.queryParams("data");
 
-    String fuelCode = request.queryParams("fuel");
-    System.out.println("🔍 Fuel code received: " + fuelCode);
-
-    if (fuelCode == null || !FUEL_SHEET_MAP.containsKey(fuelCode)) {
-      System.err.println("❌ Invalid fuel type: " + fuelCode);
+    if (fuel == null || dataHeader == null) {
       response.status(400);
-      return "Invalid fuel type. Supported types: " + FUEL_SHEET_MAP.keySet();
+      return "Missing required query parameters: 'fuel' and 'data'";
     }
 
-
-    String filePath = "data/" + fuelCode + ".xlsx";
-    File fileCheck = new File(filePath);
-    System.out.println("📄 Checking file: " + fileCheck.getAbsolutePath());
-
-    if (!fileCheck.exists() || !fileCheck.isFile() || fileCheck.length() == 0) {
-      System.err.println("❌ Excel file not found or is empty.");
+    String filePath = "data/" + fuel + ".xlsx";
+    File file = new File(filePath);
+    if (!file.exists()) {
       response.status(404);
-      return "Excel file not found or is empty at: " + fileCheck.getAbsolutePath();
+      return "Excel file not found: " + filePath;
     }
 
-    try (FileInputStream file = new FileInputStream(fileCheck);
-        Workbook workbook = new XSSFWorkbook(file)) {
+    try (FileInputStream fis = new FileInputStream(file);
+        Workbook workbook = new XSSFWorkbook(fis)) {
 
-      Sheet sheet = workbook.getSheetAt(0); // Always use the first sheet
-
-      FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
-      evaluator.evaluateAll();
-
-
-
-      System.out.println("✅ Excel file opened successfully");
-
-      int lastRowWithData = 0;
-      for (int i = sheet.getLastRowNum(); i <= 3998; i++) {
-        Row row = sheet.getRow(i);
-        if (row != null) {
-          Cell cell = row.getCell(1); // second column
-          if (cell != null) {
-            String value = getCellValueAsString(cell);
-            System.out.println("🔍 Row " + (i+1) + ", Col 1: " + value);
-            if (!value.trim().isEmpty()) {
-              lastRowWithData = i + 1;
-            }
-          } else {
-            System.out.println("⚠️ Row " + (i+1) + ", Col 1: null");
-          }
-        } else {
-          System.out.println("⚠️ Row " + (i+1) + " is null");
-        }
-      }
-      System.out.println("✅ Last row with non-empty data in column 1: " + lastRowWithData);
-
-
-
-
-
-
-      int HEADER_ROW = 2;
-      int FIRST_DATA_ROW = 3;
-      int DATE_COL = 8;
-      int FIRST_DATA_COL = 9;
-
-      Row headerRow = sheet.getRow(HEADER_ROW);
+      Sheet sheet = workbook.getSheetAt(0);
+      Row headerRow = sheet.getRow(0);
       if (headerRow == null) {
-        System.err.println("❌ Header row not found.");
         response.status(500);
-        return "Header row not found in sheet";
+        return "Header row not found.";
       }
 
-      System.out.println("🔍 Reading header row...");
-      Map<Integer, String> headers = new LinkedHashMap<>();
-      for (int j = FIRST_DATA_COL; j <= headerRow.getLastCellNum(); j++) {
-        Cell cell = headerRow.getCell(j);
-        if (cell != null) {
-          String header = getCellValueAsString(cell);
-          if (header != null && !header.isEmpty()) {
-            headers.put(j, header.trim());
+      int dataColIndex = -1;
+      for (Cell cell : headerRow) {
+        if (cell.getStringCellValue().trim().equalsIgnoreCase(dataHeader.trim())) {
+          dataColIndex = cell.getColumnIndex();
+          break;
+        }
+      }
+
+      if (dataColIndex == -1) {
+        response.status(400);
+        return "Data column '" + dataHeader + "' not found.";
+      }
+
+      Map<String, Map<String, Double>> result = initializeDateMap();
+
+      for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+        Row row = sheet.getRow(i);
+        if (row == null) continue;
+
+        String mmdd = extractDate(row.getCell(0));
+        if (mmdd == null || mmdd.equals("02/29")) continue;
+
+        Map<String, Double> dateMap = result.get(mmdd);
+        if (dateMap == null) continue;
+
+        Cell cell = row.getCell(dataColIndex);
+        Double val = getNumericValue(cell);
+        if (val != null) {
+          String year = extractYear(row.getCell(0));
+          if (YEARS.contains(year)) {
+            dateMap.put(year, val);
           }
         }
       }
 
-      System.out.println("🔍 Iterating over data rows...");
-      Map<String, Map<String, Object>> result = new LinkedHashMap<>();
-      try {
-        for (int i = FIRST_DATA_ROW; i <= sheet.getLastRowNum(); i++) {
-          Row row = sheet.getRow(i);
-          if (row == null) continue;
-
-          String date = extractDate(row.getCell(DATE_COL));
-          if (date == null || date.isEmpty()) continue;
-
-          Map<String, Object> rowData = new LinkedHashMap<>();
-          boolean hasData = false;
-
-          for (Map.Entry<Integer, String> entry : headers.entrySet()) {
-            int colIndex = entry.getKey();
-            String header = entry.getValue();
-            Cell dataCell = row.getCell(colIndex);
-            Object value = getCellValue(dataCell);
-            rowData.put(header, value);
-            if (value != null) hasData = true;
-          }
-
-          if (hasData) {
-            result.put(date, rowData);
-          }
-        }
-
-
-
-
-      } catch (Exception rowEx) {
-        System.err.println("❌ Error while processing rows: " + rowEx.getMessage());
-        rowEx.printStackTrace();
-        response.status(500);
-        return "Error while processing Excel rows: " + rowEx.getMessage();
+      for (Map<String, Double> values : result.values()) {
+        values.put("5YEARAVG", average(values, Arrays.asList("2020", "2021", "2022", "2023", "2024")));
+        values.put("10YEARAVG", average(values, YEARS.subList(0, 11)));
       }
 
-      System.out.println("✅ Finished processing rows. Total entries: " + result.size());
       response.type("application/json");
       return new Gson().toJson(result);
 
     } catch (IOException e) {
-      System.err.println("❌ IO Error: " + e.getMessage());
-      e.printStackTrace();
       response.status(500);
       return "Error reading Excel file: " + e.getMessage();
     } catch (Exception e) {
-      System.err.println("❌ Unexpected Error: " + e.getMessage());
-      e.printStackTrace();
       response.status(500);
       return "Internal server error: " + e.getMessage();
     }
   }
 
-  private String extractDate(Cell dateCell) {
-    if (dateCell == null) return null;
-    switch (dateCell.getCellType()) {
-      case STRING:
-        return dateCell.getStringCellValue().trim();
-      case NUMERIC:
-        return DateUtil.isCellDateFormatted(dateCell)
-            ? new SimpleDateFormat("MM/dd").format(dateCell.getDateCellValue())
-            : String.valueOf(dateCell.getNumericCellValue());
-      case FORMULA:
-        switch (dateCell.getCachedFormulaResultType()) {
-          case STRING:
-            return dateCell.getStringCellValue().trim();
-          case NUMERIC:
-            return DateUtil.isCellDateFormatted(dateCell)
-                ? new SimpleDateFormat("MM/dd").format(dateCell.getDateCellValue())
-                : String.valueOf(dateCell.getNumericCellValue());
-        }
-      default:
-        return null;
+  private Map<String, Map<String, Double>> initializeDateMap() {
+    Map<String, Map<String, Double>> map = new LinkedHashMap<>();
+    Calendar cal = Calendar.getInstance();
+    cal.set(2000, Calendar.JANUARY, 1);
+    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd");
+
+    for (int i = 0; i < 366; i++) {
+      String mmdd = sdf.format(cal.getTime());
+      if (!mmdd.equals("02/29")) {
+        Map<String, Double> yearMap = new HashMap<>();
+        for (String year : YEARS) yearMap.put(year, null);
+        yearMap.put("5YEARAVG", null);
+        yearMap.put("10YEARAVG", null);
+        map.put(mmdd, yearMap);
+      }
+      cal.add(Calendar.DAY_OF_YEAR, 1);
     }
+    return map;
   }
 
-  private Object getCellValue(Cell cell) {
+  private String extractDate(Cell cell) {
     if (cell == null) return null;
-    switch (cell.getCellType()) {
-      case STRING:
-        return cell.getStringCellValue().trim();
-      case NUMERIC:
-        return DateUtil.isCellDateFormatted(cell) ? cell.getDateCellValue() : cell.getNumericCellValue();
-      case BOOLEAN:
-        return cell.getBooleanCellValue();
-      case FORMULA:
-        switch (cell.getCachedFormulaResultType()) {
-          case STRING:
-            return cell.getStringCellValue().trim();
-          case NUMERIC:
-            return DateUtil.isCellDateFormatted(cell) ? cell.getDateCellValue() : cell.getNumericCellValue();
-          case BOOLEAN:
-            return cell.getBooleanCellValue();
+    try {
+      if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+        return new SimpleDateFormat("MM/dd").format(cell.getDateCellValue());
+      } else if (cell.getCellType() == CellType.STRING) {
+        String[] parts = cell.getStringCellValue().split("/");
+        if (parts.length >= 2) {
+          return String.format("%02d/%02d", Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
         }
-      default:
-        return null;
-    }
+      }
+    } catch (Exception ignored) {}
+    return null;
   }
 
-  private String getCellValueAsString(Cell cell) {
+  private String extractYear(Cell cell) {
     if (cell == null) return null;
-    switch (cell.getCellType()) {
-      case STRING:
-        return cell.getStringCellValue();
-      case NUMERIC:
-        return DateUtil.isCellDateFormatted(cell)
-            ? new SimpleDateFormat("MM/dd").format(cell.getDateCellValue())
-            : String.valueOf(cell.getNumericCellValue());
-      case FORMULA:
-        switch (cell.getCachedFormulaResultType()) {
-          case STRING:
-            return cell.getStringCellValue();
-          case NUMERIC:
-            return DateUtil.isCellDateFormatted(cell)
-                ? new SimpleDateFormat("MM/dd").format(cell.getDateCellValue())
-                : String.valueOf(cell.getNumericCellValue());
+    try {
+      if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
+        return new SimpleDateFormat("yyyy").format(cell.getDateCellValue());
+      } else if (cell.getCellType() == CellType.STRING) {
+        String[] parts = cell.getStringCellValue().split("/");
+        if (parts.length == 3) return parts[2];
+      }
+    } catch (Exception ignored) {}
+    return null;
+  }
+
+  private Double getNumericValue(Cell cell) {
+    if (cell == null) return null;
+    try {
+      if (cell.getCellType() == CellType.NUMERIC) {
+        return cell.getNumericCellValue();
+      } else if (cell.getCellType() == CellType.FORMULA) {
+        if (cell.getCachedFormulaResultType() == CellType.NUMERIC) {
+          return cell.getNumericCellValue();
         }
-      default:
-        return null;
+      }
+    } catch (Exception ignored) {}
+    return null;
+  }
+
+  private Double average(Map<String, Double> values, List<String> keys) {
+    double sum = 0;
+    int count = 0;
+    for (String key : keys) {
+      Double val = values.get(key);
+      if (val != null) {
+        sum += val;
+        count++;
+      }
     }
+    return count > 0 ? sum / count : null;
   }
 }
