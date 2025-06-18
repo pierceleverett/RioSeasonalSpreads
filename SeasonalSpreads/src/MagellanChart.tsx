@@ -154,7 +154,6 @@ const fetchMagellanData = async () => {
   };
 
   const allDates = getAllDates();
-  const rangeData = calculateMinMaxRange();
 
   const handleResetZoom = () => {
     if (chartRef.current) {
