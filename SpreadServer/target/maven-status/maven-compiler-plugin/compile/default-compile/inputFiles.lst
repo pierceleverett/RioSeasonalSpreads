@@ -1,6 +1,7 @@
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Utilities/SpreadCalculator.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Handlers/InventoryDownloadHandler.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Utilities/Parser/Parser.java
+/Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Handlers/BetweenFuelSpreadHandler.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/Handlers/MagellanGraphHandler.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/ExcelUtil/PDFToExcel.java
 /Users/pierceleverett/RioSeasonalSpreads/SpreadServer/src/main/java/ExcelUtil/ExcelUpdater.java

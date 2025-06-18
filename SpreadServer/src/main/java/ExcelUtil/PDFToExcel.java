@@ -37,59 +37,55 @@ public class PDFToExcel {
     };
 
     public static void main(String[] args) throws IOException {
-        String pdfDirectory = "src/data/pdf/";
-        String outputExcelFile = "src/data/Fuel_Inventory_Report.xlsx";
+        // Define the path to your test PDF file
+        String pdfPath = "data/pdfToAdd/ReportViewer (4).pdf"; // Adjust this path as needed
 
-        // Map to hold all data: {ProductGrade → {Date → Values}}
-        Map<String, Map<String, String[]>> productData = new LinkedHashMap<>();
-        for (String grade : PRODUCT_GRADES) {
-            productData.put(grade, new LinkedHashMap<>());
+        File pdfFile = new File(pdfPath);
+        if (!pdfFile.exists()) {
+            System.out.println("File not found: " + pdfPath);
+            return;
         }
 
-        File dir = new File(pdfDirectory);
-        File[] pdfFiles = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".pdf"));
+        try (PDDocument document = PDDocument.load(pdfFile)) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(document);
 
-        if (pdfFiles != null) {
-            for (File pdfFile : pdfFiles) {
-                try {
-                    System.out.println("Processing: " + pdfFile.getName());
-                    processPDF(pdfFile, productData);
-                } catch (IOException e) {
-                    System.err.println("Error processing: " + pdfFile.getName());
-                    e.printStackTrace();
+            String date = extractDate(text);
+            System.out.println("Extracted Date: " + (date != null ? date : "Not found"));
+
+            for (String grade : PRODUCT_GRADES) {
+                String[] values = extractProductData(text, grade);
+                System.out.println("Grade: " + grade);
+                if (values != null) {
+                    System.out.println("Values: " + Arrays.toString(values));
+                } else {
+                    System.out.println("No data found.");
                 }
             }
-
-            // Write all data to a single Excel file with multiple sheets
-            writeToExcel(outputExcelFile, productData);
-            System.out.println("Excel file generated: " + outputExcelFile);
-            if (System.getProperty("os.name").toLowerCase().contains("win")) {
-                Runtime.getRuntime().exec("cmd /c start \"\" \"" + outputExcelFile + "\"");
-            }
-        } else {
-            System.out.println("No PDFs found in: " + pdfDirectory);
         }
     }
 
-    private static void processPDF(File pdfFile, Map<String, Map<String, String[]>> productData) throws IOException {
+
+    public static Map<String, String[]> processPDF(File pdfFile) throws IOException {
+        Map<String, String[]> result = new LinkedHashMap<>();
         try (PDDocument document = PDDocument.load(pdfFile)) {
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(document);
             String date = extractDate(text);
-
             if (date == null) {
-                System.err.println("Date not found in: " + pdfFile.getName());
-                return;
+                throw new IOException("Date not found in: " + pdfFile.getName());
             }
-
             for (String grade : PRODUCT_GRADES) {
                 String[] values = extractProductData(text, grade);
                 if (values != null) {
-                    productData.get(grade).put(date, values);
+                    result.put(grade, values);
                 }
             }
+            result.put("DATE", new String[] { date }); // Include date for reference
         }
+        return result;
     }
+
 
     private static String extractDate(String text) {
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("AS OF:\\s*(\\d{2}/\\d{2}/\\d{4})");

@@ -1,5 +1,6 @@
 package ExcelUtil;
 
+import java.util.Map;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -26,80 +27,80 @@ public class ExcelUpdater {
 
     public static void processSinglePdf(File pdfFile) throws IOException {
         synchronized (FILE_LOCK) {
-            try (PDDocument document = PDDocument.load(pdfFile)) {
-                String text = new PDFTextStripper().getText(document);
-                String dateStr = extractDate(text);
-                if (dateStr == null) throw new IOException("No date found in PDF");
+            Map<String, String[]> data = PDFToExcel.processPDF(pdfFile);
+            String dateStr = data.get("DATE")[0];
+            LocalDate newDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+            System.out.println("Adding data for: " + newDate);
 
-                for (String grade : PDFToExcel.PRODUCT_GRADES) {
-                    String filePrefix = grade.substring(0, 1); // Take the first letter
-                    File excelFile = new File(EXCEL_DIR + filePrefix + ".xlsx");
-
-                    System.out.println("Exists: " + excelFile.exists() + ", Last Modified: " + excelFile.lastModified());
-
-                    XSSFWorkbook workbook;
-                    XSSFSheet sheet;
-
-                    if (excelFile.exists()) {
-                        try (FileInputStream fis = new FileInputStream(excelFile)) {
-                            workbook = new XSSFWorkbook(fis);
-                        }
-                    } else {
-                        workbook = new XSSFWorkbook();
-                        sheet = workbook.createSheet("Sheet1");
-                    }
-
-                    sheet = workbook.getNumberOfSheets() > 0 ? workbook.getSheetAt(0) : workbook.createSheet("Sheet1");
-
-                    String[] values = extractProductData(text, grade);
-                    if (values == null || values.length < 6) continue;
-
-                    LocalDate newDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("MM/dd/yyyy"));
-                    System.out.println("adding: " + newDate);
-
-                    boolean dateExists = false;
-                    for (Row row : sheet) {
-                        Cell cell = row.getCell(0);
-                        if (cell != null && cell.getCellType() == CellType.STRING) {
-                            try {
-                                LocalDate existingDate = LocalDate.parse(cell.getStringCellValue(), DateTimeFormatter.ofPattern("MM/dd/yyyy"));
-                                if (existingDate.equals(newDate)) {
-                                    dateExists = true;
-                                    break;
-                                }
-                            } catch (Exception ignored) {}
-                        }
-                    }
-                    if (dateExists) {
-                        System.out.println("Skipping duplicate date: " + newDate + " from file: " + pdfFile.getName());
-                        return;
-                    }
-
-                    LocalDate lastDate = getLastDate(sheet);
-                    String[] lastThursdayData = getLastThursdayData(sheet, lastDate);
-
-                    for (LocalDate date = lastDate.plusDays(1); date.isBefore(newDate); date = date.plusDays(1)) {
-                        DayOfWeek dow = date.getDayOfWeek();
-                        if (dow == DayOfWeek.THURSDAY) {
-                            lastThursdayData = getRowData(sheet, date);
-                        } else if ((dow == DayOfWeek.FRIDAY || dow == DayOfWeek.SATURDAY) && lastThursdayData != null) {
-                            insertRow(sheet, date, lastThursdayData, true);
-                        }
-                    }
-
-                    insertRow(sheet, newDate, values, false);
-                    System.out.println("added new date");
-
-                    try (FileOutputStream fos = new FileOutputStream(excelFile)) {
-                        workbook.setForceFormulaRecalculation(true);
-                        workbook.write(fos);
-                    }
-                    workbook.close();
-                    System.out.println("closed workbook");
+            for (String grade : PDFToExcel.PRODUCT_GRADES) {
+                String[] values = data.get(grade);
+                if (values == null || values.length < 6) {
+                    System.out.println("No data for grade: " + grade);
+                    continue;
                 }
+
+                String filePrefix = grade.substring(0, 1);
+                File excelFile = new File(EXCEL_DIR + filePrefix + ".xlsx");
+                System.out.println("Exists: " + excelFile.exists() + ", Last Modified: " + excelFile.lastModified());
+
+                XSSFWorkbook workbook;
+                XSSFSheet sheet;
+
+                if (excelFile.exists()) {
+                    try (FileInputStream fis = new FileInputStream(excelFile)) {
+                        workbook = new XSSFWorkbook(fis);
+                    }
+                } else {
+                    workbook = new XSSFWorkbook();
+                    workbook.createSheet("Sheet1");
+                }
+
+                sheet = workbook.getNumberOfSheets() > 0 ? workbook.getSheetAt(0) : workbook.createSheet("Sheet1");
+
+                boolean dateExists = false;
+                for (Row row : sheet) {
+                    Cell cell = row.getCell(0);
+                    if (cell != null && cell.getCellType() == CellType.STRING) {
+                        try {
+                            LocalDate existingDate = LocalDate.parse(cell.getStringCellValue(), DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+                            if (existingDate.equals(newDate)) {
+                                dateExists = true;
+                                break;
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+
+                if (dateExists) {
+                    System.out.println("Skipping duplicate date: " + newDate + " from file: " + pdfFile.getName());
+                    continue;
+                }
+
+                LocalDate lastDate = getLastDate(sheet);
+                String[] lastThursdayData = getLastThursdayData(sheet, lastDate);
+
+                for (LocalDate date = lastDate.plusDays(1); date.isBefore(newDate); date = date.plusDays(1)) {
+                    DayOfWeek dow = date.getDayOfWeek();
+                    if (dow == DayOfWeek.THURSDAY) {
+                        lastThursdayData = getRowData(sheet, date);
+                    } else if ((dow == DayOfWeek.FRIDAY || dow == DayOfWeek.SATURDAY) && lastThursdayData != null) {
+                        insertRow(sheet, date, lastThursdayData, true);
+                    }
+                }
+
+                insertRow(sheet, newDate, values, false);
+                System.out.println("Added new date for grade: " + grade);
+
+                try (FileOutputStream fos = new FileOutputStream(excelFile)) {
+                    workbook.setForceFormulaRecalculation(true);
+                    workbook.write(fos);
+                }
+                workbook.close();
+                System.out.println("Closed workbook for grade: " + grade);
             }
         }
     }
+
 
     private static LocalDate getLastDate(XSSFSheet sheet) {
         LocalDate latest = LocalDate.MIN;
@@ -119,9 +120,35 @@ public class ExcelUpdater {
     }
 
     private static void insertRow(XSSFSheet sheet, LocalDate date, String[] values, boolean isSynthetic) {
-        int rowNum = sheet.getLastRowNum() + 1;
-        Row row = sheet.createRow(rowNum);
-        row.createCell(0).setCellValue(date.format(DateTimeFormatter.ofPattern("MM/dd/yyyy")));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        int insertIndex = 1; // Start after header row
+
+        // Find the correct insertion point based on LocalDate comparison
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            if (row != null) {
+                Cell cell = row.getCell(0);
+                if (cell != null && cell.getCellType() == CellType.STRING) {
+                    try {
+                        LocalDate existingDate = LocalDate.parse(cell.getStringCellValue(), formatter);
+                        if (date.isBefore(existingDate)) {
+                            insertIndex = i;
+                            break;
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+            insertIndex = i + 1;
+        }
+
+        // Shift rows down to make space
+        if (insertIndex <= sheet.getLastRowNum()) {
+            sheet.shiftRows(insertIndex, sheet.getLastRowNum(), 1);
+        }
+
+        // Create and populate the new row
+        Row row = sheet.createRow(insertIndex);
+        row.createCell(0).setCellValue(date.format(formatter));
 
         CellStyle style = sheet.getWorkbook().createCellStyle();
         if (isSynthetic) {
@@ -139,6 +166,7 @@ public class ExcelUpdater {
             if (isSynthetic) cell.setCellStyle(style);
         }
     }
+
 
     private static String[] getLastThursdayData(XSSFSheet sheet, LocalDate lastDate) {
         LocalDate date = lastDate;
