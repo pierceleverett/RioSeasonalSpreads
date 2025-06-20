@@ -26,6 +26,7 @@ import type { ChartOptions, ChartData } from "chart.js";
 import MagellanInventory from "./MagellanInventory";
 
 import CsvSpreadChart from "./CsvSpreadChart";
+import ExplorerTransitChart from "./ExplorerTransitChart";
 
 
 ChartJS.register(
@@ -48,7 +49,8 @@ type ProductType =
   | "A to Nap"
   | "D to A"
   | "91 Chi"
-  | "Chi CBOB vs RBOB";
+  | "Chi CBOB vs RBOB"
+  | "Explorer Transit Times";
 
 
 type MonthCode =
@@ -512,6 +514,7 @@ const chartData: ChartData<"line"> = {
                 "D to A",
                 "91 Chi",
                 "Chi CBOB vs RBOB",
+                "Explorer Transit Times",
               ] as ProductType[]
             ).map((tab) => (
               <button
@@ -533,7 +536,9 @@ const chartData: ChartData<"line"> = {
             ))}
           </div>
 
-          {activeTab === "Magellan Inventory" ? (
+          {activeTab === "Explorer Transit Times" ? (
+            <ExplorerTransitChart />
+          ) : activeTab === "Magellan Inventory" ? (
             <MagellanInventory />
           ) : ["A to Nap", "D to A", "91 Chi", "Chi CBOB vs RBOB"].includes(
               activeTab
