@@ -5,6 +5,7 @@ import static spark.Spark.options;
 import static spark.Spark.post;
 
 import Handlers.BetweenFuelSpreadHandler;
+import Handlers.ExplorerHandler;
 import Handlers.LatestUploadHandler;
 import Handlers.MagellanGraphHandler;
 import Handlers.SpreadHandler;
@@ -52,6 +53,7 @@ public final class Server {
       Spark.get("/getLatestDate", new LatestUploadHandler());
       Spark.get("/getMagellanData", new MagellanGraphHandler());
       Spark.get("/getBetweenSpreads", new BetweenFuelSpreadHandler());
+      Spark.get("/getExplorerData", new ExplorerHandler());
 
       Spark.init();
       Spark.awaitInitialization();
