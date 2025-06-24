@@ -9,6 +9,7 @@ import Handlers.ExplorerHandler;
 import Handlers.LatestUploadHandler;
 import Handlers.MagellanGraphHandler;
 import Handlers.SpreadHandler;
+import Handlers.SpreadsUpdaterHandler;
 import javax.servlet.MultipartConfigElement;
 import spark.Spark;
 
@@ -54,6 +55,7 @@ public final class Server {
       Spark.get("/getMagellanData", new MagellanGraphHandler());
       Spark.get("/getBetweenSpreads", new BetweenFuelSpreadHandler());
       Spark.get("/getExplorerData", new ExplorerHandler());
+      Spark.post("/updateSpreads", new SpreadsUpdaterHandler());
 
       Spark.init();
       Spark.awaitInitialization();

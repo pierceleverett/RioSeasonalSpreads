@@ -4,7 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="" />
+    <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/Handlers/SpreadsUpdaterHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/HO2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/HO2025.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/RBOB2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/RBOB2025.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/RBOB2026.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/RBOB2026.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser$ForwardCurveData.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser$ForwardCurveData.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser$SimpleAuthProvider.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser$SimpleAuthProvider.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -57,7 +70,7 @@
       <recent name="$PROJECT_DIR$/data/pdf" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.FusionCurveParser">
+  <component name="RunManager" selected="Application.Server">
     <configuration name="AccessTokenGenerator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Outlook.AccessTokenGenerator" />
       <module name="moshi" />
@@ -119,9 +132,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Server" />
         <item itemvalue="Application.FusionCurveParser" />
         <item itemvalue="Application.ExcelUpdater" />
-        <item itemvalue="Application.Server" />
         <item itemvalue="Application.ExplorerParser" />
         <item itemvalue="Application.AccessTokenGenerator" />
       </list>
@@ -135,11 +148,21 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="39887000" />
+      <workItem from="1750257511704" duration="49005000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.time.format.DateTimeParseException" package="java.time.format" />
+          <option name="timeStamp" value="3" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

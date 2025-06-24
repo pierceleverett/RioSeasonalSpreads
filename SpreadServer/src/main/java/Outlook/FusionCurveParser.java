@@ -4,24 +4,23 @@ import static Outlook.ExplorerParser.getAccessToken;
 
 import com.microsoft.graph.authentication.IAuthenticationProvider;
 import com.microsoft.graph.models.*;
-import com.microsoft.graph.requests.AttachmentCollectionPage;
-import com.microsoft.graph.requests.GraphServiceClient;
-import com.microsoft.graph.requests.MessageCollectionPage;
+import com.microsoft.graph.requests.*;
+import java.util.List;
+import java.util.stream.Collectors;
 import okhttp3.Request;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
+
+import java.io.*;
+import java.net.URL;
+import java.nio.file.*;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.net.URL;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import java.util.regex.*;
 
 public class FusionCurveParser {
-
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("M/d/yyyy");
 
   public static class ForwardCurveData {
@@ -46,53 +45,128 @@ public class FusionCurveParser {
     try {
       String accessToken = getAccessToken();
       String userPrincipalName = "automatedreports@rioenergy.com";
-
-      Message targetMessage = fetchCurveReportEmail(accessToken, userPrincipalName);
-      byte[] pdfBytes = extractPdfAttachment(accessToken, userPrincipalName, targetMessage);
-      ForwardCurveData curveData = parseForwardCurvePdf(pdfBytes);
-      OffsetDateTime receivedDateTime = targetMessage.receivedDateTime;
-      LocalDate date = receivedDateTime.toLocalDate().minusDays(1);
-      ForwardCurveUpdater.updateForwardCurveFiles(date,curveData);
+      String csvPath = "data/spreads/RBOB2025.csv";
+      System.out.println("attempting to fetch messages");
+      List<Message> messages = fetchCurveReportEmails(accessToken, userPrincipalName, csvPath);
+      System.out.println("fetched messages");
+      for (Message message : messages) {
+        byte[] pdfBytes = extractPdfAttachment(accessToken, userPrincipalName, message);
+        System.out.println("extracted pdf");
+        ForwardCurveData curveData = parseForwardCurvePdf(pdfBytes);
+        System.out.println("got curved data");
+        OffsetDateTime receivedDateTime = message.receivedDateTime;
+        System.out.println("message time: " + receivedDateTime);
+        LocalDate date = receivedDateTime.toLocalDate().minusDays(1);
+        System.out.println("data day: " + date);
+        ForwardCurveUpdater.updateForwardCurveFiles(date, curveData);
+        System.out.println("updated curves");
+      }
     } catch (IOException e) {
       e.printStackTrace();
       System.err.println("Error processing curve data: " + e.getMessage());
     }
   }
 
-  public static Message fetchCurveReportEmail(String accessToken, String userPrincipalName) throws IOException {
+  public static List<Message> fetchCurveReportEmails(String accessToken, String userPrincipalName, String csvPath) throws IOException {
+    LocalDate lastDateInCsv = readLastDateFromCsv(csvPath);
+    System.out.println("Last day in csv: " + lastDateInCsv);
+    LocalDate yesterday = LocalDate.now().minusDays(1);
+    System.out.println("Yesteday: " + yesterday);
+
+    if (!lastDateInCsv.isBefore(yesterday)) {
+      System.out.println("No missing dates. Data is up to date.");
+      return Collections.emptyList();
+    }
+
+    Set<LocalDate> missingDates = lastDateInCsv.datesUntil(yesterday.plusDays(1)).collect(
+        Collectors.toSet());
+    missingDates.remove(lastDateInCsv);
+    System.out.println("Missing dates: " + missingDates);
+
     IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
     GraphServiceClient<Request> graphClient = GraphServiceClient.builder()
         .authenticationProvider(authProvider)
         .buildClient();
 
-    MessageCollectionPage messages = graphClient.users(userPrincipalName)
-        .messages()
-        .buildRequest()
-        .select("subject,receivedDateTime")
-        .orderBy("receivedDateTime desc")
-        .top(20)
-        .get();
+    List<Message> relevantMessages = new ArrayList<>();
+    MessageCollectionPage messagesPage = null;
+    MessageCollectionRequestBuilder nextPage = null;
+    boolean allDatesFound = false;
 
-    if (messages == null || messages.getCurrentPage().isEmpty()) {
-      throw new IOException("No emails found in the mailbox");
+    do {
+      messagesPage = (nextPage == null)
+          ? graphClient.users(userPrincipalName).messages()
+          .buildRequest()
+          .select("subject,receivedDateTime")
+          .orderBy("receivedDateTime desc")
+          .top(50)
+          .get()
+          : nextPage.buildRequest().get();
+
+      for (Message message : messagesPage.getCurrentPage()) {
+        if (message.subject != null && message.subject.toLowerCase().contains("curve report")) {
+          System.out.println("found email with curve report");
+
+          LocalDate dataDate = message.receivedDateTime.toLocalDate().minusDays(1);
+          if (missingDates.contains(dataDate)) {
+              relevantMessages.add(message);
+              missingDates.remove(dataDate);
+          }
+
+            if (missingDates.isEmpty()) {
+              allDatesFound = true;
+              break;
+            }
+          }
+        }
+
+
+      nextPage = messagesPage.getNextPage();
+
+    } while (nextPage != null && !allDatesFound);
+
+
+    if (relevantMessages.isEmpty()) {
+      throw new IOException("No relevant 'curve report' emails found for missing dates.");
     }
 
-    // Debug: Print all subjects
-    System.out.println("===== Email Subjects in Inbox =====");
-    for (Message message : messages.getCurrentPage()) {
-      System.out.println("- Subject: " + (message.subject != null ? message.subject : "[No Subject]") +
-          " | Received: " + message.receivedDateTime);
-    }
-    System.out.println("===================================");
+    return relevantMessages;
+  }
 
-    for (Message message : messages.getCurrentPage()) {
-      if (message.subject != null && message.subject.toLowerCase().contains("curve report")) {
-        System.out.println("Found matching email: " + message.subject);
-        return message;
+  private static LocalDate readLastDateFromCsv(String csvPath) throws IOException {
+    List<String> lines = Files.readAllLines(Paths.get(csvPath));
+    System.out.println("read all lines, size: " + lines.size());
+
+    // Find the last non-empty line
+    String lastLine = null;
+    for (int i = lines.size() - 1; i >= 0; i--) {
+      if (!lines.get(i).trim().isEmpty()) {
+        lastLine = lines.get(i);
+        break;
       }
     }
 
-    throw new IOException("No email containing 'curve report' in subject found");
+    if (lastLine == null) {
+      throw new IOException("CSV file is empty or contains only blank lines.");
+    }
+
+    System.out.println("Last line: " + lastLine);
+    String[] parts = lastLine.split(",");
+    return LocalDate.parse(parts[0], DateTimeFormatter.ofPattern("M/d/yyyy"));
+  }
+
+
+  private static LocalDate extractDateFromSubject(String subject) {
+    try {
+      int idx = subject.lastIndexOf("-");
+      if (idx != -1) {
+        String dateStr = subject.substring(idx + 1).trim();
+        return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("M/d/yyyy"));
+      }
+    } catch (Exception e) {
+      System.err.println("Failed to parse date from subject: " + subject);
+    }
+    return null;
   }
 
   public static byte[] extractPdfAttachment(String accessToken, String userPrincipalName, Message message) throws IOException {
@@ -128,18 +202,15 @@ public class FusionCurveParser {
 
   public static ForwardCurveData parseForwardCurvePdf(byte[] pdfBytes) throws IOException {
     ForwardCurveData result = new ForwardCurveData();
-
     try (PDDocument document = PDDocument.load(pdfBytes)) {
       String text = new PDFTextStripper().getText(document);
       Pattern pattern = Pattern.compile("(\\w{3}/\\d{4})\\s+([\\d.]+)(?:\\s+([\\d.]+))?");
       Matcher matcher = pattern.matcher(text);
-
       while (matcher.find()) {
         String date = matcher.group(1);
         try {
           double hoValue = Double.parseDouble(matcher.group(2));
           result.hoNyh.put(date, hoValue);
-
           if (matcher.group(3) != null) {
             double rbobValue = Double.parseDouble(matcher.group(3));
             result.rbobNyh.put(date, rbobValue);
@@ -156,5 +227,4 @@ public class FusionCurveParser {
 
     return result;
   }
-
 }
