@@ -15,9 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-public class OutlookEmailReader {
+
+public class ExplorerParser {
 
   private static final String TENANT_ID = "56df527c-e3c6-4938-80ac-ef9713c68950";
   private static final String CLIENT_ID = "e8342b20-5bd8-4a67-acba-71b8c5bd361f";
@@ -229,6 +228,8 @@ public class OutlookEmailReader {
       tempFile.renameTo(csvFile);
     }
   }
+
+
 
 
 

@@ -1,21 +1,18 @@
 package Handlers;
-import static Outlook.OutlookEmailReader.explorerTransit;
-import static Outlook.OutlookEmailReader.getAccessToken;
+import static Outlook.ExplorerParser.explorerTransit;
+import static Outlook.ExplorerParser.getAccessToken;
 
 import com.google.gson.Gson;
-import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Arrays;
 import spark.Request;
 import spark.Response;
 import spark.Route;
-import Outlook.OutlookEmailReader.*;
 
 public class ExplorerHandler implements Route {
   private static final String CSV_FILE = "data/explorer_transit_times.csv";
@@ -101,6 +98,11 @@ public class ExplorerHandler implements Route {
     // 5. Return the response
     response.type("application/json");
     return new Gson().toJson(routeData);
-    }};
+    }
+
+
+
+
+};
 
 

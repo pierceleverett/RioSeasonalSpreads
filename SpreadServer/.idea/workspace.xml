@@ -5,6 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Outlook/ForwardCurveUpdater.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/91Chi.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/91Chi.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/AtoNap.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/AtoNap.csv" afterDir="false" />
@@ -14,6 +17,16 @@
       <change beforePath="$PROJECT_DIR$/data/spreads/HO2026.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/HO2026.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/RBOB2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/RBOB2025.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/RBOB2026.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/RBOB2026.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/ExplorerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/ExplorerHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Outlook/OutlookEmailReader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Outlook/ExplorerParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/OutlookEmailReader$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/OutlookEmailReader.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,11 +56,13 @@
   "keyToString": {
     "Application.AccessTokenGenerator.executor": "Run",
     "Application.ExcelUpdater.executor": "Run",
+    "Application.FusionCurveParser.executor": "Run",
     "Application.OutlookEmailReader.executor": "Run",
     "Application.PDFToExcel.executor": "Run",
     "Application.Server.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/pierceleverett/RioSeasonalSpreads/SpreadServer/pom.xml",
@@ -61,8 +76,8 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/data/pdf" />
       <recent name="$PROJECT_DIR$/data/pdfToAdd" />
+      <recent name="$PROJECT_DIR$/data/pdf" />
     </key>
   </component>
   <component name="RunManager" selected="Application.ExcelUpdater">
@@ -92,8 +107,8 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="OutlookEmailReader" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Outlook.OutlookEmailReader" />
+    <configuration name="ExplorerParser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Outlook.ExplorerParser" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
@@ -105,12 +120,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="PDFToExcel" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="ExcelUtil.PDFToExcel" />
+    <configuration name="FusionCurveParser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Outlook.FusionCurveParser" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="ExcelUtil.*" />
+          <option name="PATTERN" value="Outlook.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -128,10 +143,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Application.ExcelUpdater" />
+        <item itemvalue="Application.FusionCurveParser" />
         <item itemvalue="Application.Server" />
-        <item itemvalue="Application.OutlookEmailReader" />
+        <item itemvalue="Application.ExplorerParser" />
         <item itemvalue="Application.AccessTokenGenerator" />
-        <item itemvalue="Application.PDFToExcel" />
       </list>
     </recent_temporary>
   </component>
@@ -143,7 +158,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="22967000" />
+      <workItem from="1750257511704" duration="39547000" />
     </task>
     <servers />
   </component>
