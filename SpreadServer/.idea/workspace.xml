@@ -5,25 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ62" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJA2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ62.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJA2.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/EmailSifter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/emails/CsvManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/emails/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/emails/TransitTimeEntry.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/emails/TransitTimeParser.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadCalc.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/Handlers/GCSpreadHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/LatestUploadHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/LatestUploadHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -159,7 +142,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="56346000" />
+      <workItem from="1750257511704" duration="58090000" />
     </task>
     <servers />
   </component>

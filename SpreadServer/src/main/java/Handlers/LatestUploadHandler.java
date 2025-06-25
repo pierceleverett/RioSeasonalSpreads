@@ -3,6 +3,8 @@ package Handlers;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 import org.apache.poi.ss.usermodel.*;
@@ -24,7 +26,12 @@ public class LatestUploadHandler implements Route {
     JsonObject jsonResponse = new JsonObject();
 
     try {
-      File excelFile = new File(EXCEL_PATH);
+      Path excelPath = Paths.get(EXCEL_PATH).toAbsolutePath();
+      System.out.println("Looking for file at: " + excelPath);
+      File excelFile = excelPath.toFile();
+      if (!excelFile.exists()) {
+        throw new IOException("File not found at: " + excelFile.getAbsolutePath());
+      }
       System.out.println("📄 Checking file: " + excelFile.getAbsolutePath());
 
       if (!excelFile.exists() || !excelFile.isFile() || excelFile.length() == 0) {
