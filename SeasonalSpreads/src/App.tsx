@@ -120,12 +120,15 @@ useEffect(() => {
 
 const updateSpreadData = async () => {
   try {
-    const response = await fetch("http://localhost:8080/updateSpreads", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      "https://rioseasonalspreads-production.up.railway.app/updateSpreads",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       const contentType = response.headers.get("content-type");
@@ -158,7 +161,7 @@ const fetchSpreadData = async () => {
 
   try {
     const response = await fetch(
-      `http://localhost:8080/getSpread?commodity=${commodityParam}&startMonth=${startMonth}&endMonth=${endMonth}`
+      `https://rioseasonalspreads-production.up.railway.app/getSpread?commodity=${commodityParam}&startMonth=${startMonth}&endMonth=${endMonth}`
     );
     if (!response.ok) {
       throw new Error("Failed to fetch spread data");
