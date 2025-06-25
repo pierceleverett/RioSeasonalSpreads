@@ -49,7 +49,7 @@ const ROUTE_OPTIONS = [
 
 const ExplorerTransitChart: React.FC = () => {
   const [transitData, setTransitData] = useState<TransitData>({});
-  const [selectedRoute, setSelectedRoute] = useState<string>(ROUTE_OPTIONS[0]);
+  const [selectedRoute, setSelectedRoute] = useState<string>(ROUTE_OPTIONS[10]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
