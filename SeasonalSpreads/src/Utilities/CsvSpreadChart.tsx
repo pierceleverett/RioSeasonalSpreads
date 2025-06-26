@@ -3,6 +3,7 @@ import { Line } from "react-chartjs-2";
 import { Chart as ChartJS } from "chart.js";
 import type { ChartOptions } from "chart.js";
 import { FaUndo } from "react-icons/fa";
+import zoomPlugin from "chartjs-plugin-zoom";
 
 interface CsvSpreadChartProps {
   type: "AtoNap" | "DtoA" | "91Chi" | "ChiCBOB";
@@ -35,6 +36,12 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
     }
     return yearColorMap.get(year)!;
   };
+
+    const handleResetZoom = () => {
+      if (chartRef.current) {
+        chartRef.current.resetZoom();
+      }
+    };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,18 +105,16 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
 
   const rangeData = calculateMinMaxRange();
 
-   const get30DatesWith2025Data = (): string[] => {
-     const datesWith2025 = allDates.filter((date) =>
-       dataMap.get("2025")?.has(date)
-     );
-     const recent =
-       datesWith2025.length > 0
-         ? datesWith2025.slice(-30)
-         : allDates.slice(-30);
-     return recent.reverse();
-   };
+  const get30DatesWith2025Data = (): string[] => {
+    const datesWith2025 = allDates.filter((date) =>
+      dataMap.get("2025")?.has(date)
+    );
+    const recent =
+      datesWith2025.length > 0 ? datesWith2025.slice(-30) : allDates.slice(-30);
+    return recent.reverse();
+  };
 
-   const datesToDisplay = get30DatesWith2025Data();
+  const datesToDisplay = get30DatesWith2025Data();
 
   const chartData = {
     labels: allDates,
@@ -172,9 +177,23 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
           },
         },
       },
+      zoom: {
+        pan: {
+          enabled: true,
+          mode: "xy",
+        },
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true,
+          },
+          mode: "xy",
+        },
+      },
       title: {
         display: true,
-
         text:
           type === "91Chi"
             ? "91 Chi Less USGC 93 + Transport"
@@ -185,7 +204,6 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
             : type === "DtoA"
             ? "D to A Spread"
             : "Spread Chart",
-
         font: {
           size: 18,
           weight: "bold",
@@ -227,51 +245,15 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
   };
 
   return (
-    <div
-      style={{
-        marginTop: "20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-        alignItems: "center",
-        width: "100%",
-        maxWidth: "1400px",
-        margin: "0 auto",
-      }}
-    >
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "90vh", // Increased height
-          backgroundColor: "#fff",
-          borderRadius: "8px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          padding: "20px",
-        }}
-      >
+    <>
+      <div className="graph-container">
         <button
+          className="reset-zoom-button"
           onClick={() => chartRef.current?.resetZoom()}
-          style={{
-            position: "absolute",
-            right: "20px",
-            top: "10px",
-            zIndex: 100,
-            padding: "5px 10px",
-            backgroundColor: "#3498db",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "5px",
-            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          }}
         >
-          <FaUndo />
-          Reset Zoom
+          <FaUndo /> Reset Zoom
         </button>
+
         {isLoading ? (
           <p style={{ textAlign: "center" }}>Loading chart data...</p>
         ) : error ? (
@@ -281,50 +263,13 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
         )}
       </div>
 
-      {/* Restored Table Section */}
       {!isLoading && !error && dataMap.size > 0 && (
-        <div
-          style={{
-            width: "100%",
-            backgroundColor: "#fff",
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            padding: "20px",
-            overflowX: "auto",
-          }}
-        >
-          <h2
-            style={{
-              color: "#2c3e50",
-              fontSize: "1.5rem",
-              marginBottom: "15px",
-              fontWeight: "bold",
-              textAlign: "center",
-              fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-            }}
-          >
-            Last 30 Days Data - 2025
-          </h2>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "1rem",
-              fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-            }}
-          >
+        <div className="table-container">
+          <h3>Last 30 Days Data - 2025</h3>
+          <table>
             <thead>
-              <tr style={{ backgroundColor: "#f8f9fa" }}>
-                <th
-                  style={{
-                    padding: "12px",
-                    textAlign: "left",
-                    borderBottom: "1px solid #ddd",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Date
-                </th>
+              <tr>
+                <th>Date</th>
                 {[
                   "2020",
                   "2021",
@@ -334,40 +279,14 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
                   "2025",
                   "5YEARAVG",
                 ].map((year) => (
-                  <th
-                    key={year}
-                    style={{
-                      padding: "12px",
-                      textAlign: "right",
-                      borderBottom: "1px solid #ddd",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {year}
-                  </th>
+                  <th key={year}>{year}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {datesToDisplay.map((date, index) => (
-                <tr
-                  key={index}
-                  style={{
-                    borderBottom: "1px solid #eee",
-                    backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
-                  }}
-                >
-                  <td
-                    style={{
-                      padding: "12px",
-                      borderBottom: "1px solid #eee",
-                      fontWeight: dataMap.get("2025")?.has(date)
-                        ? "bold"
-                        : "normal",
-                    }}
-                  >
-                    {date}
-                  </td>
+                <tr key={index}>
+                  <td>{date}</td>
                   {[
                     "2020",
                     "2021",
@@ -382,9 +301,6 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
                       <td
                         key={year}
                         style={{
-                          padding: "12px",
-                          textAlign: "right",
-                          borderBottom: "1px solid #eee",
                           fontFamily: "'Courier New', Courier, monospace",
                           fontWeight: year === "2025" ? "bold" : "normal",
                           color: year === "2025" ? "#2c3e50" : "inherit",
@@ -400,7 +316,7 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
           </table>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

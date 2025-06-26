@@ -1,7 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-import "./index.css";
+import "./styles/index.css";
+import "./styles/main.css";
+
 import { ClerkProvider } from "@clerk/clerk-react";
 
 // Import your Publishable Key
