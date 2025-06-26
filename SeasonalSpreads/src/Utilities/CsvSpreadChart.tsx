@@ -3,7 +3,6 @@ import { Line } from "react-chartjs-2";
 import { Chart as ChartJS } from "chart.js";
 import type { ChartOptions } from "chart.js";
 import { FaUndo } from "react-icons/fa";
-import zoomPlugin from "chartjs-plugin-zoom";
 
 interface CsvSpreadChartProps {
   type: "AtoNap" | "DtoA" | "91Chi" | "ChiCBOB";
@@ -37,11 +36,6 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
     return yearColorMap.get(year)!;
   };
 
-    const handleResetZoom = () => {
-      if (chartRef.current) {
-        chartRef.current.resetZoom();
-      }
-    };
 
   useEffect(() => {
     const fetchData = async () => {
