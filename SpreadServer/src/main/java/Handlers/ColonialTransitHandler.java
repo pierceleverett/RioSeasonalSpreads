@@ -19,7 +19,6 @@ public class ColonialTransitHandler implements Route {
     String route = request.queryParams("route");
     String filepath = "data/Colonial/Transit/" + route + ".csv";
     try {
-      ColonialTransitUpdater.updateMissingTransitData();
       Map<String, Map<String,Float>> map = createSortedTransitTimeMap(filepath);
       Moshi moshi = new Moshi.Builder().build();
       Type innerMapType = Types.newParameterizedType(Map.class, String.class, Float.class);

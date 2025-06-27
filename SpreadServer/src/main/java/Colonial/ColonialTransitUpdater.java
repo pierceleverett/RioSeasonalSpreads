@@ -22,7 +22,7 @@ public class ColonialTransitUpdater {
   public static void updateMissingTransitData() {
     try {
       LocalDate latestDate = getLatestDateAcrossCSVs();
-      LocalDate today = LocalDate.now();
+      LocalDate today = LocalDate.now().minusDays(1);
       List<LocalDate> missingDates = getMissingDates(latestDate, today);
 
       if (missingDates.isEmpty()) {
