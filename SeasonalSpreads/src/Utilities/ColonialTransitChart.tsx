@@ -64,6 +64,35 @@ const ColonialTransitChart: React.FC<ColonialTransitChartProps> = () => {
     { value: "DISTILLATES", label: "Distillates" },
   ];
 
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit"
+      );
+      if (!response.ok) {
+        throw new Error(`Refresh failed: ${response.status}`);
+      }
+      // Optionally re-fetch transit data after refresh
+      const updatedData = await fetch(
+        `https://rioseasonalspreads-production.up.railway.app/getColonialTransit?route=${selectedRoute}-${selectedProduct}`
+      );
+      if (!updatedData.ok) {
+        throw new Error(`Data fetch failed: ${updatedData.status}`);
+      }
+      const data = await updatedData.json();
+      setTransitData(data);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     const fetchTransitData = async () => {
       try {
@@ -268,6 +297,12 @@ const prepareChartData = (): ChartData<
             ))}
           </select>
         </div>
+        <button
+          onClick={handleRefresh}
+          style={{ padding: "6px 12px", cursor: "pointer" }}
+        >
+          Refresh
+        </button>
       </div>
       <div style={{ height: "600px", position: "relative" }}>
         <Line
