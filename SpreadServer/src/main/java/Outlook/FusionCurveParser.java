@@ -28,8 +28,8 @@ public class FusionCurveParser {
     public Map<String, Double> rbobNyh = new LinkedHashMap<>();
   }
 
-  private static class SimpleAuthProvider implements IAuthenticationProvider {
-    private final String accessToken;
+  public static class SimpleAuthProvider implements IAuthenticationProvider {
+    public final String accessToken;
 
     public SimpleAuthProvider(String accessToken) {
       this.accessToken = accessToken;

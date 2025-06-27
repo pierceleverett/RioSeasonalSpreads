@@ -5,6 +5,7 @@ import static spark.Spark.options;
 import static spark.Spark.post;
 
 import Handlers.BetweenFuelSpreadHandler;
+import Handlers.ColonialTransitHandler;
 import Handlers.ExplorerHandler;
 import Handlers.GCSpreadHandler;
 import Handlers.LatestUploadHandler;
@@ -58,6 +59,7 @@ public final class Server {
       Spark.get("/getExplorerData", new ExplorerHandler());
       Spark.post("/updateSpreads", new SpreadsUpdaterHandler());
       Spark.get("/getGCSpreads", new GCSpreadHandler());
+      Spark.get("/getColonialTransit", new ColonialTransitHandler());
 
       Spark.init();
       Spark.awaitInitialization();

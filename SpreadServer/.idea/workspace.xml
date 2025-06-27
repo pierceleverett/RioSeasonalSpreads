@@ -5,16 +5,38 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/MagellanChart.tsx" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdfToAdd/ReportViewer (3).pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/ColonialTransitTime.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/CsvToMap.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Handlers/ColonialTransitHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/tabs/SpreadsTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/src/tabs/SpreadsTab.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/tabs/TransitTimesTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/src/tabs/TransitTimesTab.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/HO2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/HO2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/LatestUploadHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/LatestUploadHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ62" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJA2.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ62.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJA2.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/6-24.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/6-24.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/6-25.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/6-25.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/EmailSifter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/emails/CsvManager.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/emails/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/emails/TransitTimeEntry.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/emails/TransitTimeParser.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/EmailSifter.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/emails/CsvManager.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/emails/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/emails/TransitTimeEntry.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/emails/TransitTimeParser.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser$SimpleAuthProvider.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser$SimpleAuthProvider.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,12 +65,15 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.AccessTokenGenerator.executor": "Run",
+    "Application.ColonialTransitTime.executor": "Run",
+    "Application.CsvToMap.executor": "Run",
     "Application.ExcelUpdater.executor": "Run",
     "Application.FusionCurveParser.executor": "Run",
     "Application.GCSpreadCalc.executor": "Run",
     "Application.OutlookEmailReader.executor": "Run",
     "Application.PDFToExcel.executor": "Run",
     "Application.Server.executor": "Run",
+    "Application.TransitTimeParser.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
@@ -73,51 +98,38 @@
     </key>
   </component>
   <component name="RunManager" selected="Application.ExcelUpdater">
+    <configuration name="ColonialTransitTime" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Colonial.ColonialTransitTime" />
+      <module name="moshi" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Colonial.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CsvToMap" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Colonial.CsvToMap" />
+      <module name="moshi" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Colonial.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ExcelUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="ExcelUtil.ExcelUpdater" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="ExcelUtil.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ExplorerParser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Outlook.ExplorerParser" />
-      <module name="moshi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Outlook.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="FusionCurveParser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Outlook.FusionCurveParser" />
-      <module name="moshi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Outlook.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="GCSpreadCalc" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="GCSpreads.GCSpreadCalc" />
-      <module name="moshi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="GCSpreads.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -132,13 +144,26 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="TransitTimeParser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Colonial.TransitTimeParser" />
+      <module name="moshi" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Colonial.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Application.ExcelUpdater" />
         <item itemvalue="Application.Server" />
-        <item itemvalue="Application.GCSpreadCalc" />
-        <item itemvalue="Application.FusionCurveParser" />
-        <item itemvalue="Application.ExplorerParser" />
+        <item itemvalue="Application.CsvToMap" />
+        <item itemvalue="Application.ColonialTransitTime" />
+        <item itemvalue="Application.TransitTimeParser" />
       </list>
     </recent_temporary>
   </component>
@@ -150,7 +175,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="61878000" />
+      <workItem from="1750257511704" duration="76310000" />
     </task>
     <servers />
   </component>

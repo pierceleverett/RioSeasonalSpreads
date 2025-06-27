@@ -2,319 +2,355 @@ package Colonial;
 
 import static Outlook.ExplorerParser.getAccessToken;
 
-import com.microsoft.graph.models.Message;
-import com.microsoft.graph.requests.GraphServiceClient;
-import com.microsoft.graph.requests.MessageCollectionPage;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.time.OffsetDateTime;
-import javax.net.ssl.HttpsURLConnection;
-import okhttp3.Request;
+import com.microsoft.graph.models.*;
+import com.microsoft.graph.requests.*;
+import com.microsoft.graph.authentication.IAuthenticationProvider;
+import Outlook.FusionCurveParser.SimpleAuthProvider;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.nio.file.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-public class TransitTimeParser {
-  private static final SimpleDateFormat EMAIL_DATE_FORMAT = new SimpleDateFormat("MM/dd/yy HH:mm");
-  private static final SimpleDateFormat CSV_DATE_FORMAT = new SimpleDateFormat("MM/dd/yy");
-  private static final Pattern TRANSIT_PATTERN = Pattern.compile(
-      "\\|\\s*(\\w+)\\s*\\|\\s*(\\w+)\\s*\\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|");
+public class ColonialTransitTime {
 
-  public static void main(String[] args) throws IOException {
-    String accessToken = getAccessToken();
-    processTransitTimeEmails(accessToken);
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+  public static class TransitEntry {
+    public String origin, destination;
+    public int cycle;
+    public double gasTime, distillateTime;
+
+    public LocalDate date;
   }
 
-  public static void processTransitTimeEmails(String accessToken) throws IOException {
-    String userId = "automatedreports@rioenergy.com";
-    URL url = new URL("https://graph.microsoft.com/v1.0/users/" + userId + "/mailFolders/inbox/messages?$top=50&$select=subject,body,receivedDateTime");
-    HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-    conn.setRequestMethod("GET");
-    conn.setRequestProperty("Authorization", "Bearer " + accessToken);
-    conn.setRequestProperty("Accept", "application/json");
-
+  public static void processTransitTimes() {
     try {
-      // Search for emails with subject containing "Colonial - TRANSIT TIMES"
-      MessageCollectionPage messages = conn.me().messages()
+      String accessToken = getAccessToken();
+      String userPrincipalName = "automatedreports@rioenergy.com";
+
+      List<Message> messages = fetchTransitTimeEmails(accessToken, userPrincipalName);
+      System.out.println("found " + messages.size() + " messages, going to process");
+      processMessages(messages);
+
+      System.out.println("Transit time data successfully processed and written to CSV files.");
+    } catch (Exception e) {
+      System.err.println("Error processing transit time data: " + e.getMessage());
+      e.printStackTrace();
+    }
+  }
+
+  private static List<Message> fetchTransitTimeEmails(String accessToken, String userPrincipalName) throws IOException {
+    IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+    GraphServiceClient<?> graphClient = GraphServiceClient.builder()
+        .authenticationProvider(authProvider)
+        .buildClient();
+
+    List<Message> relevantMessages = new ArrayList<>();
+    MessageCollectionPage messagesPage;
+    MessageCollectionRequestBuilder nextPage = null;
+
+    do {
+      messagesPage = (nextPage == null)
+          ? graphClient.users(userPrincipalName).messages()
           .buildRequest()
-          .filter("contains(subject, 'Colonial - TRANSIT TIMES')")
           .select("subject,receivedDateTime,body")
-          .top(100) // Adjust based on expected volume
-          .get();
+          .orderBy("receivedDateTime desc")
+          .top(50)
+          .get()
+          : nextPage.buildRequest().get();
 
-      while (messages != null) {
-        for (Message message : messages.getCurrentPage()) {
-          try {
-            processEmail(message);
-          } catch (Exception e) {
-            System.err.println("Error processing email: " + e.getMessage());
-          }
+      for (Message message : messagesPage.getCurrentPage()) {
+        if (message.subject != null && message.subject.toLowerCase().contains("colonial - transit times")) {
+          relevantMessages.add(message);
         }
-
-        if (messages.getNextPage() == null) {
-          break;
-        }
-        messages = messages.getNextPage().buildRequest().get();
       }
-    } catch (Exception e) {
-      System.err.println("Error fetching emails: " + e.getMessage());
-    }
+
+      nextPage = messagesPage.getNextPage();
+    } while (nextPage != null);
+
+    return relevantMessages;
   }
 
-  private static void processEmail(Message message) throws Exception {
-    if (message.body == null || message.body.content == null) {
-      return;
-    }
+  private static void processMessages(List<Message> messages) throws IOException {
+    // Sort messages by date (oldest first)
+    messages.sort(Comparator.comparing(m -> m.receivedDateTime));
 
-    String emailContent = message.body.content;
-    OffsetDateTime emailDate = message.receivedDateTime;
-
-    // Parse transit times from email content
-    List<TransitTime> transitTimes = parseTransitTimes(emailContent);
-
-    // Group by route and product type
-    Map<String, List<TransitTime>> groupedTimes = new HashMap<>();
-    for (TransitTime tt : transitTimes) {
-      String key = tt.from + tt.to + "-" + (tt.isGas ? "GAS" : "DISTILLATES");
-      groupedTimes.computeIfAbsent(key, k -> new ArrayList<>()).add(tt);
-    }
-
-    // Process the specific routes we're interested in
-    processRoute(groupedTimes, "HTNGBJ-GAS", emailDate);
-    processRoute(groupedTimes, "HTNGBJ-DISTILLATES", emailDate);
-    processRoute(groupedTimes, "GBJLNL-GAS", emailDate);
-    processRoute(groupedTimes, "GBJLNL-DISTILLATES", emailDate);
-  }
-
-  private static List<TransitTime> parseTransitTimes(String emailContent) {
-    List<TransitTime> transitTimes = new ArrayList<>();
-    Matcher matcher = TRANSIT_PATTERN.matcher(emailContent);
-
-    while (matcher.find()) {
+    for (Message message : messages) {
       try {
-        String from = matcher.group(1);
-        String to = matcher.group(2);
-        int cycle = Integer.parseInt(matcher.group(3));
-
-        // Gas data
-        int gasDays = Integer.parseInt(matcher.group(4));
-        int gasHours = Integer.parseInt(matcher.group(5));
-        transitTimes.add(new TransitTime(from, to, cycle, true, gasDays, gasHours));
-
-        // Distillates data
-        int distDays = Integer.parseInt(matcher.group(6));
-        int distHours = Integer.parseInt(matcher.group(7));
-        transitTimes.add(new TransitTime(from, to, cycle, false, distDays, distHours));
+        String body = message.body.content;
+        List<TransitEntry> entries = parseTransitTimeBody(body);
+        processEntries(entries);
       } catch (Exception e) {
-        System.err.println("Error parsing transit time: " + e.getMessage());
+        System.err.println("Error processing message: " + e.getMessage());
+      }
+    }
+  }
+
+  private static List<TransitEntry> parseTransitTimeBody(String body) {
+    System.out.println("========== Starting to parse email body ==========");
+    List<TransitEntry> entries = new ArrayList<>();
+
+    // Log initial body (first 500 chars to avoid flooding console)
+    System.out.println("Initial body preview:\n" + body.substring(0, Math.min(500, body.length())) + "...");
+
+    // Convert HTML to plain text
+    String plainText = body.replaceAll("<[^>]+>", " ")
+        .replaceAll("&nbsp;", " ")
+        .replaceAll("\\s+", " ")
+        .trim();
+    System.out.println("---------- Plain text version ----------");
+    System.out.println(plainText.substring(0, Math.min(500, plainText.length())) + "...");
+
+    // Extract date
+    LocalDate entryDate;
+    try {
+      System.out.println("Attempting to extract date...");
+      entryDate = extractDateFromPlainText(plainText);
+      System.out.println("Successfully parsed date: " + entryDate);
+    } catch (Exception e) {
+      System.err.println("FAILED to parse date: " + e.getMessage());
+      return entries;
+    }
+
+    // Find table section
+    System.out.println("Looking for transit times table...");
+    String tableStartMarker = "Average scheduled transit times between selected locations:";
+    int tableStart = plainText.indexOf(tableStartMarker);
+
+    if (tableStart == -1) {
+      System.err.println("ERROR: Could not find table start marker: " + tableStartMarker);
+      return entries;
+    }
+    System.out.println("Found table at position: " + tableStart);
+
+    // Extract table data
+    String tableData = plainText.substring(tableStart + tableStartMarker.length());
+    System.out.println("---------- Table data ----------");
+    System.out.println(tableData.substring(0, Math.min(500, tableData.length())) + "...");
+
+    // Split into lines and process
+    String[] lines = tableData.split("From To Cycle Gas Distillates Days Hours Days Hours")[1]
+        .split("The information contained")[0]
+        .trim()
+        .split("\\s+");
+
+    System.out.println("Found " + lines.length + " data elements in table");
+    System.out.println("First 20 elements: " + Arrays.toString(Arrays.copyOfRange(lines, 0, 20)));
+
+    // Process entries (7 fields per row)
+    System.out.println("Processing entries...");
+    for (int i = 0; i + 6 < lines.length; i += 7) {
+      try {
+        System.out.println("Processing entry starting at index " + i);
+        String[] currentRow = Arrays.copyOfRange(lines, i, i+7);
+        System.out.println("Row data: " + Arrays.toString(currentRow));
+
+        TransitEntry entry = new TransitEntry();
+        entry.origin = currentRow[0];
+        entry.destination = currentRow[1];
+        entry.cycle = Integer.parseInt(currentRow[2]);
+
+        int gasDays = Integer.parseInt(currentRow[3]);
+        int gasHours = Integer.parseInt(currentRow[4]);
+        entry.gasTime = gasDays + gasHours / 24.0;
+
+        int distDays = Integer.parseInt(currentRow[5]);
+        int distHours = Integer.parseInt(currentRow[6]);
+        entry.distillateTime = distDays + distHours / 24.0;
+
+        entry.date = entryDate;
+        entries.add(entry);
+
+        System.out.println("Successfully added entry: " +
+            entry.origin + "-" + entry.destination +
+            " cycle " + entry.cycle +
+            " gas:" + entry.gasTime +
+            " distillate:" + entry.distillateTime);
+
+      } catch (NumberFormatException e) {
+        System.err.println("Skipping malformed row at index " + i + ": " + e.getMessage());
+      } catch (ArrayIndexOutOfBoundsException e) {
+        System.err.println("Incomplete row at index " + i);
+        break;
       }
     }
 
-    return transitTimes;
+    System.out.println("========== Finished parsing ==========");
+    System.out.println("Total entries parsed: " + entries.size());
+    return entries;
   }
 
-  private static void processRoute(Map<String, List<TransitTime>> groupedTimes, String routeKey, OffsetDateTime emailDate) {
-    List<TransitTime> times = groupedTimes.get(routeKey);
-    if (times == null || times.isEmpty()) {
-      return;
-    }
+  private static LocalDate extractDateFromPlainText(String plainText) {
+    System.out.println("Extracting date from text: " + plainText.substring(0, 100) + "...");
 
-    String csvFileName = routeKey + ".csv";
-    String dateStr = CSV_DATE_FORMAT.format(emailDate);
+    // Look for multiple possible date patterns
+    Pattern[] patterns = {
+        Pattern.compile("Date:\\s*(\\d{2}/\\d{2}/\\d{2})"),  // Date: MM/dd/yy
+        Pattern.compile("(\\d{2}/\\d{2}/\\d{2})\\s+\\d{2}:\\d{2}"),  // MM/dd/yy HH:mm
+        Pattern.compile("Date:\\s*(\\w+\\s+\\d{1,2},\\s+\\d{4})")  // Date: Month dd, yyyy
+    };
 
-    try {
-      // Read existing CSV or create new
-      Map<Integer, String> cycleValues = new TreeMap<>();
-      boolean fileExists = Files.exists(Paths.get(csvFileName));
-      int maxCycle = 72; // Default maximum cycle number
+    for (Pattern p : patterns) {
+      Matcher m = p.matcher(plainText);
+      if (m.find()) {
+        String dateStr = m.group(1);
+        System.out.println("Found date string: " + dateStr);
 
-      if (fileExists) {
-        // Read existing values
-        try (BufferedReader reader = new BufferedReader(new FileReader(csvFileName))) {
-          String line;
-          boolean firstLine = true;
-          List<String> lines = new ArrayList<>();
-
-          while ((line = reader.readLine()) != null) {
-            lines.add(line);
-            if (firstLine) {
-              firstLine = false;
-              continue; // Skip header
-            }
-
-            String[] values = line.split(",");
-            if (values[0].equals(dateStr)) {
-              // Found existing entry for this date
-              for (int i = 1; i < values.length; i++) {
-                if (!values[i].isEmpty()) {
-                  cycleValues.put(i, values[i]);
-                }
-              }
-            }
+        try {
+          // Try MM/dd/yy first
+          LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("MM/dd/yy"));
+          System.out.println("Parsed as MM/dd/yy: " + date);
+          return date;
+        } catch (DateTimeParseException e1) {
+          try {
+            // Try MMMM d, yyyy (Month day, year)
+            LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+            System.out.println("Parsed as MMMM d, yyyy: " + date);
+            return date;
+          } catch (DateTimeParseException e2) {
+            continue;
           }
         }
       }
+    }
+    throw new RuntimeException("No valid date pattern found in: " + plainText.substring(0, 100) + "...");
+  }
 
-      // Update with new values
-      for (TransitTime tt : times) {
-        double decimalHours = tt.days + (tt.hours / 24.0);
-        cycleValues.put(tt.cycle, String.format("%.2f", decimalHours));
-        if (tt.cycle > maxCycle) {
-          maxCycle = tt.cycle;
-        }
-      }
+  private static void processEntries(List<TransitEntry> entries) throws IOException {
+    System.out.println("========== Processing Entries ==========");
+    System.out.println("Total entries to process: " + entries.size());
 
-      // Write back to CSV
-      if (fileExists) {
-        // For existing files, we need to rewrite the entire file
-        rewriteCSVFile(csvFileName, dateStr, cycleValues, maxCycle);
-      } else {
-        // For new files, just append the new row
-        appendToCSVFile(csvFileName, dateStr, cycleValues, maxCycle);
+    // Counters for tracking
+    int htnGbjCount = 0;
+    int gbjLnjCount = 0;
+    int otherCount = 0;
+
+    for (TransitEntry entry : entries) {
+      String route = entry.origin + "-" + entry.destination;
+      System.out.println("Processing route: " + route + " cycle " + entry.cycle);
+
+      if (entry.origin.equals("HTN") && entry.destination.equals("GBJ")) {
+        htnGbjCount++;
+        System.out.println("  HTN-GBJ entry found - updating CSVs");
+        System.out.println("  Gas: " + entry.gasTime + " | Distillate: " + entry.distillateTime);
+
+        // Update HTN-GBJ CSVs
+        updateTransitCsv("data/Colonial/Transit/HTNGBJ-GAS.csv", entry.date, entry.cycle, entry.gasTime);
+        updateTransitCsv("data/Colonial/Transit/HTNGBJ-DISTILLATES.csv", entry.date, entry.cycle, entry.distillateTime);
       }
-    } catch (Exception e) {
-      System.err.println("Error processing route " + routeKey + ": " + e.getMessage());
+      else if (entry.origin.equals("GBJ") && entry.destination.equals("LNJ")) {
+        gbjLnjCount++;
+        System.out.println("  GBJ-LNJ entry found - updating CSVs");
+        System.out.println("  Gas: " + entry.gasTime + " | Distillate: " + entry.distillateTime);
+
+        // Update GBJ-LNJ CSVs
+        updateTransitCsv("data/Colonial/Transit/GBJLNJ-GAS.csv", entry.date, entry.cycle, entry.gasTime);
+        updateTransitCsv("data/Colonial/Transit/GBJLNJ-DISTILLATES.csv", entry.date, entry.cycle, entry.distillateTime);
+      }
+      else {
+        otherCount++;
+        System.out.println("  Skipping non-target route: " + route);
+      }
+    }
+
+    System.out.println("========== Processing Summary ==========");
+    System.out.println("HTN-GBJ entries processed: " + htnGbjCount);
+    System.out.println("GBJ-LNJ entries processed: " + gbjLnjCount);
+    System.out.println("Other routes skipped: " + otherCount);
+
+    // Verify at least some HTN-GBJ entries were found
+    if (htnGbjCount == 0 && entries.size() > 0) {
+      System.err.println("WARNING: No HTN-GBJ entries found despite having " + entries.size() + " total entries");
+      System.err.println("First few entries origins/destinations:");
+      entries.stream()
+          .limit(5)
+          .forEach(e -> System.err.println("  " + e.origin + "-" + e.destination));
     }
   }
 
-  private static void rewriteCSVFile(String filename, String newDate, Map<Integer, String> newValues, int maxCycle) throws IOException {
-    // Read all existing records
+  private static void updateTransitCsv(String filePath, LocalDate date, int cycle, double value) throws IOException {
+    System.out.println("===== Updating " + filePath + " =====");
+
+    Path path = Paths.get(filePath);
     List<String> lines = new ArrayList<>();
-    boolean dateExists = false;
 
-    try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-      String line;
-      boolean firstLine = true;
+    // Initialize with header if file doesn't exist
+    if (!Files.exists(path)) {
+      System.out.println("  Creating new file with header");
+      String[] header = new String[73];
+      header[0] = "Date";
+      for (int i = 1; i <= 72; i++) header[i] = String.valueOf(i);
+      lines.add(String.join(",", header));
+    } else {
+      // Read existing file and skip empty/malformed rows
+      System.out.println("  Reading existing file, filtering malformed rows");
+      lines = Files.lines(path)
+          .filter(line -> !line.trim().isEmpty())
+          .filter(line -> {
+            if (line.startsWith("Date,")) return true; // Keep header
+            try {
+              LocalDate.parse(line.split(",", -1)[0]);
+              return true;
+            } catch (Exception e) {
+              System.err.println("  WARNING: Skipping malformed row: " + line);
+              return false;
+            }
+          })
+          .collect(Collectors.toList());
+    }
 
-      while ((line = reader.readLine()) != null) {
-        if (firstLine) {
-          // Process header line
-          lines.add(updateHeaderLine(line, maxCycle));
-          firstLine = false;
-          continue;
-        }
+    // Find or create row for our date
+    boolean updated = false;
+    for (int i = 1; i < lines.size(); i++) {
+      String[] row = lines.get(i).split(",", -1);
+      LocalDate rowDate = LocalDate.parse(row[0]);
 
-        String[] values = line.split(",");
-        if (values[0].equals(newDate)) {
-          // Replace this line with updated values
-          lines.add(createCSVLine(newDate, newValues, maxCycle));
-          dateExists = true;
-        } else {
-          lines.add(line);
-        }
+      if (rowDate.isEqual(date)) {
+        System.out.println("  Updating existing row for date " + date);
+        row[cycle] = String.format("%.2f", value);
+        lines.set(i, String.join(",", row));
+        updated = true;
+        break;
+      } else if (rowDate.isAfter(date)) {
+        System.out.println("  Inserting new row before row " + i);
+        lines.add(i, createCsvRow(date, cycle, value));
+        updated = true;
+        break;
       }
     }
 
-    // If date didn't exist, add new line
-    if (!dateExists) {
-      lines.add(createCSVLine(newDate, newValues, maxCycle));
+    if (!updated) {
+      System.out.println("  Adding new row at end");
+      lines.add(createCsvRow(date, cycle, value));
     }
 
-    // Sort lines by date (except header)
-    if (lines.size() > 1) {
-      sortLinesByDate(lines);
-    }
+    // Write the cleaned file
+    System.out.println("  Writing " + lines.size() + " clean rows to file");
+    Files.write(path, lines, StandardOpenOption.TRUNCATE_EXISTING);
+    System.out.println("  Successfully updated " + filePath);
 
-    // Write all lines back to file
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-      for (String line : lines) {
-        writer.write(line);
-        writer.newLine();
-      }
-    }
+    // Verify write
+    List<String> writtenLines = Files.readAllLines(path);
+    System.out.println("  Verification - file now has " + writtenLines.size() + " rows");
+    System.out.println("  Last row: " + (writtenLines.isEmpty() ? "EMPTY" : writtenLines.get(writtenLines.size()-1)));
   }
 
-  private static void appendToCSVFile(String filename, String date, Map<Integer, String> values, int maxCycle) throws IOException {
-    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
-      if (Files.size(Paths.get(filename)) == 0) {
-        // Write header for new file
-        writer.write(createHeaderLine(maxCycle));
-        writer.newLine();
-      }
-
-      // Write data line
-      writer.write(createCSVLine(date, values, maxCycle));
-      writer.newLine();
-    }
+  private static String createCsvRow(LocalDate date, int cycle, double value) {
+    String[] newRow = new String[73];
+    newRow[0] = date.toString();
+    Arrays.fill(newRow, 1, 73, "");
+    newRow[cycle] = String.format("%.2f", value);
+    return String.join(",", newRow);
   }
 
-  private static String updateHeaderLine(String existingHeader, int maxCycle) {
-    String[] headerParts = existingHeader.split(",");
-    if (headerParts.length - 1 >= maxCycle) {
-      return existingHeader; // No update needed
-    }
-
-    // Extend header with additional cycle numbers
-    StringBuilder sb = new StringBuilder(existingHeader);
-    for (int i = headerParts.length; i <= maxCycle; i++) {
-      sb.append(",").append(i);
-    }
-    return sb.toString();
-  }
-
-  private static String createHeaderLine(int maxCycle) {
-    StringBuilder sb = new StringBuilder("Date");
-    for (int i = 1; i <= maxCycle; i++) {
-      sb.append(",").append(i);
-    }
-    return sb.toString();
-  }
-
-  private static String createCSVLine(String date, Map<Integer, String> values, int maxCycle) {
-    StringBuilder sb = new StringBuilder(date);
-    for (int i = 1; i <= maxCycle; i++) {
-      sb.append(",").append(values.getOrDefault(i, ""));
-    }
-    return sb.toString();
-  }
-
-  private static void sortLinesByDate(List<String> lines) {
-    // Skip header line
-    if (lines.size() <= 1) return;
-
-    String header = lines.get(0);
-    List<String> dataLines = lines.subList(1, lines.size());
-
-    dataLines.sort((line1, line2) -> {
-      String date1 = line1.split(",")[0];
-      String date2 = line2.split(",")[0];
-      try {
-        Date d1 = CSV_DATE_FORMAT.parse(date1);
-        Date d2 = CSV_DATE_FORMAT.parse(date2);
-        return d1.compareTo(d2);
-      } catch (ParseException e) {
-        return date1.compareTo(date2);
-      }
-    });
-
-    // Rebuild lines list
-    lines.clear();
-    lines.add(header);
-    lines.addAll(dataLines);
-  }
-
-  private static class TransitTime {
-    String from;
-    String to;
-    int cycle;
-    boolean isGas;
-    int days;
-    int hours;
-
-    public TransitTime(String from, String to, int cycle, boolean isGas, int days, int hours) {
-      this.from = from;
-      this.to = to;
-      this.cycle = cycle;
-      this.isGas = isGas;
-      this.days = days;
-      this.hours = hours;
-    }
+  public static void main(String[] args) {
+    processTransitTimes();
   }
 }
