@@ -293,7 +293,7 @@ const options: ChartOptions<"line"> = {
   }
 
   return (
-    <div style={{ width: "100%", margin: "20px 0" }}>
+    <div style={{ width: "100%", margin: "20px 0", textAlign: "center" }}>
       <div
         style={{
           marginBottom: "20px",
@@ -303,12 +303,14 @@ const options: ChartOptions<"line"> = {
           gap: "10px",
         }}
       >
+        {/* Route Selection */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <label htmlFor="route-select">Route: </label>
           <select
             id="route-select"
             value={selectedRoute}
             onChange={(e) => setSelectedRoute(e.target.value)}
+            style={{ textAlign: "center" }}
           >
             {routeOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -317,12 +319,15 @@ const options: ChartOptions<"line"> = {
             ))}
           </select>
         </div>
+
+        {/* Product Selection */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <label htmlFor="product-select">Product: </label>
           <select
             id="product-select"
             value={selectedProduct}
             onChange={(e) => setSelectedProduct(e.target.value)}
+            style={{ textAlign: "center" }}
           >
             {productOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -331,42 +336,57 @@ const options: ChartOptions<"line"> = {
             ))}
           </select>
         </div>
+
+        {/* Refresh Button */}
         <button
           onClick={handleRefresh}
-          style={{ padding: "6px 12px", cursor: "pointer" }}
+          style={{
+            padding: "6px 12px",
+            cursor: "pointer",
+            margin: "0 auto",
+          }}
         >
           Refresh
         </button>
-      </div>
-      <div style={{ marginBottom: "10px" }}>
-        <label htmlFor="start-cycle">Start Cycle: </label>
-        <input
-          type="number"
-          id="start-cycle"
-          value={startCycle}
-          min={1}
-          onChange={(e) => setStartCycle(Number(e.target.value))}
-        />
-      </div>
-      <div style={{ marginBottom: "10px" }}>
-        <label htmlFor="end-cycle">End Cycle: </label>
-        <input
-          type="number"
-          id="end-cycle"
-          value={endCycle === Infinity ? "" : endCycle}
-          min={1}
-          onChange={(e) => setEndCycle(Number(e.target.value) || Infinity)}
-        />
+
+        {/* Cycle Range Controls */}
+        <div style={{ display: "flex", gap: "20px", justifyContent: "center" }}>
+          <div>
+            <label htmlFor="start-cycle">Start Cycle: </label>
+            <input
+              type="number"
+              id="start-cycle"
+              value={startCycle}
+              min={1}
+              onChange={(e) => setStartCycle(Number(e.target.value))}
+              style={{ width: "60px", textAlign: "center" }}
+            />
+          </div>
+          <div>
+            <label htmlFor="end-cycle">End Cycle: </label>
+            <input
+              type="number"
+              id="end-cycle"
+              value={endCycle === Infinity ? "" : endCycle}
+              min={1}
+              onChange={(e) => setEndCycle(Number(e.target.value) || Infinity)}
+              style={{ width: "60px", textAlign: "center" }}
+            />
+          </div>
+        </div>
       </div>
 
-      <div style={{ height: "600px", position: "relative" }}>
+      {/* Chart Container */}
+      <div style={{ height: "600px", position: "relative", margin: "0 auto" }}>
         <Line
-          key={`${selectedRoute}-${selectedProduct}-${Date.now()}`} // force remount
+          key={`${selectedRoute}-${selectedProduct}-${Date.now()}`}
           data={chartData}
           options={options}
           ref={chartRef}
         />
       </div>
+
+      {/* Chart Instructions */}
       <div style={{ marginTop: "10px", fontSize: "12px", color: "#666" }}>
         <p>
           Hover over lines to see cycle details. Click on legend items to toggle
