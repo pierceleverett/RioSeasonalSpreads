@@ -14,7 +14,7 @@ const GulfCoastDiffsTab: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
-  const codeOptions = ["A", "D", "F", "M", "H"];
+  const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
 
   useEffect(() => {
     fetchGCSpreads();
