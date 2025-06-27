@@ -101,15 +101,21 @@ const ColonialTransitChart: React.FC<ColonialTransitChartProps> = () => {
   }, []);
 
   // Generate distinct colors for each cycle
-  const generateColors = (count: number) => {
-    const colors = [];
-    const hueStep = 360 / count;
-    for (let i = 0; i < count; i++) {
-      const hue = (i * hueStep) % 360;
-      colors.push(`hsl(${hue}, 70%, 50%)`);
-    }
-    return colors;
-  };
+const generateColors = (count: number): string[] => {
+  const colors: string[] = [];
+  const baseSaturation = 80;
+  const baseLightness = 45;
+
+  for (let i = 0; i < count; i++) {
+    const hue = (i * 137.508) % 360; // Use golden angle for better distribution
+    const saturation = baseSaturation + (i % 2 === 0 ? 0 : 10); // Slight variation
+    const lightness = baseLightness + (i % 3) * 5; // Slight variation
+    colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+  }
+
+  return colors;
+};
+
 
 const prepareChartData = (): ChartData<
   "line",
@@ -208,7 +214,6 @@ const prepareChartData = (): ChartData<
           display: true,
           text: "Transit Time (days)",
         },
-        min: 0,
         ticks: {
           callback: (value) => `${value} days`,
         },
