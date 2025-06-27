@@ -1,7 +1,9 @@
 package Handlers;
 
+import static Colonial.ColonialTransitTime.processTransitTimes;
 import static Colonial.CsvToMap.createSortedTransitTimeMap;
 
+import Colonial.ColonialTransitUpdater;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
@@ -17,6 +19,7 @@ public class ColonialTransitHandler implements Route {
     String route = request.queryParams("route");
     String filepath = "data/Colonial/Transit/" + route + ".csv";
     try {
+      ColonialTransitUpdater.updateMissingTransitData();
       Map<String, Map<String,Float>> map = createSortedTransitTimeMap(filepath);
       Moshi moshi = new Moshi.Builder().build();
       Type innerMapType = Types.newParameterizedType(Map.class, String.class, Float.class);

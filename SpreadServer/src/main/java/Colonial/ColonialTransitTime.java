@@ -3,10 +3,12 @@ package Colonial;
 import static Outlook.ExplorerParser.getAccessToken;
 
 import com.microsoft.graph.models.*;
+import com.microsoft.graph.options.QueryOption;
 import com.microsoft.graph.requests.*;
 import com.microsoft.graph.authentication.IAuthenticationProvider;
 import Outlook.FusionCurveParser.SimpleAuthProvider;
-
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDate;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.swing.text.html.Option;
 
 public class ColonialTransitTime {
 
@@ -46,7 +49,7 @@ public class ColonialTransitTime {
     }
   }
 
-  private static List<Message> fetchTransitTimeEmails(String accessToken, String userPrincipalName) throws IOException {
+  public static List<Message> fetchTransitTimeEmails(String accessToken, String userPrincipalName) throws IOException {
     IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
     GraphServiceClient<?> graphClient = GraphServiceClient.builder()
         .authenticationProvider(authProvider)
@@ -56,18 +59,31 @@ public class ColonialTransitTime {
     MessageCollectionPage messagesPage;
     MessageCollectionRequestBuilder nextPage = null;
 
+    // Request additional properties including body content
+    LinkedList<QueryOption> requestOptions = new LinkedList<>();
+    requestOptions.add(new QueryOption("$select", "subject,receivedDateTime,body,bodyPreview"));
+    requestOptions.add(new QueryOption("$top", "50"));
+
     do {
       messagesPage = (nextPage == null)
           ? graphClient.users(userPrincipalName).messages()
-          .buildRequest()
-          .select("subject,receivedDateTime,body")
+          .buildRequest(requestOptions)
           .orderBy("receivedDateTime desc")
-          .top(50)
           .get()
           : nextPage.buildRequest().get();
 
       for (Message message : messagesPage.getCurrentPage()) {
         if (message.subject != null && message.subject.toLowerCase().contains("colonial - transit times")) {
+          // Ensure we have the full body content
+          if (message.body == null || message.body.content == null) {
+            // If body is null, fetch the full message
+            Message fullMessage = graphClient.users(userPrincipalName)
+                .messages(message.id)
+                .buildRequest()
+                .select("body")
+                .get();
+            message.body = fullMessage.body;
+          }
           relevantMessages.add(message);
         }
       }
@@ -78,107 +94,123 @@ public class ColonialTransitTime {
     return relevantMessages;
   }
 
-  private static void processMessages(List<Message> messages) throws IOException {
+  public static void processMessages(List<Message> messages) throws IOException {
     // Sort messages by date (oldest first)
     messages.sort(Comparator.comparing(m -> m.receivedDateTime));
 
     for (Message message : messages) {
       try {
-        String body = message.body.content;
-        List<TransitEntry> entries = parseTransitTimeBody(body);
-        processEntries(entries);
+        System.out.println("Processing message received on: " + message.receivedDateTime);
+
+        // Verify we have message body content
+        if (message.body == null || message.body.content == null || message.body.content.isEmpty()) {
+          System.err.println("WARNING: Empty message body for message with subject: " + message.subject);
+          continue;
+        }
+
+        System.out.println("Message body length: " + message.body.content.length());
+        System.out.println("First 200 chars of body:\n" + message.body.content.substring(0, Math.min(200, message.body.content.length())));
+
+        List<TransitEntry> entries = parseTransitTimeBody(message.body.content);
+        System.out.println("Found " + entries.size() + " entries in this message");
+
+        if (!entries.isEmpty()) {
+          processEntries(entries);
+        } else {
+          System.err.println("WARNING: No entries parsed from message with subject: " + message.subject);
+          // Print more of the body for debugging
+          System.err.println("First 500 chars of body:\n" + message.body.content.substring(0, Math.min(500, message.body.content.length())));
+        }
       } catch (Exception e) {
         System.err.println("Error processing message: " + e.getMessage());
+        e.printStackTrace();
       }
     }
   }
 
-  private static List<TransitEntry> parseTransitTimeBody(String body) {
+
+  public static List<TransitEntry> parseTransitTimeBody(String body) {
     System.out.println("========== Starting to parse email body ==========");
     List<TransitEntry> entries = new ArrayList<>();
 
-    // Log initial body (first 500 chars to avoid flooding console)
-    System.out.println("Initial body preview:\n" + body.substring(0, Math.min(500, body.length())) + "...");
+    if (body == null || body.isEmpty()) {
+      System.err.println("ERROR: Empty body provided for parsing");
+      return entries;
+    }
 
-    // Convert HTML to plain text
-    String plainText = body.replaceAll("<[^>]+>", " ")
-        .replaceAll("&nbsp;", " ")
-        .replaceAll("\\s+", " ")
-        .trim();
-    System.out.println("---------- Plain text version ----------");
-    System.out.println(plainText.substring(0, Math.min(500, plainText.length())) + "...");
+    // Use jsoup to convert HTML to plain text
+    Document doc = Jsoup.parse(body);
+    String plainText = doc.text().replaceAll("\\s+", " ").trim();
+
+    System.out.println("Plain text length: " + plainText.length());
+    System.out.println("First 200 chars:\n" + plainText.substring(0, Math.min(200, plainText.length())));
 
     // Extract date
     LocalDate entryDate;
     try {
-      System.out.println("Attempting to extract date...");
       entryDate = extractDateFromPlainText(plainText);
-      System.out.println("Successfully parsed date: " + entryDate);
+      System.out.println("Parsed date: " + entryDate);
     } catch (Exception e) {
       System.err.println("FAILED to parse date: " + e.getMessage());
       return entries;
     }
 
     // Find table section
-    System.out.println("Looking for transit times table...");
     String tableStartMarker = "Average scheduled transit times between selected locations:";
     int tableStart = plainText.indexOf(tableStartMarker);
-
     if (tableStart == -1) {
-      System.err.println("ERROR: Could not find table start marker: " + tableStartMarker);
+      System.err.println("ERROR: Could not find table start marker");
       return entries;
     }
-    System.out.println("Found table at position: " + tableStart);
 
-    // Extract table data
-    String tableData = plainText.substring(tableStart + tableStartMarker.length());
-    System.out.println("---------- Table data ----------");
-    System.out.println(tableData.substring(0, Math.min(500, tableData.length())) + "...");
-
-    // Split into lines and process
-    String[] lines = tableData.split("From To Cycle Gas Distillates Days Hours Days Hours")[1]
+    String tableData = plainText.substring(tableStart + tableStartMarker.length())
         .split("The information contained")[0]
-        .trim()
-        .split("\\s+");
+        .trim();
 
-    System.out.println("Found " + lines.length + " data elements in table");
-    System.out.println("First 20 elements: " + Arrays.toString(Arrays.copyOfRange(lines, 0, 20)));
+    String[] lines = tableData.split("\\r?\\n|(?<=\\d) (?=\\D)");
 
-    // Process entries (7 fields per row)
-    System.out.println("Processing entries...");
-    for (int i = 0; i + 6 < lines.length; i += 7) {
+    int headerRowIndex = -1;
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].contains("From") && lines[i].contains("To") && lines[i].contains("Cycle")) {
+        headerRowIndex = i;
+        break;
+      }
+    }
+
+    if (headerRowIndex == -1) {
+      System.err.println("ERROR: Could not find table header row");
+      return entries;
+    }
+
+    for (int i = headerRowIndex + 1; i < lines.length; i++) {
+      String line = lines[i].trim();
+      if (line.isEmpty()) continue;
+
+      String[] cells = line.split("\\s+");
+      if (cells.length < 7) continue;
+
       try {
-        System.out.println("Processing entry starting at index " + i);
-        String[] currentRow = Arrays.copyOfRange(lines, i, i+7);
-        System.out.println("Row data: " + Arrays.toString(currentRow));
+        if (!(cells[0].equals("HTN") && cells[1].equals("GBJ")) &&
+            !(cells[0].equals("GBJ") && cells[1].equals("LNJ"))) {
+          continue;
+        }
 
         TransitEntry entry = new TransitEntry();
-        entry.origin = currentRow[0];
-        entry.destination = currentRow[1];
-        entry.cycle = Integer.parseInt(currentRow[2]);
-
-        int gasDays = Integer.parseInt(currentRow[3]);
-        int gasHours = Integer.parseInt(currentRow[4]);
-        entry.gasTime = gasDays + gasHours / 24.0;
-
-        int distDays = Integer.parseInt(currentRow[5]);
-        int distHours = Integer.parseInt(currentRow[6]);
-        entry.distillateTime = distDays + distHours / 24.0;
-
+        entry.origin = cells[0];
+        entry.destination = cells[1];
+        entry.cycle = Integer.parseInt(cells[2]);
         entry.date = entryDate;
+
+        entry.gasTime = (cells[3].isEmpty() || cells[4].isEmpty()) ? 0 :
+            Integer.parseInt(cells[3]) + Integer.parseInt(cells[4]) / 24.0;
+
+        entry.distillateTime = (cells[5].isEmpty() || cells[6].isEmpty()) ? 0 :
+            Integer.parseInt(cells[5]) + Integer.parseInt(cells[6]) / 24.0;
+
         entries.add(entry);
-
-        System.out.println("Successfully added entry: " +
-            entry.origin + "-" + entry.destination +
-            " cycle " + entry.cycle +
-            " gas:" + entry.gasTime +
-            " distillate:" + entry.distillateTime);
-
-      } catch (NumberFormatException e) {
-        System.err.println("Skipping malformed row at index " + i + ": " + e.getMessage());
-      } catch (ArrayIndexOutOfBoundsException e) {
-        System.err.println("Incomplete row at index " + i);
-        break;
+      } catch (Exception e) {
+        System.err.println("Error processing row: " + line);
+        e.printStackTrace();
       }
     }
 
@@ -187,7 +219,8 @@ public class ColonialTransitTime {
     return entries;
   }
 
-  private static LocalDate extractDateFromPlainText(String plainText) {
+
+  public static LocalDate extractDateFromPlainText(String plainText) {
     System.out.println("Extracting date from text: " + plainText.substring(0, 100) + "...");
 
     // Look for multiple possible date patterns
@@ -223,7 +256,7 @@ public class ColonialTransitTime {
     throw new RuntimeException("No valid date pattern found in: " + plainText.substring(0, 100) + "...");
   }
 
-  private static void processEntries(List<TransitEntry> entries) throws IOException {
+  public static void processEntries(List<TransitEntry> entries) throws IOException {
     System.out.println("========== Processing Entries ==========");
     System.out.println("Total entries to process: " + entries.size());
 
@@ -241,7 +274,7 @@ public class ColonialTransitTime {
         System.out.println("  HTN-GBJ entry found - updating CSVs");
         System.out.println("  Gas: " + entry.gasTime + " | Distillate: " + entry.distillateTime);
 
-        // Update HTN-GBJ CSVs
+        // Update HTN-GBJ CSVs using updateTransitCsv
         updateTransitCsv("data/Colonial/Transit/HTNGBJ-GAS.csv", entry.date, entry.cycle, entry.gasTime);
         updateTransitCsv("data/Colonial/Transit/HTNGBJ-DISTILLATES.csv", entry.date, entry.cycle, entry.distillateTime);
       }
@@ -250,7 +283,7 @@ public class ColonialTransitTime {
         System.out.println("  GBJ-LNJ entry found - updating CSVs");
         System.out.println("  Gas: " + entry.gasTime + " | Distillate: " + entry.distillateTime);
 
-        // Update GBJ-LNJ CSVs
+        // Update GBJ-LNJ CSVs using updateTransitCsv
         updateTransitCsv("data/Colonial/Transit/GBJLNJ-GAS.csv", entry.date, entry.cycle, entry.gasTime);
         updateTransitCsv("data/Colonial/Transit/GBJLNJ-DISTILLATES.csv", entry.date, entry.cycle, entry.distillateTime);
       }
@@ -265,7 +298,6 @@ public class ColonialTransitTime {
     System.out.println("GBJ-LNJ entries processed: " + gbjLnjCount);
     System.out.println("Other routes skipped: " + otherCount);
 
-    // Verify at least some HTN-GBJ entries were found
     if (htnGbjCount == 0 && entries.size() > 0) {
       System.err.println("WARNING: No HTN-GBJ entries found despite having " + entries.size() + " total entries");
       System.err.println("First few entries origins/destinations:");
@@ -275,8 +307,9 @@ public class ColonialTransitTime {
     }
   }
 
-  private static void updateTransitCsv(String filePath, LocalDate date, int cycle, double value) throws IOException {
+  public static void updateTransitCsv(String filePath, LocalDate date, int cycle, double value) throws IOException {
     System.out.println("===== Updating " + filePath + " =====");
+    System.out.println("Date: " + date + ", Cycle: " + cycle + ", Value: " + value);
 
     Path path = Paths.get(filePath);
     List<String> lines = new ArrayList<>();
@@ -290,39 +323,31 @@ public class ColonialTransitTime {
       lines.add(String.join(",", header));
     } else {
       // Read existing file and skip empty/malformed rows
-      System.out.println("  Reading existing file, filtering malformed rows");
-      lines = Files.lines(path)
-          .filter(line -> !line.trim().isEmpty())
-          .filter(line -> {
-            if (line.startsWith("Date,")) return true; // Keep header
-            try {
-              LocalDate.parse(line.split(",", -1)[0]);
-              return true;
-            } catch (Exception e) {
-              System.err.println("  WARNING: Skipping malformed row: " + line);
-              return false;
-            }
-          })
-          .collect(Collectors.toList());
+      System.out.println("  Reading existing file");
+      lines = Files.readAllLines(path);
     }
 
     // Find or create row for our date
     boolean updated = false;
     for (int i = 1; i < lines.size(); i++) {
       String[] row = lines.get(i).split(",", -1);
-      LocalDate rowDate = LocalDate.parse(row[0]);
-
-      if (rowDate.isEqual(date)) {
-        System.out.println("  Updating existing row for date " + date);
-        row[cycle] = String.format("%.2f", value);
-        lines.set(i, String.join(",", row));
-        updated = true;
-        break;
-      } else if (rowDate.isAfter(date)) {
-        System.out.println("  Inserting new row before row " + i);
-        lines.add(i, createCsvRow(date, cycle, value));
-        updated = true;
-        break;
+      try {
+        LocalDate rowDate = LocalDate.parse(row[0]);
+        if (rowDate.isEqual(date)) {
+          System.out.println("  Updating existing row for date " + date);
+          row[cycle] = String.format("%.2f", value);
+          lines.set(i, String.join(",", row));
+          updated = true;
+          break;
+        } else if (rowDate.isAfter(date)) {
+          System.out.println("  Inserting new row before row " + i);
+          lines.add(i, createCsvRow(date, cycle, value));
+          updated = true;
+          break;
+        }
+      } catch (DateTimeParseException e) {
+        System.err.println("  WARNING: Skipping malformed row at line " + i);
+        continue;
       }
     }
 
@@ -331,18 +356,33 @@ public class ColonialTransitTime {
       lines.add(createCsvRow(date, cycle, value));
     }
 
-    // Write the cleaned file
-    System.out.println("  Writing " + lines.size() + " clean rows to file");
-    Files.write(path, lines, StandardOpenOption.TRUNCATE_EXISTING);
+    // Sort by date (keeping header first)
+    lines.sort((line1, line2) -> {
+      if (line1.startsWith("Date,")) return -1;
+      if (line2.startsWith("Date,")) return 1;
+      try {
+        return LocalDate.parse(line1.split(",", -1)[0])
+            .compareTo(LocalDate.parse(line2.split(",", -1)[0]));
+      } catch (Exception e) {
+        return 0;
+      }
+    });
+
+    // Write the file
+    System.out.println("  Writing " + lines.size() + " rows to file");
+    Files.write(path, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     System.out.println("  Successfully updated " + filePath);
 
-    // Verify write
+    // Verification
     List<String> writtenLines = Files.readAllLines(path);
     System.out.println("  Verification - file now has " + writtenLines.size() + " rows");
-    System.out.println("  Last row: " + (writtenLines.isEmpty() ? "EMPTY" : writtenLines.get(writtenLines.size()-1)));
+    if (!writtenLines.isEmpty()) {
+      System.out.println("  First row: " + writtenLines.get(0));
+      System.out.println("  Last row: " + writtenLines.get(writtenLines.size()-1));
+    }
   }
 
-  private static String createCsvRow(LocalDate date, int cycle, double value) {
+  public static String createCsvRow(LocalDate date, int cycle, double value) {
     String[] newRow = new String[73];
     newRow[0] = date.toString();
     Arrays.fill(newRow, 1, 73, "");
