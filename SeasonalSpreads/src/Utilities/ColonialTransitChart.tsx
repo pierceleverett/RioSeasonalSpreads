@@ -47,6 +47,9 @@ const ColonialTransitChart: React.FC<ColonialTransitChartProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<string>("HTNGBJ");
   const [selectedProduct, setSelectedProduct] = useState<string>("GAS");
+  const [startCycle, setStartCycle] = useState<number>(1);
+  const [endCycle, setEndCycle] = useState<number>(Infinity);
+
   const chartRef = useRef<Chart<
     "line",
     { x: string; y: number | null }[],
@@ -153,9 +156,15 @@ const prepareChartData = (): ChartData<
   "line",
   { x: string; y: number | null }[]
 > => {
-  const cycles = Object.keys(transitData).sort(
-    (a, b) => parseInt(a) - parseInt(b)
-  );
+  const cycles = Object.keys(transitData)
+    .map((c) => parseInt(c))
+    .filter((c) => !isNaN(c))
+    .sort((a, b) => a - b);
+
+  const filteredCycles = cycles
+    .filter((c) => c >= startCycle && c <= endCycle)
+    .map(String);
+
   const colors = generateColors(cycles.length);
 
   // Get all unique dates across all cycles
@@ -170,7 +179,7 @@ const prepareChartData = (): ChartData<
   const sortedDates = Array.from(allDates).sort();
 
   const datasets: ChartDataset<"line", { x: string; y: number | null }[]>[] =
-    cycles.map((cycle, index) => {
+    filteredCycles.map((cycle, index) => {
       const cycleData = transitData[cycle];
       const data = sortedDates.map((date) => ({
         x: date,
@@ -307,6 +316,27 @@ const prepareChartData = (): ChartData<
           Refresh
         </button>
       </div>
+      <div>
+        <label htmlFor="start-cycle">Start Cycle: </label>
+        <input
+          type="number"
+          id="start-cycle"
+          value={startCycle}
+          min={1}
+          onChange={(e) => setStartCycle(Number(e.target.value))}
+        />
+      </div>
+      <div>
+        <label htmlFor="end-cycle">End Cycle: </label>
+        <input
+          type="number"
+          id="end-cycle"
+          value={endCycle === Infinity ? "" : endCycle}
+          min={1}
+          onChange={(e) => setEndCycle(Number(e.target.value) || Infinity)}
+        />
+      </div>
+
       <div style={{ height: "600px", position: "relative" }}>
         <Line
           key={`${selectedRoute}-${selectedProduct}-${Date.now()}`} // force remount
