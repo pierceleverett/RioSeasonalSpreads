@@ -69,7 +69,10 @@ const ColonialTransitChart: React.FC<ColonialTransitChartProps> = () => {
       setLoading(true);
       setError(null);
       const response = await fetch(
-        "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit"
+        "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
+        {
+          method: "POST",
+        }
       );
       if (!response.ok) {
         throw new Error(`Refresh failed: ${response.status}`);
