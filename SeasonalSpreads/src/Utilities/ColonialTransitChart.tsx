@@ -13,7 +13,7 @@ import {
   Legend,
 } from "chart.js";
 
-import type {ChartData} from "chart.js"
+import type { ChartData } from "chart.js";
 import type { ChartOptions } from "chart.js";
 import type { ChartDataset } from "chart.js";
 import { Chart } from "chart.js";
@@ -56,7 +56,6 @@ const ColonialTransitChart: React.FC<ColonialTransitChartProps> = () => {
     unknown
   > | null>(null);
 
-
   const routeOptions = [
     { value: "HTNGBJ", label: "HTN to GBJ" },
     { value: "GBJLNJ", label: "GBJ to LNJ" },
@@ -98,7 +97,6 @@ const ColonialTransitChart: React.FC<ColonialTransitChartProps> = () => {
     }
   };
 
-
   useEffect(() => {
     const fetchTransitData = async () => {
       try {
@@ -136,26 +134,26 @@ const ColonialTransitChart: React.FC<ColonialTransitChartProps> = () => {
   }, []);
 
   // Generate distinct colors for each cycle
-const generateColors = (count: number): string[] => {
-  const colors: string[] = [];
-  const baseSaturation = 80;
-  const baseLightness = 45;
+  const generateColors = (count: number): string[] => {
+    const colors: string[] = [];
+    const baseSaturation = 80;
+    const baseLightness = 45;
 
-  for (let i = 0; i < count; i++) {
-    const hue = (i * 137.508) % 360; // Use golden angle for better distribution
-    const saturation = baseSaturation + (i % 2 === 0 ? 0 : 10); // Slight variation
-    const lightness = baseLightness + (i % 3) * 5; // Slight variation
-    colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
-  }
+    for (let i = 0; i < count; i++) {
+      const hue = (i * 137.508) % 360; // Use golden angle for better distribution
+      const saturation = baseSaturation + (i % 2 === 0 ? 0 : 10); // Slight variation
+      const lightness = baseLightness + (i % 3) * 5; // Slight variation
+      colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+    }
 
-  return colors;
-};
+    return colors;
+  };
 
 
-const prepareChartData = (): ChartData<
-  "line",
-  { x: string; y: number | null }[]
-> => {
+const prepareChartData = (): {
+  chartData: ChartData<"line", { x: string; y: number | null }[]>;
+  xAxisRange: { min?: string; max?: string };
+} => {
   const cycles = Object.keys(transitData)
     .map((c) => parseInt(c))
     .filter((c) => !isNaN(c))
@@ -169,21 +167,28 @@ const prepareChartData = (): ChartData<
 
   // Get all unique dates across all cycles
   const allDates = new Set<string>();
-  cycles.forEach((cycle) => {
+  const visibleDates = new Set<string>();
+  filteredCycles.forEach((cycle) => {
     const cycleData = transitData[cycle];
     if (cycleData) {
-      // Add null check
-      Object.keys(cycleData).forEach((date) => allDates.add(date));
+      Object.keys(cycleData).forEach((date) => {
+        allDates.add(date);
+        visibleDates.add(date);
+      });
     }
   });
+
   const sortedDates = Array.from(allDates).sort();
+  const visibleSortedDates = Array.from(visibleDates).sort();
+  const xMin = visibleSortedDates[0];
+  const xMax = visibleSortedDates[visibleSortedDates.length - 1];
 
   const datasets: ChartDataset<"line", { x: string; y: number | null }[]>[] =
     filteredCycles.map((cycle, index) => {
       const cycleData = transitData[cycle];
       const data = sortedDates.map((date) => ({
         x: date,
-        y: cycleData && cycleData[date] ? cycleData[date] : null, // Safe access
+        y: cycleData && cycleData[date] ? cycleData[date] : null,
       }));
 
       return {
@@ -198,73 +203,82 @@ const prepareChartData = (): ChartData<
     });
 
   return {
-    labels: sortedDates,
-    datasets: datasets,
+    chartData: {
+      labels: sortedDates,
+      datasets: datasets,
+    },
+    xAxisRange: {
+      min: xMin,
+      max: xMax,
+    },
   };
 };
 
-  const chartData = prepareChartData();
+// Get both the chart data and axis range
+const { chartData, xAxisRange } = prepareChartData();
 
-  const options: ChartOptions<"line"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "right",
-        labels: {
-          boxWidth: 12,
-          padding: 20,
+const options: ChartOptions<"line"> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: "right",
+      labels: {
+        boxWidth: 12,
+        padding: 20,
+      },
+    },
+    title: {
+      display: true,
+      text: `${selectedRoute === "HTNGBJ" ? "HTN to GBJ" : "GBJ to LNJ"} ${
+        selectedProduct === "GAS" ? "Gas" : "Distillates"
+      } Transit Times by Cycle`,
+      font: {
+        size: 16,
+      },
+    },
+    tooltip: {
+      callbacks: {
+        label: (context) => {
+          return `Cycle ${context.dataset.label?.split(" ")[1]}: ${
+            context.parsed.y?.toFixed(2) || "N/A"
+          } days`;
+        },
+      },
+    },
+  },
+  scales: {
+    x: {
+      type: "time",
+      min: xAxisRange.min,
+      max: xAxisRange.max,
+      time: {
+        unit: "day",
+        tooltipFormat: "yyyy-MM-dd",
+        displayFormats: {
+          day: "MMM dd",
         },
       },
       title: {
         display: true,
-        text: `${selectedRoute === "HTNGBJ" ? "HTN to GBJ" : "GBJ to LNJ"} ${
-          selectedProduct === "GAS" ? "Gas" : "Distillates"
-        } Transit Times by Cycle`,
-        font: {
-          size: 16,
-        },
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            return `Cycle ${context.dataset.label?.split(" ")[1]}: ${
-              context.parsed.y?.toFixed(2) || "N/A"
-            } days`;
-          },
-        },
+        text: "Date",
       },
     },
-    scales: {
-      x: {
-        type: "time",
-        time: {
-          unit: "day",
-          tooltipFormat: "yyyy-MM-dd",
-          displayFormats: {
-            day: "MMM dd",
-          },
-        },
-        title: {
-          display: true,
-          text: "Date",
-        },
+    y: {
+      title: {
+        display: true,
+        text: "Transit Time (days)",
       },
-      y: {
-        title: {
-          display: true,
-          text: "Transit Time (days)",
-        },
-        ticks: {
-          callback: (value) => `${value} days`,
-        },
+      ticks: {
+        callback: (value) => `${value} days`,
       },
     },
-    interaction: {
-      intersect: false,
-      mode: "index",
-    },
-  };
+  },
+  interaction: {
+    intersect: false,
+    mode: "index",
+  },
+};
 
   if (loading) {
     return <div>Loading transit data...</div>;
@@ -280,8 +294,16 @@ const prepareChartData = (): ChartData<
 
   return (
     <div style={{ width: "100%", margin: "20px 0" }}>
-      <div style={{ marginBottom: "20px", display: "flex", gap: "20px" }}>
-        <div>
+      <div
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "10px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <label htmlFor="route-select">Route: </label>
           <select
             id="route-select"
@@ -295,7 +317,7 @@ const prepareChartData = (): ChartData<
             ))}
           </select>
         </div>
-        <div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <label htmlFor="product-select">Product: </label>
           <select
             id="product-select"
@@ -316,7 +338,7 @@ const prepareChartData = (): ChartData<
           Refresh
         </button>
       </div>
-      <div>
+      <div style={{ marginBottom: "10px" }}>
         <label htmlFor="start-cycle">Start Cycle: </label>
         <input
           type="number"
@@ -326,7 +348,7 @@ const prepareChartData = (): ChartData<
           onChange={(e) => setStartCycle(Number(e.target.value))}
         />
       </div>
-      <div>
+      <div style={{ marginBottom: "10px" }}>
         <label htmlFor="end-cycle">End Cycle: </label>
         <input
           type="number"
