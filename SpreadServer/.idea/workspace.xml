@@ -5,17 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/ColonialTransitUpdater.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/ColonialTransitTime.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Colonial/ColonialTransitTime.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/ColonialTransitHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/ColonialTransitHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/ColonialTransitTime$TransitEntry.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Colonial/ColonialTransitTime$TransitEntry.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/ColonialTransitTime.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Colonial/ColonialTransitTime.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ColonialTransitHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ColonialTransitHandler.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -154,7 +144,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="82932000" />
+      <workItem from="1750257511704" duration="83966000" />
     </task>
     <servers />
   </component>
