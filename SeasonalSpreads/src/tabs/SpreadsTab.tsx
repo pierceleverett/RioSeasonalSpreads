@@ -75,6 +75,38 @@ const SpreadsTab: React.FC = () => {
     fetchSpreadData();
   }, [commodity, startMonth, endMonth]);
 
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/updateSpreads",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Include a body if your API expects one
+          body: JSON.stringify({}), // Replace with actual data if needed
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch spread data");
+      }
+
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error("Error fetching spread data:", error);
+    }
+  };
+
+  fetchData();
+}, []);
+
+
+
   const fetchSpreadData = async () => {
     setIsLoading(true);
     setError(null);
