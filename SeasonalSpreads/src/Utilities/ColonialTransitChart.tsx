@@ -70,7 +70,7 @@ const ColonialTransitChart: React.FC<ColonialTransitChartProps> = () => {
         setLoading(true);
         setError(null);
         const response = await fetch(
-          `http://localhost:8080/getColonialTransit?route=${selectedRoute}-${selectedProduct}`
+          `https://rioseasonalspreads-production.up.railway.app/getColonialTransit?route=${selectedRoute}-${selectedProduct}`
         );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
