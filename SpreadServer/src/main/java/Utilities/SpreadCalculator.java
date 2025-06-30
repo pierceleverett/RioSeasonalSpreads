@@ -90,6 +90,7 @@ public static void main(String[] args) throws IOException {
 
     for (List<String> row : sheet) {
       LocalDate date = LocalDate.parse(row.get(0), formatter);
+      System.out.println("processing date:" + date);
       if (row.get(0) != "Date") {
         for (int i = 1; i < row.size(); i++){
           if (i == firstIndex && (!date.isBefore(startDate) && !date.isAfter(endDate))) {
