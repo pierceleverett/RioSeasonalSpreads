@@ -60,26 +60,32 @@ public class SpreadHandler implements Route {
       Map<String, Float> spreadMap1 = spreadCalculator(commodity, startMonth, endMonth,
           String.valueOf(2020 + baseYearOffset));
       yearList.add(String.valueOf(2020 + baseYearOffset));
+      System.out.println("successfully added spreadmap for year: " + 2020+baseYearOffset);
 
       Map<String, Float> spreadMap2 = spreadCalculator(commodity, startMonth, endMonth,
           String.valueOf(2021 + baseYearOffset));
           yearList.add(String.valueOf(2021 + baseYearOffset));
+      System.out.println("successfully added spreadmap for year: " + 2021+baseYearOffset);
 
       Map<String, Float> spreadMap3 = spreadCalculator(commodity, startMonth, endMonth,
           String.valueOf(2022 + baseYearOffset));
           yearList.add(String.valueOf(2022 + baseYearOffset));
+      System.out.println("successfully added spreadmap for year: " + 2022+baseYearOffset);
 
       Map<String, Float> spreadMap4 = spreadCalculator(commodity, startMonth, endMonth,
           String.valueOf(2023 + baseYearOffset));
           yearList.add(String.valueOf(2023 + baseYearOffset));
+      System.out.println("successfully added spreadmap for year: " + 2023+baseYearOffset);
 
       Map<String, Float> spreadMap5 = spreadCalculator(commodity, startMonth, endMonth,
           String.valueOf(2024 + baseYearOffset));
           yearList.add(String.valueOf(2024 + baseYearOffset));
+      System.out.println("successfully added spreadmap for year: " + 2024+baseYearOffset);
 
       Map<String, Float> spreadMap6 = spreadCalculator(commodity, startMonth, endMonth,
           String.valueOf(2025 + baseYearOffset));
           yearList.add(String.valueOf(2025 + baseYearOffset));
+      System.out.println("successfully added spreadmap for year: " + 2025+baseYearOffset);
 
       System.out.println("all data gathered");
 

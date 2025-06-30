@@ -94,10 +94,12 @@ public static void main(String[] args) throws IOException {
       if (row.get(0) != "Date") {
         for (int i = 1; i < row.size(); i++){
           if (i == firstIndex && (!date.isBefore(startDate) && !date.isAfter(endDate))) {
+            System.out.println("first value: " + Float.parseFloat(row.get(i)));
             firstMonthValues.put(date.toString().substring(5), Float.parseFloat(row.get(i)));
           }
           if (i == secondIndex && (!date.isBefore(startDate) && !date.isAfter(endDate))) {
             secondMonthValues.put(date.toString().substring(5), Float.parseFloat(row.get(i)));
+            System.out.println("second value: " + Float.parseFloat(row.get(i)));
           }
         }
       }
