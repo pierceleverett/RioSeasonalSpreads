@@ -53,7 +53,8 @@ const App: React.FC = () => {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1 className="app-title">Energy Futures Dashboard</h1>
+        <h1 className="app-title">Rio Energy Dashboard</h1>{" "}
+        {/* Updated title */}
         <div className="auth-controls">
           <SignedIn>
             <div className="user-greeting">
@@ -96,7 +97,8 @@ const App: React.FC = () => {
       </main>
 
       <footer className="app-footer">
-        <p>© {new Date().getFullYear()} Energy Futures Dashboard</p>
+        <p>© {new Date().getFullYear()} Rio Energy Dashboard</p>{" "}
+        {/* Updated footer */}
       </footer>
     </div>
   );
