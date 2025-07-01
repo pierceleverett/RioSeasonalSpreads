@@ -43,8 +43,8 @@ type MonthCode =
 
 const SpreadsTab: React.FC = () => {
   const [commodity, setCommodity] = useState<"RBOB" | "HO">("RBOB");
-  const [startMonth, setStartMonth] = useState<MonthCode>("N");
-  const [endMonth, setEndMonth] = useState<MonthCode>("Q");
+  const [startMonth, setStartMonth] = useState<MonthCode>("Q");
+  const [endMonth, setEndMonth] = useState<MonthCode>("U");
   const [spreadData, setSpreadData] = useState<
     Map<string, Map<string, number>>
   >(new Map());
