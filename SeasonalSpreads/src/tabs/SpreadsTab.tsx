@@ -67,6 +67,36 @@ const SpreadsTab: React.FC = () => {
     "X",
     "Z",
   ];
+  useEffect(() => {
+    const updateSpreads = async () => {
+      try {
+        const response = await fetch(
+          "https://rioseasonalspreads-production.up.railway.app/updateSpreads",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              commodity: commodity,
+              startMonth: startMonth,
+              endMonth: endMonth,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to update spread data");
+        }
+        console.log("Spread data updated successfully");
+      } catch (error) {
+        console.error("Error updating spread data:", error);
+      }
+    };
+
+    // Call updateSpreads when component mounts and when commodity changes
+    updateSpreads();
+  }, [commodity, startMonth, endMonth]); // Add dependencies as needed
 
   useEffect(() => {
     fetchSpreadData();
@@ -186,7 +216,7 @@ const SpreadsTab: React.FC = () => {
           borderDash: isLatestYear || isAverage ? [] : [5, 5], // Dotted for all except latest and average
           tension: 0.1,
           pointRadius: 0,
-        //comment
+          //comment
         };
       }),
     ],
