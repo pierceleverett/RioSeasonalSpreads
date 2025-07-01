@@ -23,7 +23,7 @@ type TabOption =
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabOption>("Spreads");
-  const { user } = useUser(); // This provides the user object
+  const { user } = useUser();
 
   const tabs: TabOption[] = [
     "Spreads",
@@ -52,7 +52,6 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      {/* Header with auth controls */}
       <header className="app-header">
         <h1 className="app-title">Energy Futures Dashboard</h1>
         <div className="auth-controls">
@@ -70,23 +69,22 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Main content area */}
       <main className="app-main">
         <SignedIn>
-          {/* Navigation tabs */}
-          <nav className="tab-nav">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`tab-btn ${activeTab === tab ? "active" : ""}`}
-              >
-                {tab}
-              </button>
-            ))}
-          </nav>
+          <div className="tab-nav-container">
+            <nav className="tab-nav">
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`tab-btn ${activeTab === tab ? "active" : ""}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-          {/* Tab content */}
           <div className="tab-content">{renderTabContent()}</div>
         </SignedIn>
 
@@ -97,7 +95,6 @@ const App: React.FC = () => {
         </SignedOut>
       </main>
 
-      {/* Footer */}
       <footer className="app-footer">
         <p>© {new Date().getFullYear()} Energy Futures Dashboard</p>
       </footer>
