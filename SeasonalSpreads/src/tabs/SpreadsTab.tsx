@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { FaUndo } from "react-icons/fa";
 import { Line } from "react-chartjs-2";
 import zoomPlugin from "chartjs-plugin-zoom";
-
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,10 +13,8 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-
 import type { ChartOptions, ChartData } from "chart.js";
 
-// Register only what you use
 ChartJS.register(
   zoomPlugin,
   CategoryScale,
@@ -29,7 +26,6 @@ ChartJS.register(
   Legend,
   Filler
 );
-
 
 type MonthCode =
   | "F"
@@ -52,6 +48,7 @@ const SpreadsTab: React.FC = () => {
   const [spreadData, setSpreadData] = useState<
     Map<string, Map<string, number>>
   >(new Map());
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
@@ -75,38 +72,6 @@ const SpreadsTab: React.FC = () => {
     fetchSpreadData();
   }, [commodity, startMonth, endMonth]);
 
-
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const response = await fetch(
-        "https://rioseasonalspreads-production.up.railway.app/updateSpreads",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // Include a body if your API expects one
-          body: JSON.stringify({}), // Replace with actual data if needed
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch spread data");
-      }
-
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error("Error fetching spread data:", error);
-    }
-  };
-
-  fetchData();
-}, []);
-
-
-
   const fetchSpreadData = async () => {
     setIsLoading(true);
     setError(null);
@@ -116,6 +81,10 @@ useEffect(() => {
       );
       if (!response.ok) throw new Error("Failed to fetch spread data");
       const data = await response.json();
+
+      const years = Object.keys(data).filter((year) => !year.includes("AVG"));
+      setAvailableYears(years.sort());
+
       const mapData = new Map<string, Map<string, number>>(
         Object.entries(data).map(([year, entries]) => [
           year,
@@ -128,6 +97,7 @@ useEffect(() => {
         err instanceof Error ? err.message : "An unknown error occurred"
       );
       setSpreadData(new Map());
+      setAvailableYears([]);
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +120,8 @@ useEffect(() => {
 
   const getLast30Dates = () => {
     const all = getAllDates();
-    const valid = all.filter((d) => spreadData.get("2025")?.has(d));
+    const currentYear = availableYears[availableYears.length - 1] || "";
+    const valid = all.filter((d) => spreadData.get(currentYear)?.has(d));
     return (valid.length >= 30 ? valid.slice(-30) : all.slice(-30)).reverse();
   };
 
@@ -163,13 +134,14 @@ useEffect(() => {
       "rgba(23, 162, 184, OPACITY)",
       "rgba(108, 117, 125, OPACITY)",
     ];
-    if (year === "5YEARAVG") return `rgba(255, 0, 0, ${opacity})`;
-    const index = parseInt(year) % palette.length;
+    if (year.includes("AVG")) return `rgba(255, 0, 0, ${opacity})`;
+    const index = availableYears.indexOf(year) % palette.length;
     return palette[index].replace("OPACITY", opacity.toString());
   };
 
   const allDates = getAllDates();
   const last30Dates = getLast30Dates();
+  const currentYear = availableYears[availableYears.length - 1] || "";
 
   const chartData: ChartData<"line"> = {
     labels: allDates,
@@ -197,16 +169,21 @@ useEffect(() => {
         borderColor: "rgba(200, 200, 200, 0)",
         pointRadius: 0,
       },
-      ...Array.from(spreadData.entries()).map(([year, yearMap]) => ({
-        label: year,
-        data: allDates.map((date) => yearMap.get(date) ?? null),
-        borderColor: year === "2025" ? "orange" : getYearColor(year),
-        backgroundColor: getYearColor(year, 0.5),
-        borderWidth: year === "2025" || year.includes("AVG") ? 3 : 1,
-        borderDash: year === "2025" || year.includes("AVG") ? [] : [5, 5],
-        tension: 0.1,
-        pointRadius: 0,
-      })),
+      ...Array.from(spreadData.entries()).map(([year, yearMap]) => {
+        const isCurrentYear = year === currentYear;
+        const isAverage = year.includes("AVG");
+
+        return {
+          label: year,
+          data: allDates.map((date) => yearMap.get(date) ?? null),
+          borderColor: isCurrentYear ? "orange" : getYearColor(year),
+          backgroundColor: getYearColor(year, 0.5),
+          borderWidth: isCurrentYear || isAverage ? 3 : 1,
+          borderDash: isCurrentYear ? [] : [5, 5],
+          tension: 0.1,
+          pointRadius: 0,
+        };
+      }),
     ],
   };
 
@@ -350,7 +327,7 @@ useEffect(() => {
             }}
           >
             <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
-              Last 30 Days Data - 2025
+              Last 30 Days Data - {currentYear}
             </h3>
             <table
               style={{
@@ -371,31 +348,23 @@ useEffect(() => {
                   >
                     Date
                   </th>
-                  {Array.from(spreadData.keys())
-                    .filter((year) =>
-                      [
-                        "2020",
-                        "2021",
-                        "2022",
-                        "2023",
-                        "2024",
-                        "2025",
-                        "5YEARAVG",
-                        "10YEARAVG",
-                      ].includes(year)
-                    )
-                    .map((year) => (
-                      <th
-                        key={year}
-                        style={{
-                          padding: "10px",
-                          textAlign: "right",
-                          borderBottom: "1px solid #ddd",
-                        }}
-                      >
-                        {year}
-                      </th>
-                    ))}
+                  {[
+                    ...availableYears,
+                    ...Array.from(spreadData.keys()).filter((year) =>
+                      year.includes("AVG")
+                    ),
+                  ].map((year) => (
+                    <th
+                      key={year}
+                      style={{
+                        padding: "10px",
+                        textAlign: "right",
+                        borderBottom: "1px solid #ddd",
+                      }}
+                    >
+                      {year}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -409,36 +378,29 @@ useEffect(() => {
                     <td style={{ padding: "10px", fontWeight: "bold" }}>
                       {date}
                     </td>
-                    {Array.from(spreadData.keys())
-                      .filter((year) =>
-                        [
-                          "2020",
-                          "2021",
-                          "2022",
-                          "2023",
-                          "2024",
-                          "2025",
-                          "5YEARAVG",
-                          "10YEARAVG",
-                        ].includes(year)
-                      )
-                      .map((year) => {
-                        const value = spreadData.get(year)?.get(date);
-                        return (
-                          <td
-                            key={year}
-                            style={{
-                              padding: "10px",
-                              textAlign: "right",
-                              fontFamily: "Courier New, monospace",
-                              fontWeight: year === "2025" ? "bold" : "normal",
-                              color: year === "2025" ? "#2c3e50" : "inherit",
-                            }}
-                          >
-                            {value?.toFixed(4) ?? "N/A"}
-                          </td>
-                        );
-                      })}
+                    {[
+                      ...availableYears,
+                      ...Array.from(spreadData.keys()).filter((year) =>
+                        year.includes("AVG")
+                      ),
+                    ].map((year) => {
+                      const value = spreadData.get(year)?.get(date);
+                      const isCurrentYear = year === currentYear;
+                      return (
+                        <td
+                          key={year}
+                          style={{
+                            padding: "10px",
+                            textAlign: "right",
+                            fontFamily: "Courier New, monospace",
+                            fontWeight: isCurrentYear ? "bold" : "normal",
+                            color: isCurrentYear ? "#2c3e50" : "inherit",
+                          }}
+                        >
+                          {value?.toFixed(4) ?? "N/A"}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
