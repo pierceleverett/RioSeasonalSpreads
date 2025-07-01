@@ -108,7 +108,6 @@ useEffect(() => {
 
 const getCorrectedYears = (
   startMonth: MonthCode,
-  endMonth: MonthCode
 ): { currentYear: string; nextYear: string } => {
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-11
@@ -202,7 +201,7 @@ const getCorrectedYears = (
 
   const allDates = getAllDates();
   const last30Dates = getLast30Dates();
-  const { currentYear, nextYear } = getCorrectedYears(startMonth, endMonth);
+  const { currentYear, nextYear } = getCorrectedYears(startMonth);
 
   const chartData: ChartData<"line"> = {
     labels: allDates,
