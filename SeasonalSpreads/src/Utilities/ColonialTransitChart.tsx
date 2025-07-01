@@ -207,34 +207,35 @@ const lineData: ScatterDataPoint[] = sortedDates
     };
   };
 
-  const backgroundAreaPlugin = {
-    id: 'backgroundArea',
-    beforeDatasetsDraw(chart: ChartJS) {
-      const ctx = chart.ctx;
-      chart.data.datasets.forEach((dataset: any, i: number) => {
-        if (!dataset.backgroundData) return;
+const backgroundAreaPlugin = {
+  id: "backgroundArea",
+  beforeDatasetsDraw(chart: ChartJS) {
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((dataset: any, i: number) => {
+      if (!dataset.backgroundData) return;
 
-        const meta = chart.getDatasetMeta(i);
-        if (!meta.data.length) return;
+      const meta = chart.getDatasetMeta(i);
+      if (!meta.data.length) return;
 
-        const firstPoint = meta.data[0];
-        const lastPoint = meta.data[meta.data.length - 1];
-        const minY = chart.scales.y.getPixelForValue(dataset.backgroundData.min);
-        const maxY = chart.scales.y.getPixelForValue(dataset.backgroundData.max);
+      const firstPoint = meta.data[0];
+      const lastPoint = meta.data[meta.data.length - 1];
+      const minY = chart.scales.y.getPixelForValue(dataset.backgroundData.min);
+      const maxY = chart.scales.y.getPixelForValue(dataset.backgroundData.max);
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(firstPoint.x, minY);
-        ctx.lineTo(lastPoint.x, minY);
-        ctx.lineTo(lastPoint.x, maxY);
-        ctx.lineTo(firstPoint.x, maxY);
-        ctx.closePath();
-        ctx.fillStyle = dataset.backgroundData.color;
-        ctx.fill();
-        ctx.restore();
-      });
-    }
-  };
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(firstPoint.x, minY);
+      ctx.lineTo(lastPoint.x, minY);
+      ctx.lineTo(lastPoint.x, maxY);
+      ctx.lineTo(firstPoint.x, maxY);
+      ctx.closePath();
+      // Use the same color as the line but with transparency (33 = 20% opacity)
+      ctx.fillStyle = dataset.borderColor + "33";
+      ctx.fill();
+      ctx.restore();
+    });
+  },
+};
 
   const { chartData, xAxisRange } = prepareChartData();
 
@@ -286,6 +287,21 @@ const lineData: ScatterDataPoint[] = sortedDates
       y: {
         title: { display: true, text: "Transit Time (days)" },
         ticks: { callback: (value: any) => `${value} days` },
+        // Add this to ensure the y-axis scales to include background areas
+        suggestedMin:
+          Math.min(
+            ...Object.values(realTransitData).flatMap((data) => data),
+            ...Object.values(transitData).flatMap((cycle) =>
+              Object.values(cycle)
+            )
+          ) - 1, // Add some padding
+        suggestedMax:
+          Math.max(
+            ...Object.values(realTransitData).flatMap((data) => data),
+            ...Object.values(transitData).flatMap((cycle) =>
+              Object.values(cycle)
+            )
+          ) + 1, // Add some padding
       },
     },
     interaction: { intersect: false, mode: "index" },
