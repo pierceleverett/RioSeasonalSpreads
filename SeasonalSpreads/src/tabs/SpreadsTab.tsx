@@ -186,6 +186,7 @@ const SpreadsTab: React.FC = () => {
           borderDash: isLatestYear || isAverage ? [] : [5, 5], // Dotted for all except latest and average
           tension: 0.1,
           pointRadius: 0,
+        //comment
         };
       }),
     ],
