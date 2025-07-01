@@ -229,8 +229,11 @@ const backgroundAreaPlugin = {
       ctx.lineTo(lastPoint.x, maxY);
       ctx.lineTo(firstPoint.x, maxY);
       ctx.closePath();
-      // Use the same color as the line but with transparency (33 = 20% opacity)
-      ctx.fillStyle = dataset.borderColor + "33";
+
+      // Use the border color with transparency
+      ctx.fillStyle = dataset.borderColor
+        .replace(")", ", 0.2)")
+        .replace("rgb", "rgba");
       ctx.fill();
       ctx.restore();
     });
@@ -255,19 +258,28 @@ const backgroundAreaPlugin = {
         font: { size: 16 },
       },
       tooltip: {
+        mode: "nearest",
+        intersect: false,
+        filter: function (tooltipItem) {
+          // Only show tooltip for items that have background data
+          return (
+            chartData.datasets[tooltipItem.datasetIndex].backgroundData !== null
+          );
+        },
         callbacks: {
-          label: (context: any) => {
+          label: function (context) {
+            const label = context.dataset.label || "";
+            const value = context.parsed.y || 0;
             const realData =
               realTransitData[context.dataset.label?.split(" ")[1] || ""];
-            let tooltip = `Cycle ${context.dataset.label?.split(" ")[1]}: ${
-              context.parsed.y?.toFixed(2) || "N/A"
-            } days`;
+
+            let tooltipText = `${label}: ${value.toFixed(2)} days`;
             if (realData?.length) {
-              tooltip += ` (Actual: ${Math.min(...realData)}-${Math.max(
+              tooltipText += ` (Actual range: ${Math.min(
                 ...realData
-              )} days)`;
+              )}-${Math.max(...realData)} days)`;
             }
-            return tooltip;
+            return tooltipText;
           },
         },
       },
