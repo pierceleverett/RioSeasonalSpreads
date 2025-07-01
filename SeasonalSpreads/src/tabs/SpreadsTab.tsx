@@ -171,6 +171,9 @@ const SpreadsTab: React.FC = () => {
       },
       ...Array.from(spreadData.entries()).map(([year, yearMap]) => {
         const isCurrentYear = year === currentYear;
+        const isPreviousYear =
+          availableYears.length > 1 &&
+          year === availableYears[availableYears.length - 2];
         const isAverage = year.includes("AVG");
 
         return {
@@ -178,8 +181,8 @@ const SpreadsTab: React.FC = () => {
           data: allDates.map((date) => yearMap.get(date) ?? null),
           borderColor: isCurrentYear ? "orange" : getYearColor(year),
           backgroundColor: getYearColor(year, 0.5),
-          borderWidth: isCurrentYear || isAverage ? 3 : 1,
-          borderDash: isCurrentYear ? [] : [5, 5],
+          borderWidth: isCurrentYear || isAverage ? 3 : isPreviousYear ? 1 : 2,
+          borderDash: isPreviousYear ? [5, 5] : [],
           tension: 0.1,
           pointRadius: 0,
         };
