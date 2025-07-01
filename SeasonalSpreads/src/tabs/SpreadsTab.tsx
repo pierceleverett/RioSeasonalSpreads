@@ -112,7 +112,7 @@ useEffect(() => {
     setError(null);
     try {
       const response = await fetch(
-        `https://rioseasonalspreads-production.up.railway.app/getSpread?commodity=${commodity}&startMonth=${startMonth}&endMonth=${endMonth}`
+        `http:localhost:8080/getSpread?commodity=${commodity}&startMonth=${startMonth}&endMonth=${endMonth}`
       );
       if (!response.ok) throw new Error("Failed to fetch spread data");
       const data = await response.json();
