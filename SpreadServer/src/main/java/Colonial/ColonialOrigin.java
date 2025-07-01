@@ -271,6 +271,85 @@ public class ColonialOrigin {
     }
   }
 
+  public static void processNewOriginStartsEmails(String accessToken, String userPrincipalName) throws IOException {
+    // File to track processed email IDs
+    Path processedIdsPath = Paths.get("data/Colonial/Origin/processed_email_ids.txt");
+    Set<String> processedEmailIds = new HashSet<>();
+
+    // Load already processed email IDs
+    if (Files.exists(processedIdsPath)) {
+      processedEmailIds.addAll(Files.readAllLines(processedIdsPath, StandardCharsets.UTF_8));
+    }
+
+    IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+    GraphServiceClient<?> graphClient = GraphServiceClient.builder()
+        .authenticationProvider(authProvider)
+        .buildClient();
+
+    List<Message> newMessages = new ArrayList<>();
+    LinkedList<QueryOption> requestOptions = new LinkedList<>();
+    requestOptions.add(new QueryOption("$select", "id,subject,receivedDateTime,body"));
+    requestOptions.add(new QueryOption("$top", "50"));
+
+    MessageCollectionPage messagesPage;
+    MessageCollectionRequestBuilder nextPage = null;
+    boolean foundNewMessages = false;
+
+    do {
+      messagesPage = (nextPage == null)
+          ? graphClient.users(userPrincipalName).messages()
+          .buildRequest(requestOptions)
+          .orderBy("receivedDateTime desc")
+          .get()
+          : nextPage.buildRequest().get();
+
+      for (Message message : messagesPage.getCurrentPage()) {
+        // Skip if already processed
+        if (processedEmailIds.contains(message.id)) {
+          continue;
+        }
+
+        if (message.subject != null && message.subject.toLowerCase().contains("colonial - origin")) {
+          // Get full message content if needed
+          if (message.body == null || message.body.content == null) {
+            Message fullMessage = graphClient.users(userPrincipalName)
+                .messages(message.id)
+                .buildRequest()
+                .select("body")
+                .get();
+            message.body = fullMessage.body;
+          }
+
+          LocalDate bulletinDate = extractBulletinDate(message.body.content);
+          if (bulletinDate != null) {
+            System.out.println("Processing new email with ID: " + message.id + " from: " + bulletinDate);
+            processOriginStartsEmail(message.body.content, bulletinDate);
+            newMessages.add(message);
+            foundNewMessages = true;
+          }
+        }
+      }
+
+      nextPage = messagesPage.getNextPage();
+    } while (nextPage != null && newMessages.size() < 10); // Limit to 10 new messages per run
+
+    // Update processed email IDs file if we found new messages
+    if (foundNewMessages) {
+      List<String> allProcessedIds = new ArrayList<>(processedEmailIds);
+      for (Message message : newMessages) {
+        allProcessedIds.add(message.id);
+      }
+
+      Files.createDirectories(processedIdsPath.getParent());
+      Files.write(processedIdsPath, allProcessedIds, StandardCharsets.UTF_8,
+          StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+      System.out.println("Processed " + newMessages.size() + " new emails");
+    } else {
+      System.out.println("No new emails to process");
+    }
+  }
+
 
   private static String cleanDate(String dateStr) {
     return dateStr.replace("*", "").trim();
