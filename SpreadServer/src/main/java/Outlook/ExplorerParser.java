@@ -1,8 +1,6 @@
 package Outlook;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -57,33 +55,36 @@ public class ExplorerParser {
 
   public static void explorerTransit(String accessToken) throws IOException {
     String userId = "automatedreports@rioenergy.com";
-    // Get messages from last 30 days and order by newest first
-    String queryParams = "?$top=100&$select=subject,body,receivedDateTime" +
-        "&$filter=receivedDateTime ge " + getDateFilter(30) +
-        " and contains(subject,'Explorer')" +
-        "&$orderby=receivedDateTime desc";
 
-    URL url = new URL("https://graph.microsoft.com/v1.0/users/" + userId +
-        "/mailFolders/inbox/messages" + queryParams);
+    String endpoint = "https://graph.microsoft.com/v1.0/users/" + userId + "/mailFolders/inbox/messages?$select=subject,body,receivedDateTime";
+    JSONArray messages = new JSONArray();
 
-    HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-    conn.setRequestMethod("GET");
-    conn.setRequestProperty("Authorization", "Bearer " + accessToken);
-    conn.setRequestProperty("Accept", "application/json");
+    while (endpoint != null) {
+      URL url = new URL(endpoint);
+      HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+      conn.setRequestMethod("GET");
+      conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+      conn.setRequestProperty("Accept", "application/json");
 
-    int responseCode = conn.getResponseCode();
-    InputStream is = (responseCode == 200) ? conn.getInputStream() : conn.getErrorStream();
-
-    StringBuilder response = new StringBuilder();
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-      String line;
-      while ((line = br.readLine()) != null) {
-        response.append(line);
+      int responseCode = conn.getResponseCode();
+      InputStream is = (responseCode == 200) ? conn.getInputStream() : conn.getErrorStream();
+      StringBuilder response = new StringBuilder();
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+          response.append(line);
+        }
       }
+
+      JSONObject json = new JSONObject(response.toString());
+      JSONArray batch = json.getJSONArray("value");
+      for (int i = 0; i < batch.length(); i++) {
+        messages.put(batch.getJSONObject(i));
+      }
+
+      endpoint = json.has("@odata.nextLink") ? json.getString("@odata.nextLink") : null;
     }
 
-    JSONObject json = new JSONObject(response.toString());
-    JSONArray messages = json.getJSONArray("value");
 
     // Define all possible routes in the desired order
     String[] routes = {
@@ -237,10 +238,6 @@ public class ExplorerParser {
       }
       tempFile.renameTo(csvFile);
     }
-  }
-  private static String getDateFilter(int daysAgo) {
-    Instant instant = Instant.now().minus(daysAgo, ChronoUnit.DAYS);
-    return instant.toString().substring(0, 10) + "T00:00:00Z";
   }
 
 

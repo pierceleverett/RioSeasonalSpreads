@@ -9,9 +9,6 @@
       <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/styles/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/src/styles/main.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Outlook/ExplorerParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Outlook/ExplorerParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Outlook/FusionCurveParser.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Utilities/FiveYearAvgCalc.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Utilities/FiveYearAvgCalc.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +154,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="126644000" />
+      <workItem from="1750257511704" duration="127962000" />
     </task>
     <servers />
   </component>
