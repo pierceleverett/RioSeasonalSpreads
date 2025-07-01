@@ -26,7 +26,7 @@ public class SpreadCalculator {
     MONTH_CONFIG.put("Z", new String[]{"12", "01", "11", "30", "-1", "0"});  // Dec (prev year) - Nov (current)
   }
 public static void main(String[] args) throws IOException {
-    Map<String, Float> map = spreadCalculator("HO", "G", "U", "2022");
+    Map<String, Float> map = spreadCalculator("RBOB", "N", "Q", "2025");
   System.out.println(map);
 }
   public static Map<String, String> getFuturesDates(String year, String monthCode) {

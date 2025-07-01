@@ -64,13 +64,26 @@ public class ForwardCurveUpdater {
       monthIndex.put(headers[i].trim(), i);
     }
 
-    // Extract the year from the filename (e.g., RBOB2025.csv → 2025)
+    // Extract the year from the filename
     String fileName = filePath.getFileName().toString();
     int fileYear = Integer.parseInt(fileName.replaceAll("\\D+", ""));
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy");
     String targetDate = date.format(formatter);
 
+    // Check if this date already exists in the file
+    for (int i = 1; i < lines.size(); i++) {
+      String existingLine = lines.get(i);
+      if (!existingLine.trim().isEmpty()) {
+        String existingDate = existingLine.split(",", 2)[0];
+        if (existingDate.equals(targetDate)) {
+          System.out.println("✅ Date already exists in file: " + targetDate);
+          return; // Skip if date already exists
+        }
+      }
+    }
+
+    // Create new row
     String[] newRow = new String[headers.length];
     newRow[0] = targetDate;
 
@@ -91,9 +104,34 @@ public class ForwardCurveUpdater {
     }
 
     String newLine = String.join(",", newRow);
-    lines.add(newLine);
+
+    // Find the correct position to insert the new line
+    int insertPosition = 1; // Start after header
+    while (insertPosition < lines.size()) {
+      String line = lines.get(insertPosition);
+      if (line.trim().isEmpty()) {
+        insertPosition++;
+        continue;
+      }
+
+      String existingDateStr = line.split(",", 2)[0];
+      try {
+        LocalDate existingDate = LocalDate.parse(existingDateStr, formatter);
+        if (date.isBefore(existingDate)) {
+          break; // Found the position to insert
+        }
+      } catch (DateTimeParseException e) {
+        System.err.println("Skipping malformed date: " + existingDateStr);
+      }
+      insertPosition++;
+    }
+
+    // Insert the new line at the correct position
+    lines.add(insertPosition, newLine);
+
+    // Write the file back with the new line inserted
     Files.write(filePath, lines, StandardCharsets.UTF_8);
-    System.out.println("✅ Appended new line to " + fileName + ": " + newLine);
+    System.out.println("✅ Inserted new line to " + fileName + " at position " + insertPosition + ": " + newLine);
   }
 
 }
