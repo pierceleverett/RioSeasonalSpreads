@@ -108,11 +108,33 @@ const ColonialTransitChart: React.FC = () => {
       throw err;
     }
   };
+    const updateSpreads = async () => {
+      try {
+        const response = await fetch(
+          "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to update transit data");
+        }
+        console.log("Transit data updated successfully");
+      } catch (error) {
+        console.error("Error updating transit data:", error);
+      }
+    };
+
 
   const handleRefresh = async () => {
     try {
       setLoading(true);
       setError(null);
+      updateSpreads();
       const [transitData, realData] = await Promise.all([
         fetchTransitData(),
         fetchRealTransitData()
