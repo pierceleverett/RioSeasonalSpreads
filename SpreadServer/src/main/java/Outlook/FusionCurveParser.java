@@ -70,8 +70,8 @@ public class FusionCurveParser {
   public static List<Message> fetchCurveReportEmails(String accessToken, String userPrincipalName, String csvPath) throws IOException {
     LocalDate lastDateInCsv = readLastDateFromCsv(csvPath);
     System.out.println("Last day in csv: " + lastDateInCsv);
-    LocalDate yesterday = LocalDate.now();
-    System.out.println("Yesteday: " + yesterday);
+    LocalDate yesterday = LocalDate.now().minusDays(1);
+    System.out.println("Yestreday: " + yesterday);
 
     if (!lastDateInCsv.isBefore(yesterday)) {
       System.out.println("No missing dates. Data is up to date.");

@@ -1,6 +1,8 @@
 package Outlook;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -55,7 +57,15 @@ public class ExplorerParser {
 
   public static void explorerTransit(String accessToken) throws IOException {
     String userId = "automatedreports@rioenergy.com";
-    URL url = new URL("https://graph.microsoft.com/v1.0/users/" + userId + "/mailFolders/inbox/messages?$top=50&$select=subject,body,receivedDateTime");
+    // Get messages from last 30 days and order by newest first
+    String queryParams = "?$top=100&$select=subject,body,receivedDateTime" +
+        "&$filter=receivedDateTime ge " + getDateFilter(30) +
+        " and contains(subject,'Explorer')" +
+        "&$orderby=receivedDateTime desc";
+
+    URL url = new URL("https://graph.microsoft.com/v1.0/users/" + userId +
+        "/mailFolders/inbox/messages" + queryParams);
+
     HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
     conn.setRequestMethod("GET");
     conn.setRequestProperty("Authorization", "Bearer " + accessToken);
@@ -227,6 +237,10 @@ public class ExplorerParser {
       }
       tempFile.renameTo(csvFile);
     }
+  }
+  private static String getDateFilter(int daysAgo) {
+    Instant instant = Instant.now().minus(daysAgo, ChronoUnit.DAYS);
+    return instant.toString().substring(0, 10) + "T00:00:00Z";
   }
 
 
