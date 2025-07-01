@@ -4,6 +4,7 @@ import static spark.Spark.before;
 import static spark.Spark.options;
 import static spark.Spark.post;
 
+import Handlers.ActualTransitHandler;
 import Handlers.BetweenFuelSpreadHandler;
 import Handlers.ColonialTransitHandler;
 import Handlers.ColonialTransitUpdaterHandler;
@@ -66,6 +67,7 @@ public final class Server {
       Spark.get("/getGCSpreads", new GCSpreadHandler());
       Spark.get("/getColonialTransit", new ColonialTransitHandler());
       Spark.post("/updateColonialTransit", new ColonialTransitUpdaterHandler());
+      Spark.get("/getRealTransit", new ActualTransitHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);
