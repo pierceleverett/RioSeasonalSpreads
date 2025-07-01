@@ -1,6 +1,5 @@
 package Handlers;
 
-import static Colonial.ColonialFungible.USER_PRINCIPAL_NAME;
 import static Colonial.ColonialFungible.fetchFungibleEmails;
 import static Colonial.ColonialFungible.processNewMessages;
 import static Colonial.ColonialOrigin.processNewOriginStartsEmails;
