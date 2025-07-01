@@ -8,7 +8,14 @@ const TransitTimesTab: React.FC = () => {
   );
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Segoe UI" }}>
+    <div
+      style={{
+        padding: "20px",
+        fontFamily: "Segoe UI",
+        maxWidth: "1200px",
+        margin: "0 auto",
+      }}
+    >
       <div
         style={{
           display: "flex",
@@ -29,6 +36,7 @@ const TransitTimesTab: React.FC = () => {
             fontSize: "16px",
             fontWeight: "bold",
             transition: "all 0.3s ease",
+            minWidth: "180px",
           }}
           onClick={() => setActiveTab("explorer")}
         >
@@ -46,6 +54,7 @@ const TransitTimesTab: React.FC = () => {
             fontSize: "16px",
             fontWeight: "bold",
             transition: "all 0.3s ease",
+            minWidth: "180px",
           }}
           onClick={() => setActiveTab("colonial")}
         >
@@ -53,23 +62,44 @@ const TransitTimesTab: React.FC = () => {
         </button>
       </div>
 
-      {activeTab === "explorer" && (
-        <div>
-          <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-            Explorer Transit Times
-          </h2>
-          <ExplorerTransitChart />
-        </div>
-      )}
+      <div
+        style={{
+          backgroundColor: "#fff",
+          borderRadius: "8px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          padding: "20px",
+        }}
+      >
+        {activeTab === "explorer" && (
+          <div>
+            <h2
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                color: "#333",
+              }}
+            >
+              Explorer Transit Times
+            </h2>
+            <ExplorerTransitChart />
+          </div>
+        )}
 
-      {activeTab === "colonial" && (
-        <div>
-          <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-            Colonial Pipeline Transit Times
-          </h2>
-          <ColonialTransitChart routeName="Colonial Pipeline" />
-        </div>
-      )}
+        {activeTab === "colonial" && (
+          <div>
+            <h2
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                color: "#333",
+              }}
+            >
+              Colonial Pipeline Transit Times
+            </h2>
+            <ColonialTransitChart />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
