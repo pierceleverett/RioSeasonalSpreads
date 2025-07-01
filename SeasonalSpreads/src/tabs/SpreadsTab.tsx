@@ -55,7 +55,6 @@ const SpreadsTab: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
-  
 
   const monthOptions: MonthCode[] = [
     "F",
@@ -105,36 +104,6 @@ useEffect(() => {
 
   fetchData();
 }, []);
-
-const getCorrectedYears = (
-  startMonth: MonthCode,
-): { currentYear: string; nextYear: string } => {
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-11
-
-  // Map month codes to their numerical values (1-12)
-  const monthCodeToNumber: Record<MonthCode, number> = {
-    F: 1,
-    G: 2,
-    H: 3,
-    J: 4,
-    K: 5,
-    M: 6,
-    N: 7,
-    Q: 8,
-    U: 9,
-    V: 10,
-    X: 11,
-    Z: 12,
-  };
-
-  const startMonthNum = monthCodeToNumber[startMonth];
-
-  if (startMonthNum < currentMonth) {
-    return { currentYear: "2025", nextYear: "2026" };
-  }
-  return { currentYear: "2025", nextYear: "2025" };
-};
 
 
 
@@ -201,7 +170,6 @@ const getCorrectedYears = (
 
   const allDates = getAllDates();
   const last30Dates = getLast30Dates();
-  const { currentYear, nextYear } = getCorrectedYears(startMonth);
 
   const chartData: ChartData<"line"> = {
     labels: allDates,
@@ -229,22 +197,16 @@ const getCorrectedYears = (
         borderColor: "rgba(200, 200, 200, 0)",
         pointRadius: 0,
       },
-      ...Array.from(spreadData.entries()).map(([year, yearMap]) => {
-        const isCurrentYear = year === currentYear;
-        const isNextYear = year === nextYear;
-        const isAverage = year.includes("AVG");
-
-        return {
-          label: year,
-          data: allDates.map((date) => yearMap.get(date) ?? null),
-          borderColor: isNextYear ? "orange" : getYearColor(year),
-          backgroundColor: getYearColor(year, 0.5),
-          borderWidth: isNextYear || isAverage ? 3 : 1,
-          borderDash: isCurrentYear ? [5, 5] : [],
-          tension: 0.1,
-          pointRadius: 0,
-        };
-      }),
+      ...Array.from(spreadData.entries()).map(([year, yearMap]) => ({
+        label: year,
+        data: allDates.map((date) => yearMap.get(date) ?? null),
+        borderColor: year === "2025" ? "orange" : getYearColor(year),
+        backgroundColor: getYearColor(year, 0.5),
+        borderWidth: year === "2025" || year.includes("AVG") ? 3 : 1,
+        borderDash: year === "2025" || year.includes("AVG") ? [] : [5, 5],
+        tension: 0.1,
+        pointRadius: 0,
+      })),
     ],
   };
 
@@ -455,17 +417,13 @@ const getCorrectedYears = (
                           "2022",
                           "2023",
                           "2024",
-                          currentYear,
-                          nextYear,
+                          "2025",
                           "5YEARAVG",
                           "10YEARAVG",
                         ].includes(year)
                       )
                       .map((year) => {
                         const value = spreadData.get(year)?.get(date);
-                        const isNextYear = year === nextYear;
-                        const isCurrentYear = year === currentYear;
-
                         return (
                           <td
                             key={year}
@@ -473,9 +431,8 @@ const getCorrectedYears = (
                               padding: "10px",
                               textAlign: "right",
                               fontFamily: "Courier New, monospace",
-                              fontWeight: isNextYear ? "bold" : "normal",
-                              color: isNextYear ? "#2c3e50" : "inherit",
-                              fontStyle: isCurrentYear ? "italic" : "normal",
+                              fontWeight: year === "2025" ? "bold" : "normal",
+                              color: year === "2025" ? "#2c3e50" : "inherit",
                             }}
                           >
                             {value?.toFixed(4) ?? "N/A"}
