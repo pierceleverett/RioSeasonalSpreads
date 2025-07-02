@@ -179,15 +179,6 @@ const FungibleDeliveriesTable: React.FC = () => {
           marginBottom: "20px",
         }}
       >
-        <h1
-          style={{
-            fontSize: "24px",
-            fontWeight: "600",
-            color: "#333",
-          }}
-        >
-          Fungible Deliveries
-        </h1>
         <button
           onClick={handleRefresh}
           style={{
@@ -275,18 +266,19 @@ const FungibleDeliveriesTable: React.FC = () => {
               ))}
             </div>
 
-            <div style={{ width: "75%" }}>
+            <div style={{ width: "95%" }}>
               {selectedProducts.length > 0 ? (
                 renderTable()
               ) : (
                 <div
                   style={{
-                    color: "#666",
-                    fontStyle: "italic",
-                    padding: "20px",
-                    textAlign: "center",
-                    backgroundColor: "#f9f9f9",
-                    borderRadius: "4px",
+                    overflowX: "auto",
+                    marginTop: "20px",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: "6px",
+                    padding: "12px",
+                    minWidth: "100%",
+                    boxSizing: "border-box",
                   }}
                 >
                   Select products to display the delivery table
