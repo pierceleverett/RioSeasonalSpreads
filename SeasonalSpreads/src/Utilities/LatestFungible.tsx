@@ -87,14 +87,52 @@ const FungibleDeliveriesTable: React.FC = () => {
     const cycleData = data.data[selectedCycle];
 
     return (
-      <div className="overflow-x-auto mt-4">
-        <table className="min-w-full border">
+      <div
+        style={{
+          overflowX: "auto",
+          marginTop: "20px",
+          border: "1px solid #e0e0e0",
+          borderRadius: "4px",
+        }}
+      >
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+          }}
+        >
           <thead>
-            <tr>
-              <th className="border px-4 py-2">Product</th>
-              <th className="border px-4 py-2">Cycle</th>
+            <tr style={{ backgroundColor: "#f5f5f5" }}>
+              <th
+                style={{
+                  padding: "12px",
+                  textAlign: "left",
+                  borderBottom: "1px solid #e0e0e0",
+                  fontWeight: "600",
+                }}
+              >
+                Product
+              </th>
+              <th
+                style={{
+                  padding: "12px",
+                  textAlign: "left",
+                  borderBottom: "1px solid #e0e0e0",
+                  fontWeight: "600",
+                }}
+              >
+                Cycle
+              </th>
               {locations.map((location) => (
-                <th key={location} className="border px-4 py-2">
+                <th
+                  key={location}
+                  style={{
+                    padding: "12px",
+                    textAlign: "left",
+                    borderBottom: "1px solid #e0e0e0",
+                    fontWeight: "600",
+                  }}
+                >
                   {location}
                 </th>
               ))}
@@ -102,13 +140,13 @@ const FungibleDeliveriesTable: React.FC = () => {
           </thead>
           <tbody>
             {selectedProducts.map((product) => (
-              <tr key={product}>
-                <td className="border px-4 py-2">{product}</td>
-                <td className="border px-4 py-2">{selectedCycle}</td>
+              <tr key={product} style={{ borderBottom: "1px solid #e0e0e0" }}>
+                <td style={{ padding: "12px" }}>{product}</td>
+                <td style={{ padding: "12px" }}>{selectedCycle}</td>
                 {locations.map((location) => (
                   <td
                     key={`${product}-${location}`}
-                    className="border px-4 py-2"
+                    style={{ padding: "12px" }}
                   >
                     {cycleData[product]?.[location] || ""}
                   </td>
@@ -125,12 +163,43 @@ const FungibleDeliveriesTable: React.FC = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Fungible Deliveries</h1>
+    <div
+      style={{
+        padding: "20px",
+        fontFamily: "Segoe UI, sans-serif",
+        maxWidth: "1200px",
+        margin: "0 auto",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "24px",
+            fontWeight: "600",
+            color: "#333",
+          }}
+        >
+          Fungible Deliveries
+        </h1>
         <button
           onClick={handleRefresh}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          style={{
+            backgroundColor: "#1890ff",
+            color: "white",
+            border: "none",
+            padding: "8px 16px",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: "600",
+            fontSize: "14px",
+          }}
         >
           Refresh Data
         </button>
@@ -138,8 +207,14 @@ const FungibleDeliveriesTable: React.FC = () => {
 
       {data && (
         <>
-          <div className="mb-4">
-            <label className="block mb-2">
+          <div style={{ marginBottom: "20px" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: "600",
+              }}
+            >
               Select Cycle:
               <select
                 value={selectedCycle}
@@ -147,7 +222,12 @@ const FungibleDeliveriesTable: React.FC = () => {
                   setSelectedCycle(e.target.value);
                   setSelectedProducts([]);
                 }}
-                className="ml-2 p-2 border rounded"
+                style={{
+                  marginLeft: "8px",
+                  padding: "8px 12px",
+                  borderRadius: "4px",
+                  border: "1px solid #d9d9d9",
+                }}
               >
                 {Object.keys(data.data)
                   .sort()
@@ -160,17 +240,34 @@ const FungibleDeliveriesTable: React.FC = () => {
             </label>
           </div>
 
-          <div className="flex">
-            <div className="w-1/4 pr-4">
-              <h2 className="font-bold mb-2">Products</h2>
+          <div style={{ display: "flex" }}>
+            <div
+              style={{
+                width: "25%",
+                paddingRight: "20px",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  marginBottom: "12px",
+                }}
+              >
+                Products
+              </h2>
               {getProductsForCycle().map((product) => (
-                <div key={product} className="mb-2">
-                  <label className="flex items-center">
+                <div key={product} style={{ marginBottom: "8px" }}>
+                  <label style={{ display: "flex", alignItems: "center" }}>
                     <input
                       type="checkbox"
                       checked={selectedProducts.includes(product)}
                       onChange={() => handleProductToggle(product)}
-                      className="mr-2"
+                      style={{
+                        marginRight: "8px",
+                        width: "16px",
+                        height: "16px",
+                      }}
                     />
                     {product}
                   </label>
@@ -178,18 +275,34 @@ const FungibleDeliveriesTable: React.FC = () => {
               ))}
             </div>
 
-            <div className="w-3/4">
+            <div style={{ width: "75%" }}>
               {selectedProducts.length > 0 ? (
                 renderTable()
               ) : (
-                <div className="text-gray-500">
+                <div
+                  style={{
+                    color: "#666",
+                    fontStyle: "italic",
+                    padding: "20px",
+                    textAlign: "center",
+                    backgroundColor: "#f9f9f9",
+                    borderRadius: "4px",
+                  }}
+                >
                   Select products to display the delivery table
                 </div>
               )}
             </div>
           </div>
 
-          <div className="mt-4 text-sm text-gray-500">
+          <div
+            style={{
+              marginTop: "20px",
+              fontSize: "14px",
+              color: "#666",
+              textAlign: "right",
+            }}
+          >
             Report Date: {data.report_date}
           </div>
         </>
