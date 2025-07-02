@@ -6,6 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/ColonialOrigin.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Colonial/ColonialOrigin.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +43,7 @@
     "Application.ColonialFungible.executor": "Run",
     "Application.ColonialOrigin.executor": "Run",
     "Application.ColonialTransitTime.executor": "Run",
+    "Application.ColonialTransitUpdater.executor": "Run",
     "Application.CsvToMap.executor": "Run",
     "Application.ExcelUpdater.executor": "Run",
     "Application.ExplorerParser.executor": "Run",
@@ -73,7 +79,20 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Server">
+  <component name="RunManager" selected="Application.ColonialTransitUpdater">
+    <configuration name="ColonialTransitUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Colonial.ColonialTransitUpdater" />
+      <module name="moshi" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Colonial.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ExplorerParser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Outlook.ExplorerParser" />
       <module name="moshi" />
@@ -120,26 +139,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="TransitDifferenceCalculator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Colonial.TransitDifferenceCalculator" />
-      <module name="moshi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Colonial.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.ColonialTransitUpdater" />
         <item itemvalue="Application.Server" />
         <item itemvalue="Application.ExplorerParser" />
         <item itemvalue="Application.FusionCurveParser" />
         <item itemvalue="Application.SpreadCalculator" />
-        <item itemvalue="Application.TransitDifferenceCalculator" />
       </list>
     </recent_temporary>
   </component>
@@ -151,7 +157,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="136356000" />
+      <workItem from="1750257511704" duration="139900000" />
     </task>
     <servers />
   </component>
