@@ -1,14 +1,12 @@
 import React, { useState } from "react";
 import ExplorerTransitChart from "../Utilities/ExplorerTransitChart";
 import ColonialTransitChart from "../Utilities/ColonialTransitChart";
+import FungibleDeliveriesTable from "../Utilities/LatestFungible"; // Import your new component
 
 const TransitTimesTab: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"explorer" | "colonial">(
-    "explorer"
-  );
-
-
-
+  const [activeTab, setActiveTab] = useState<
+    "explorer" | "colonial" | "colonialFungible"
+  >("explorer");
 
   return (
     <div
@@ -63,6 +61,25 @@ const TransitTimesTab: React.FC = () => {
         >
           Colonial Pipeline
         </button>
+        <button
+          style={{
+            padding: "10px 20px",
+            margin: "0 5px",
+            backgroundColor:
+              activeTab === "colonialFungible" ? "#1890ff" : "#f0f0f0",
+            color: activeTab === "colonialFungible" ? "white" : "#333",
+            border: "none",
+            borderRadius: "4px 4px 0 0",
+            cursor: "pointer",
+            fontSize: "16px",
+            fontWeight: "bold",
+            transition: "all 0.3s ease",
+            minWidth: "180px",
+          }}
+          onClick={() => setActiveTab("colonialFungible")}
+        >
+          Colonial Fungible
+        </button>
       </div>
 
       <div
@@ -100,6 +117,21 @@ const TransitTimesTab: React.FC = () => {
               Colonial Pipeline Transit Times
             </h2>
             <ColonialTransitChart />
+          </div>
+        )}
+
+        {activeTab === "colonialFungible" && (
+          <div>
+            <h2
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                color: "#333",
+              }}
+            >
+              Colonial Fungible Deliveries
+            </h2>
+            <FungibleDeliveriesTable />
           </div>
         )}
       </div>
