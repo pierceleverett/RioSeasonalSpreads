@@ -5,7 +5,7 @@ body {
   background-color: #f8f9fa;
   color: #333;
   margin: 0;
-  padding: 0;
+  padding: 0px;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -24,9 +24,9 @@ button {
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 10px 20px;
+  padding: clamp(0.5rem, 1vw, 1rem) clamp(0.5rem, 1vw, 1rem);
   cursor: pointer;
-  font-size: 14px;
+  font-size: clamp(5px, 1.2vw, 50px);
   transition: background-color 0.3s ease;
 }
 
@@ -42,7 +42,7 @@ button:disabled {
 /* Dropdown Styles */
 select {
   padding: 8px 12px;
-  font-size: clamp(12px, 1.5vw, 14px);
+  font-size: clamp(12px, 0.7vw, 50px);
 }
 
 select:focus {
@@ -55,11 +55,11 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin: 20px 0;
-  font-size: 14px;
+  font-size: clamp(12px, 1.2vw, 14px);
 }
 
 th, td {
-  padding: 12px;
+  padding: clamp(10px, 1vw, 12px);
   border: 1px solid #ddd;
   text-align: left;
 }
@@ -86,27 +86,27 @@ tr:hover {
   100% { transform: rotate(360deg); }
 }
 
-/* Container Styles */
+/*  Styles */
 .container {
-  max-width: 1000px;
+  max-width: 95vw;
   margin: 0 auto;
-  padding: 20px;
+  padding: clamp(10px, 1vw, 20px);
 }
 
 .graph-container {
   position: relative;
-  width: 95%;
-  max-width: 1400px;
-  height: 60vh;
+  width: 90%;
+  max-width: 80vw;
+  height: 70vh;
   min-height: 400px;
-  max-height: 800px;
+  max-height: 1800px;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  padding: 20px;
+  padding: clamp(10px, 1vw, 20px);
   margin: 0 auto 40px auto;
 }
 
@@ -120,13 +120,13 @@ tr:hover {
 }
 
 .table-container {
-  width: 95%;
-  max-width: 1400px;
+  width: 80%;
+  max-width: 95vw;
   margin: 0 auto 40px auto;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  padding: 20px;
+  padding: clamp(10px, 1vw, 20px);
   overflow-x: auto;
 }
 
@@ -145,7 +145,7 @@ tr:hover {
 
 .table-container th,
 .table-container td {
-  padding: 12px;
+  padding: clamp(10px, 1vw, 12px);
   border: 1px solid #ddd;
   text-align: right;
 }
@@ -171,7 +171,7 @@ tr:hover {
   border-radius: 4px;
   padding: 10px 20px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: clamp(12px, 1.2vw, 14px);
   transition: background-color 0.3s ease;
 }
 
@@ -192,9 +192,9 @@ tr:hover {
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 6px 12px;
+  padding: 10px 20px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: clamp(12px, 0.7vw, 100px);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -348,7 +348,7 @@ tr:hover {
   border-radius: 8px;
   padding: 2rem;
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-  max-width: 1200px;
+  max-width: 95vw;
   margin: 0 auto;
 }
 

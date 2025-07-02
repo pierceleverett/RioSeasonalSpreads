@@ -230,7 +230,7 @@ const SpreadsTab: React.FC = () => {
         position: "top",
         labels: {
           font: {
-            size: 12,
+            size: window.innerWidth * 0.01,
             family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
           },
         },
@@ -239,7 +239,7 @@ const SpreadsTab: React.FC = () => {
         display: true,
         text: `${commodity} Spread (${startMonth}-${endMonth})`,
         font: {
-          size: 18,
+          size: window.innerWidth * 0.01,
           weight: "bold",
           family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         },
@@ -294,8 +294,10 @@ const SpreadsTab: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Segoe UI" }}>
-      <h2 style={{ textAlign: "center" }}>Spreads</h2>
+    <div style={{ padding: "clamp(6px, 1vw, 20px)", fontFamily: "Segoe UI" }}>
+      <h2 style={{ textAlign: "center", fontSize: "clamp(0.5rem, 2vw, 5rem)" }}>
+        Spreads
+      </h2>
 
       <div
         style={{
@@ -350,17 +352,12 @@ const SpreadsTab: React.FC = () => {
             <Line ref={chartRef} data={chartData} options={chartOptions} />
           </div>
 
-          <div
-            className="table-container"
-          >
-            <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
-              Last 30 Days Data - {currentYear}
-            </h3>
+          <div className="table-container">
             <table
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
-                fontSize: "14px",
+                fontSize: "clamp(12px, 1.2vw, 18px)",
                 fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
               }}
             >
@@ -368,7 +365,7 @@ const SpreadsTab: React.FC = () => {
                 <tr style={{ backgroundColor: "#f8f9fa" }}>
                   <th
                     style={{
-                      padding: "10px",
+                      padding: "clamp(6px, 1vw, 20px)",
                       textAlign: "left",
                       borderBottom: "1px solid #ddd",
                     }}
@@ -384,7 +381,7 @@ const SpreadsTab: React.FC = () => {
                     <th
                       key={year}
                       style={{
-                        padding: "10px",
+                        padding: "clamp(6px, 1vw, 20px)",
                         textAlign: "right",
                         borderBottom: "1px solid #ddd",
                       }}
@@ -402,7 +399,12 @@ const SpreadsTab: React.FC = () => {
                       backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
                     }}
                   >
-                    <td style={{ padding: "10px", fontWeight: "bold" }}>
+                    <td
+                      style={{
+                        padding: "clamp(6px, 1vw, 20px)",
+                        fontWeight: "bold",
+                      }}
+                    >
                       {date}
                     </td>
                     {[
@@ -417,7 +419,7 @@ const SpreadsTab: React.FC = () => {
                         <td
                           key={year}
                           style={{
-                            padding: "10px",
+                            padding: "clamp(6px, 1vw, 20px)",
                             textAlign: "right",
                             fontFamily: "Courier New, monospace",
                             fontWeight: isCurrentYear ? "bold" : "normal",
