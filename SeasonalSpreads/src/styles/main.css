@@ -24,9 +24,8 @@ button {
   color: white;
   border: none;
   border-radius: 4px;
-  padding: clamp(0.5rem, 1vw, 1rem) clamp(0.5rem, 1vw, 1rem);
   cursor: pointer;
-  font-size: clamp(5px, 1.2vw, 50px);
+  font-size: clamp(5px, 0.7vw, 15px);
   transition: background-color 0.3s ease;
 }
 
@@ -96,8 +95,8 @@ tr:hover {
 .graph-container {
   position: relative;
   width: 90%;
-  max-width: 80vw;
-  height: 70vh;
+  max-width: 75vw;
+  height: 75vh;
   min-height: 400px;
   max-height: 1800px;
   display: flex;
@@ -171,7 +170,7 @@ tr:hover {
   border-radius: 4px;
   padding: 10px 20px;
   cursor: pointer;
-  font-size: clamp(12px, 1.2vw, 14px);
+  font-size: clamp(6px, 1.2vw, 10px);
   transition: background-color 0.3s ease;
 }
 
