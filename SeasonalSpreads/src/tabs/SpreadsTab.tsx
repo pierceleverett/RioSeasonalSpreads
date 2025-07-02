@@ -230,7 +230,7 @@ const SpreadsTab: React.FC = () => {
         position: "top",
         labels: {
           font: {
-            size: Math.min(window.innerWidth * 0.008, 40),
+            size: Math.min(window.innerWidth * 0.008, 15),
             family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
           },
         },
@@ -239,7 +239,7 @@ const SpreadsTab: React.FC = () => {
         display: true,
         text: `${commodity} Spread (${startMonth}-${endMonth})`,
         font: {
-          size: window.innerWidth * 0.01,
+          size: Math.max(window.innerWidth * 0.01, 20),
           weight: "bold",
           family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         },
@@ -295,7 +295,7 @@ const SpreadsTab: React.FC = () => {
 
   return (
     <div style={{ padding: "clamp(6px, 1vw, 10px)", fontFamily: "Segoe UI" }}>
-      <h2 style={{ textAlign: "center", fontSize: "clamp(0.5rem, 1.5vw, 5rem)" }}>
+      <h2 style={{ textAlign: "center", fontSize: "clamp(1rem, 1.5vw, 3rem)" }}>
         Spreads
       </h2>
 

@@ -193,7 +193,7 @@ tr:hover {
   border-radius: 4px;
   padding: 10px 20px;
   cursor: pointer;
-  font-size: clamp(12px, 0.7vw, 100px);
+  font-size: clamp(5px, 0.7vw, 10px);
   display: flex;
   align-items: center;
   gap: 6px;
