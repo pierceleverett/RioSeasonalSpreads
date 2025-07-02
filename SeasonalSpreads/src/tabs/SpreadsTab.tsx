@@ -239,7 +239,7 @@ const SpreadsTab: React.FC = () => {
         display: true,
         text: `${commodity} Spread (${startMonth}-${endMonth})`,
         font: {
-          size: Math.max(window.innerWidth * 0.01, 20),
+          size: Math.min(window.innerWidth * 0.006, 20),
           weight: "bold",
           family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         },

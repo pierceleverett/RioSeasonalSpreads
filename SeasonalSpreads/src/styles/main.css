@@ -41,7 +41,7 @@ button:disabled {
 /* Dropdown Styles */
 select {
   padding: 8px 12px;
-  font-size: clamp(12px, 0.7vw, 50px);
+  font-size: clamp(12px, 0.5vw, 20px);
 }
 
 select:focus {

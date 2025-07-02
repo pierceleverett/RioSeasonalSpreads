@@ -42,19 +42,31 @@ public final class Server {
       before((req, res) -> {
         req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
       });
-      //hi
 
+      // Updated CORS handling
       after((request, response) -> {
         String origin = request.headers("Origin");
-        if ("https://riodashboard.up.railway.app".equals(origin)) {
+        // Allow both production and local development origins
+        if ("https://riodashboard.up.railway.app".equals(origin) ||
+            "http://localhost:5173".equals(origin)) {
           response.header("Access-Control-Allow-Origin", origin);
         }
         response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.header("Access-Control-Allow-Credentials", "true");
       });
 
-
-      options("/*", (request, response) -> "OK");
+      // Handle preflight requests
+      options("/*", (request, response) -> {
+        String origin = request.headers("Origin");
+        if ("https://riodashboard.up.railway.app".equals(origin) ||
+            "http://localhost:5173".equals(origin)) {
+          response.header("Access-Control-Allow-Origin", origin);
+        }
+        response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        return "OK";
+      });
 
       // Register routes
       System.out.println("Registering routes...");
