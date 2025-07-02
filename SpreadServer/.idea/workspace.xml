@@ -5,12 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/Colonial/MostRecentFungible.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Handlers/RecentFungibleHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Utilities/FungibleDataJsonAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/ColonialOrigin.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Colonial/ColonialOrigin.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/6_30data.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/6_30data.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/91Chi.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/91Chi.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/Nap.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/Nap.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,18 +83,31 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/data/pdfToAdd" />
       <recent name="$PROJECT_DIR$/data/pdf" />
+      <recent name="$PROJECT_DIR$/data/pdfToAdd" />
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.ColonialTransitUpdater">
+  <component name="RunManager" selected="Application.ExcelUpdater">
     <configuration name="ColonialTransitUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Colonial.ColonialTransitUpdater" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="Colonial.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ExcelUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="ExcelUtil.ExcelUpdater" />
+      <module name="moshi" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="ExcelUtil.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -126,26 +148,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="SpreadCalculator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Utilities.SpreadCalculator" />
-      <module name="moshi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Utilities.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.ColonialTransitUpdater" />
+        <item itemvalue="Application.ExcelUpdater" />
         <item itemvalue="Application.Server" />
+        <item itemvalue="Application.ColonialTransitUpdater" />
         <item itemvalue="Application.ExplorerParser" />
         <item itemvalue="Application.FusionCurveParser" />
-        <item itemvalue="Application.SpreadCalculator" />
       </list>
     </recent_temporary>
   </component>
@@ -157,7 +166,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="139900000" />
+      <workItem from="1750257511704" duration="145079000" />
     </task>
     <servers />
   </component>

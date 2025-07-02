@@ -12,6 +12,7 @@ import Handlers.ExplorerHandler;
 import Handlers.GCSpreadHandler;
 import Handlers.LatestUploadHandler;
 import Handlers.MagellanGraphHandler;
+import Handlers.RecentFungibleHandler;
 import Handlers.SpreadHandler;
 import Handlers.SpreadsUpdaterHandler;
 import javax.servlet.MultipartConfigElement;
@@ -69,6 +70,7 @@ public final class Server {
       Spark.get("/getColonialTransit", new ColonialTransitHandler());
       Spark.post("/updateColonialTransit", new ColonialTransitUpdaterHandler());
       Spark.get("/getRealTransit", new ActualTransitHandler());
+      Spark.get("/getRecentFungible", new RecentFungibleHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);
