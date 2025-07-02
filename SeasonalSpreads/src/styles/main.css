@@ -41,11 +41,8 @@ button:disabled {
 
 /* Dropdown Styles */
 select {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: border-color 0.3s ease;
+  padding: 8px 12px;
+  font-size: clamp(12px, 1.5vw, 14px);
 }
 
 select:focus {
@@ -98,8 +95,11 @@ tr:hover {
 
 .graph-container {
   position: relative;
-  width: 85%;
-  height: 80vh;
+  width: 95%;
+  max-width: 1400px;
+  height: 60vh;
+  min-height: 400px;
+  max-height: 800px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -107,9 +107,7 @@ tr:hover {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   padding: 20px;
-  margin-bottom: 40px;
   margin: 0 auto 40px auto;
-
 }
 
 /* Flexbox Layout */
@@ -122,7 +120,8 @@ tr:hover {
 }
 
 .table-container {
-  width: 85%;
+  width: 95%;
+  max-width: 1400px;
   margin: 0 auto 40px auto;
   background-color: #fff;
   border-radius: 8px;
@@ -139,7 +138,7 @@ tr:hover {
 .table-container table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: clamp(12px, 1.5vw, 14px);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0 auto;
 }
@@ -381,4 +380,8 @@ tr:hover {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
+}
+
+.chart-title {
+  font-size: clamp(16px, 2vw, 18px);
 }

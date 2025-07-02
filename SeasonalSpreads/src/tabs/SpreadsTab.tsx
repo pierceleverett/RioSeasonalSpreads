@@ -352,14 +352,6 @@ const SpreadsTab: React.FC = () => {
 
           <div
             className="table-container"
-            style={{
-              marginTop: "40px",
-              backgroundColor: "#fff",
-              borderRadius: "8px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              padding: "20px",
-              overflowX: "auto",
-            }}
           >
             <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
               Last 30 Days Data - {currentYear}
