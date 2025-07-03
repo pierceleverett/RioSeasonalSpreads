@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 
 interface FungibleData {
-  report_date: string;
   data: {
     [cycle: string]: {
       [product: string]: {
@@ -20,8 +19,7 @@ interface ApiResponse {
 }
 
 const FungibleDeliveriesTable: React.FC = () => {
-  const [data, setData] = useState<FungibleData | null>(null);
-  const [previousData, setPreviousData] = useState<FungibleData | null>(null);
+  const [apiData, setApiData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCycle, setSelectedCycle] = useState<string>("");
@@ -39,8 +37,7 @@ const FungibleDeliveriesTable: React.FC = () => {
         throw new Error("Network response was not ok");
       }
       const jsonData: ApiResponse = await response.json();
-      setData(jsonData.currentData);
-      setPreviousData(jsonData.previousData);
+      setApiData(jsonData);
 
       // Extract all unique locations from the data
       const allLocations = new Set<string>();
@@ -92,8 +89,8 @@ const FungibleDeliveriesTable: React.FC = () => {
   };
 
   const getProductsForCycle = (): string[] => {
-    if (!data || !selectedCycle) return [];
-    const cycleData = data.data[selectedCycle];
+    if (!apiData || !selectedCycle) return [];
+    const cycleData = apiData.currentData.data[selectedCycle];
     if (!cycleData || typeof cycleData !== "object") return [];
     return Object.keys(cycleData).sort();
   };
@@ -123,10 +120,10 @@ const FungibleDeliveriesTable: React.FC = () => {
   };
 
   const renderDateWithChange = (product: string, location: string) => {
-    if (!data || !selectedCycle || !previousData) return null;
+    if (!apiData || !selectedCycle) return null;
 
-    const cycleData = data.data[selectedCycle];
-    const prevCycleData = previousData.data[selectedCycle];
+    const cycleData = apiData.currentData.data[selectedCycle];
+    const prevCycleData = apiData.previousData.data[selectedCycle];
 
     if (!cycleData || typeof cycleData !== "object") return null;
 
@@ -174,7 +171,8 @@ const FungibleDeliveriesTable: React.FC = () => {
   };
 
   const renderTable = () => {
-    if (!data || !selectedCycle || selectedProducts.length === 0) return null;
+    if (!apiData || !selectedCycle || selectedProducts.length === 0)
+      return null;
 
     return (
       <div
@@ -249,7 +247,7 @@ const FungibleDeliveriesTable: React.FC = () => {
     );
   };
 
-  if (loading && !data) return <div>Loading...</div>;
+  if (loading && !apiData) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
@@ -286,7 +284,7 @@ const FungibleDeliveriesTable: React.FC = () => {
         </button>
       </div>
 
-      {data && (
+      {apiData && (
         <>
           <div style={{ marginBottom: "20px" }}>
             <label
@@ -310,7 +308,7 @@ const FungibleDeliveriesTable: React.FC = () => {
                   border: "1px solid #d9d9d9",
                 }}
               >
-                {Object.keys(data.data)
+                {Object.keys(apiData.currentData.data)
                   .sort()
                   .map((cycle) => (
                     <option key={cycle} value={cycle}>
@@ -385,7 +383,7 @@ const FungibleDeliveriesTable: React.FC = () => {
               textAlign: "right",
             }}
           >
-            Report Date: {data.report_date}
+            Report Date: {apiData.currentReportDate || "N/A"}
           </div>
         </>
       )}
