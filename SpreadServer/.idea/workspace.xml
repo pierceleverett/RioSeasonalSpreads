@@ -5,11 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/styles/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/src/styles/main.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/tabs/SpreadsTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/src/tabs/SpreadsTab.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Utilities/FungibleMoshiAdapter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/MostRecentFungible.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Colonial/MostRecentFungible.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/RecentFungibleHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/RecentFungibleHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Utilities/FungibleDataJsonAdapter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/MostRecentFungible$FungibleData.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Colonial/MostRecentFungible$FungibleData.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/MostRecentFungible.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Colonial/MostRecentFungible.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/RecentFungibleHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/RecentFungibleHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Utilities/FungibleDataJsonAdapter$FungibleDataAdapter.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Utilities/FungibleDataJsonAdapter.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +84,7 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Server">
+  <component name="RunManager" selected="Application.ExcelUpdater">
     <configuration name="ColonialTransitUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Colonial.ColonialTransitUpdater" />
       <module name="moshi" />
@@ -141,8 +146,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Server" />
         <item itemvalue="Application.ExcelUpdater" />
+        <item itemvalue="Application.Server" />
         <item itemvalue="Application.ColonialTransitUpdater" />
         <item itemvalue="Application.ExplorerParser" />
         <item itemvalue="Application.FusionCurveParser" />
@@ -157,7 +162,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="146671000" />
+      <workItem from="1750257511704" duration="150135000" />
     </task>
     <servers />
   </component>

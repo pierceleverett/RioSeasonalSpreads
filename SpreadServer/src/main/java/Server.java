@@ -44,19 +44,23 @@ public final class Server {
       });
 
       // Updated CORS handling
+// Updated CORS handling
       after((request, response) -> {
-        String origin = request.headers("Origin");
-        // Allow both production and local development origins
-        if ("https://riodashboard.up.railway.app".equals(origin) ||
-            "http://localhost:5173".equals(origin)) {
-          response.header("Access-Control-Allow-Origin", origin);
+        // Only add CORS headers if this isn't an OPTIONS request
+        if (!request.requestMethod().equals("OPTIONS")) {
+          String origin = request.headers("Origin");
+          // Allow both production and local development origins
+          if ("https://riodashboard.up.railway.app".equals(origin) ||
+              "http://localhost:5173".equals(origin)) {
+            response.header("Access-Control-Allow-Origin", origin);
+          }
+          response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+          response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+          response.header("Access-Control-Allow-Credentials", "true");
         }
-        response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        response.header("Access-Control-Allow-Credentials", "true");
       });
 
-      // Handle preflight requests
+// Handle preflight requests
       options("/*", (request, response) -> {
         String origin = request.headers("Origin");
         if ("https://riodashboard.up.railway.app".equals(origin) ||
@@ -65,6 +69,7 @@ public final class Server {
         }
         response.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         response.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.header("Access-Control-Allow-Credentials", "true");
         return "OK";
       });
 

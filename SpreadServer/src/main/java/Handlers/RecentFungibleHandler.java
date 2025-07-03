@@ -5,8 +5,9 @@ import static Colonial.CsvToMap.createSortedTransitTimeMap;
 
 import Colonial.ColonialTransitUpdater;
 import Colonial.MostRecentFungible;
+import Colonial.MostRecentFungible.FungibleComparisonResult;
 import Colonial.MostRecentFungible.FungibleData;
-import Utilities.FungibleDataJsonAdapter;
+import Utilities.FungibleMoshiAdapter;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
@@ -22,10 +23,10 @@ public class RecentFungibleHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
     try {
       // Get data
-      FungibleData data = MostRecentFungible.extractLatestFungibleData();
+      FungibleComparisonResult data = MostRecentFungible.extractAndCompareFungibleData();
 
       // Serialize
-      String json = FungibleDataJsonAdapter.adapter().toJson(data);
+      String json = FungibleMoshiAdapter.toJson(data);
       return json;
 
     } catch (IOException e) {

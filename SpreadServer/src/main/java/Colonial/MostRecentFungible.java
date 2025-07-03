@@ -26,10 +26,130 @@ import java.time.format.DateTimeParseException;
 public class MostRecentFungible {
   private static final String USER_PRINCIPAL_NAME = "automatedreports@rioenergy.com";
   private static final String EMAIL_SUBJECT_FILTER = "colonial - fungible";
-  private static final Set<String> VALID_FUELS = Set.of(
-      "52", "54", "56", "62", "78", "96",
-      "A", "D", "F", "M", "H", "V"
-  );
+  private static final int MAX_DAYS_TO_SEARCH = 7; // Max days to look back for previous emails
+
+  public static class FungibleComparisonResult {
+    public LocalDate currentReportDate;
+    public LocalDate previousReportDate;
+    public FungibleData currentData;
+    public FungibleData previousData;
+    public boolean isNewerData;
+
+    @Override
+    public String toString() {
+      return "FungibleComparisonResult{" +
+          "currentReportDate=" + currentReportDate +
+          ", previousReportDate=" + previousReportDate +
+          ", isNewerData=" + isNewerData +
+          '}';
+    }
+  }
+
+  public static FungibleComparisonResult extractAndCompareFungibleData() throws IOException {
+    try {
+      String accessToken = getAccessToken();
+      System.out.println("[DEBUG] Access token retrieved successfully");
+
+      // Fetch the most recent fungible email
+      Message currentMessage = fetchMostRecentFungibleEmail(accessToken, USER_PRINCIPAL_NAME);
+      if (currentMessage == null) {
+        throw new IOException("No fungible email found with subject containing: " + EMAIL_SUBJECT_FILTER);
+      }
+
+      FungibleData currentData = parseFungibleEmail(currentMessage);
+      LocalDate currentDate = currentData.reportDate;
+
+      // Try to find a previous email from a different date
+      FungibleData previousData = null;
+      LocalDate previousDate = null;
+
+      // First try to find an email from yesterday
+      LocalDate yesterday = currentDate.minusDays(1);
+      Message previousMessage = findFungibleEmailForDate(accessToken, yesterday);
+
+      // If not found, look for the second most recent email with a different date
+      if (previousMessage == null) {
+        previousMessage = findSecondMostRecentFungibleEmail(accessToken, currentMessage.receivedDateTime);
+      }
+
+      if (previousMessage != null) {
+        previousData = parseFungibleEmail(previousMessage);
+        previousDate = previousData.reportDate;
+      }
+
+      FungibleComparisonResult result = new FungibleComparisonResult();
+      result.currentReportDate = currentDate;
+      result.currentData = currentData;
+      result.previousReportDate = previousDate;
+      result.previousData = previousData;
+      result.isNewerData = previousDate == null || currentDate.isAfter(previousDate);
+
+      return result;
+
+    } catch (Exception e) {
+      System.err.println("[ERROR] Failed to extract and compare fungible data: " + e.getMessage());
+      throw new IOException("Failed to extract and compare fungible data", e);
+    }
+  }
+
+  private static Message findFungibleEmailForDate(String accessToken, LocalDate targetDate) throws IOException {
+    IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+    GraphServiceClient<?> graphClient = GraphServiceClient.builder()
+        .authenticationProvider(authProvider)
+        .buildClient();
+
+    // Search for emails within the target date range
+    String dateFilter = "receivedDateTime ge " + targetDate.atStartOfDay(ZoneOffset.UTC)
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) +
+        " and receivedDateTime lt " + targetDate.plusDays(1).atStartOfDay(ZoneOffset.UTC)
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+    MessageCollectionPage messagesPage = graphClient.users(USER_PRINCIPAL_NAME)
+        .messages()
+        .buildRequest()
+        .filter(dateFilter)
+        .top(100)
+        .get();
+
+    for (Message message : messagesPage.getCurrentPage()) {
+      if (message.subject != null && message.subject.toLowerCase().contains(EMAIL_SUBJECT_FILTER)) {
+        System.out.println("[DEBUG] Found previous day's email: " + message.subject);
+        return message;
+      }
+    }
+
+    return null;
+  }
+
+  private static Message findSecondMostRecentFungibleEmail(String accessToken, OffsetDateTime excludeAfterDate) throws IOException {
+    IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+    GraphServiceClient<?> graphClient = GraphServiceClient.builder()
+        .authenticationProvider(authProvider)
+        .buildClient();
+
+    // Look back up to MAX_DAYS_TO_SEARCH days for another email
+    String dateFilter = "receivedDateTime lt " + excludeAfterDate
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) +
+        " and receivedDateTime ge " + excludeAfterDate.minusDays(MAX_DAYS_TO_SEARCH)
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+    MessageCollectionPage messagesPage = graphClient.users(USER_PRINCIPAL_NAME)
+        .messages()
+        .buildRequest()
+        .filter(dateFilter)
+        .top(100)
+        .orderBy("receivedDateTime desc")
+        .get();
+
+    for (Message message : messagesPage.getCurrentPage()) {
+      if (message.subject != null && message.subject.toLowerCase().contains(EMAIL_SUBJECT_FILTER)) {
+        System.out.println("[DEBUG] Found second most recent email: " + message.subject);
+        return message;
+      }
+    }
+
+    return null;
+  }
 
   public static FungibleData extractLatestFungibleData() throws IOException {
     try {
