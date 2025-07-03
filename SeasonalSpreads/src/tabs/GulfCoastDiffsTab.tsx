@@ -15,6 +15,32 @@ const GulfCoastDiffsTab: React.FC = () => {
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
+  
+    useEffect(() => {
+      const updateSpreads = async () => {
+        try {
+          const response = await fetch(
+            "https://rioseasonalspreads-production.up.railway.app/updateGC",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+  
+          if (!response.ok) {
+            throw new Error("Failed to update spread data");
+          }
+          console.log("Spread data updated successfully");
+        } catch (error) {
+          console.error("Error updating spread data:", error);
+        }
+      };
+  
+      // Call updateSpreads when component mounts and when commodity changes
+      updateSpreads();
+    }, []); // Add dependencies as needed
 
   useEffect(() => {
     fetchGCSpreads();
