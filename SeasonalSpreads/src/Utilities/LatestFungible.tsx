@@ -11,8 +11,17 @@ interface FungibleData {
   };
 }
 
+interface ApiResponse {
+  currentData: FungibleData;
+  previousData: FungibleData;
+  currentReportDate: string;
+  isNewerData: boolean;
+  previousReportDate: string;
+}
+
 const FungibleDeliveriesTable: React.FC = () => {
   const [data, setData] = useState<FungibleData | null>(null);
+  const [previousData, setPreviousData] = useState<FungibleData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCycle, setSelectedCycle] = useState<string>("");
@@ -29,22 +38,29 @@ const FungibleDeliveriesTable: React.FC = () => {
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const jsonData: FungibleData = await response.json();
-      setData(jsonData);
+      const jsonData: ApiResponse = await response.json();
+      setData(jsonData.currentData);
+      setPreviousData(jsonData.previousData);
 
       // Extract all unique locations from the data
       const allLocations = new Set<string>();
-      Object.values(jsonData.data).forEach((cycleData) => {
-        Object.values(cycleData).forEach((productData) => {
-          Object.keys(productData).forEach((location) => {
-            allLocations.add(location);
+      const currentData = jsonData.currentData.data;
+
+      Object.values(currentData).forEach((cycleData) => {
+        if (cycleData && typeof cycleData === "object") {
+          Object.values(cycleData).forEach((productData) => {
+            if (productData && typeof productData === "object") {
+              Object.keys(productData).forEach((location) => {
+                allLocations.add(location);
+              });
+            }
           });
-        });
+        }
       });
       setLocations(Array.from(allLocations).sort());
 
       // Auto-select the first cycle if available
-      const cycles = Object.keys(jsonData.data);
+      const cycles = Object.keys(currentData);
       if (cycles.length > 0 && !selectedCycle) {
         setSelectedCycle(cycles[0]);
       }
@@ -78,13 +94,87 @@ const FungibleDeliveriesTable: React.FC = () => {
   const getProductsForCycle = (): string[] => {
     if (!data || !selectedCycle) return [];
     const cycleData = data.data[selectedCycle];
-    return cycleData ? Object.keys(cycleData).sort() : [];
+    if (!cycleData || typeof cycleData !== "object") return [];
+    return Object.keys(cycleData).sort();
+  };
+
+  const calculateDateDifference = (
+    currentDate: string,
+    previousDate: string | undefined
+  ): number | null => {
+    if (!previousDate) return null;
+
+    // Parse dates in MM/DD format
+    const parseDate = (dateStr: string) => {
+      const [month, day] = dateStr.split("/").map(Number);
+      return new Date(2025, month - 1, day); // Using 2025 as the year
+    };
+
+    try {
+      const current = parseDate(currentDate);
+      const previous = parseDate(previousDate);
+      const diffTime = current.getTime() - previous.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays;
+    } catch (e) {
+      console.error("Error parsing dates:", e);
+      return null;
+    }
+  };
+
+  const renderDateWithChange = (product: string, location: string) => {
+    if (!data || !selectedCycle || !previousData) return null;
+
+    const cycleData = data.data[selectedCycle];
+    const prevCycleData = previousData.data[selectedCycle];
+
+    if (!cycleData || typeof cycleData !== "object") return null;
+
+    const productData = cycleData[product];
+    if (!productData || typeof productData !== "object") return null;
+
+    const currentDate = productData[location];
+    if (!currentDate) return null;
+
+    let diffDays: number | null = null;
+
+    if (prevCycleData && typeof prevCycleData === "object") {
+      const prevProductData = prevCycleData[product];
+      if (prevProductData && typeof prevProductData === "object") {
+        const previousDate = prevProductData[location];
+        diffDays = calculateDateDifference(currentDate, previousDate);
+      }
+    }
+
+    let changeIndicator = null;
+    if (diffDays !== null && diffDays !== 0) {
+      const color = diffDays > 0 ? "red" : "green";
+      const symbol = diffDays > 0 ? "+" : "";
+      changeIndicator = (
+        <span
+          style={{
+            color,
+            fontSize: "0.8em",
+            marginLeft: "4px",
+            fontWeight: "bold",
+          }}
+        >
+          {symbol}
+          {diffDays}
+        </span>
+      );
+    }
+
+    return (
+      <span>
+        {currentDate}
+        {changeIndicator}
+      </span>
+    );
   };
 
   const renderTable = () => {
     if (!data || !selectedCycle || selectedProducts.length === 0) return null;
-
-    const cycleData = data.data[selectedCycle];
 
     return (
       <div
@@ -148,7 +238,7 @@ const FungibleDeliveriesTable: React.FC = () => {
                     key={`${product}-${location}`}
                     style={{ padding: "12px" }}
                   >
-                    {cycleData[product]?.[location] || ""}
+                    {renderDateWithChange(product, location)}
                   </td>
                 ))}
               </tr>
