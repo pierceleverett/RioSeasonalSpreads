@@ -10,6 +10,7 @@ import Handlers.ColonialTransitHandler;
 import Handlers.ColonialTransitUpdaterHandler;
 import Handlers.ExplorerHandler;
 import Handlers.GCSpreadHandler;
+import Handlers.GCUpdateHandler;
 import Handlers.LatestUploadHandler;
 import Handlers.MagellanGraphHandler;
 import Handlers.RecentFungibleHandler;
@@ -88,6 +89,7 @@ public final class Server {
       Spark.post("/updateColonialTransit", new ColonialTransitUpdaterHandler());
       Spark.get("/getRealTransit", new ActualTransitHandler());
       Spark.get("/getRecentFungible", new RecentFungibleHandler());
+      Spark.post("/updateGC", new GCUpdateHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);

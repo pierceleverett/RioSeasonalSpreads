@@ -5,16 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/Utilities/FungibleMoshiAdapter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/GCSpreads/GCcsvupdater.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Handlers/GCUpdateHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/MostRecentFungible.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Colonial/MostRecentFungible.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/RecentFungibleHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/RecentFungibleHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Utilities/FungibleDataJsonAdapter.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/MostRecentFungible$FungibleData.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Colonial/MostRecentFungible$FungibleData.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Colonial/MostRecentFungible.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Colonial/MostRecentFungible.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/RecentFungibleHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/RecentFungibleHandler.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Utilities/FungibleDataJsonAdapter$FungibleDataAdapter.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Utilities/FungibleDataJsonAdapter.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/91Chi.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/91Chi.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,6 +56,7 @@
     "Application.ExplorerParser.executor": "Run",
     "Application.FusionCurveParser.executor": "Run",
     "Application.GCSpreadCalc.executor": "Run",
+    "Application.GCSpreadUpdater.executor": "Run",
     "Application.OutlookEmailReader.executor": "Run",
     "Application.PDFToExcel.executor": "Run",
     "Application.Server.executor": "Run",
@@ -79,12 +83,12 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/data/pdf" />
       <recent name="$PROJECT_DIR$/data/pdfToAdd" />
+      <recent name="$PROJECT_DIR$/data/pdf" />
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.ExcelUpdater">
+  <component name="RunManager" selected="Application.GCSpreadUpdater">
     <configuration name="ColonialTransitUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Colonial.ColonialTransitUpdater" />
       <module name="moshi" />
@@ -124,12 +128,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="FusionCurveParser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Outlook.FusionCurveParser" />
+    <configuration name="GCSpreadUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="GCSpreads.GCSpreadUpdater" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="Outlook.*" />
+          <option name="PATTERN" value="GCSpreads.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -146,11 +150,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.GCSpreadUpdater" />
         <item itemvalue="Application.ExcelUpdater" />
         <item itemvalue="Application.Server" />
         <item itemvalue="Application.ColonialTransitUpdater" />
         <item itemvalue="Application.ExplorerParser" />
-        <item itemvalue="Application.FusionCurveParser" />
       </list>
     </recent_temporary>
   </component>
@@ -162,7 +166,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750257510543</updated>
-      <workItem from="1750257511704" duration="150135000" />
+      <workItem from="1750257511704" duration="158098000" />
     </task>
     <servers />
   </component>
