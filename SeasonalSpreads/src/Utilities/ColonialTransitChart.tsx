@@ -369,8 +369,16 @@ return (
               style={{
                 padding: "4px 8px",
                 cursor: "pointer",
-                backgroundColor: showSubTypes ? "#e0e0e0" : "transparent",
+                backgroundColor: showSubTypes ? "#e0e0e0" : "#f0f0f0",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                color: "#333",
+                fontWeight: "500",
+                transition: "background-color 0.2s ease",
+                minWidth: "100px",
               }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e0e0e0"}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = showSubTypes ? "#e0e0e0" : "#f0f0f0"}
             >
               {showSubTypes ? "Show All" : "Select Grade"}
             </button>
