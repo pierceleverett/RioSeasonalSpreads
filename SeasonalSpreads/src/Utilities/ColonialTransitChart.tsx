@@ -134,15 +134,21 @@ const selectedFuel = showSubTypes && selectedSubType ? selectedSubType : selecte
     };
   }, []);
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const category = e.target.value;
-    setSelectedCategory(category);
-    setSelectedSubType(""); // Reset subtype selection
+const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const category = e.target.value;
+  setSelectedCategory(category);
+  setSelectedSubType(""); // Reset subtype selection
 
-    // Show dropdown only for A, D, F (not for 62)
-    const categoryObj = fuelCategories.find((fc) => fc.value === category);
-    setShowSubTypes(categoryObj?.subTypes.length > 0 && category !== "62");
-  };
+  const categoryObj = fuelCategories.find((fc) => fc.value === category);
+  // Explicit type check for subTypes existence
+  const shouldShowSubTypes =
+    categoryObj &&
+    categoryObj.subTypes &&
+    categoryObj.subTypes.length > 0 &&
+    category !== "62";
+
+  setShowSubTypes(!!shouldShowSubTypes);
+};
 
 
   const handleSubTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -364,9 +370,9 @@ const selectedFuel = showSubTypes && selectedSubType ? selectedSubType : selecte
               </option>
             ))}
           </select>
-          {selectedCategoryObj &&
-            selectedCategoryObj.subTypes.length > 0 &&
-            selectedCategory !== "62" && (
+          {selectedCategory !== "62" &&
+            (selectedCategoryObj?.subTypes &&
+            selectedCategoryObj.subTypes.length > 0 ? (
               <button
                 onClick={toggleSubTypes}
                 style={{
@@ -377,7 +383,7 @@ const selectedFuel = showSubTypes && selectedSubType ? selectedSubType : selecte
               >
                 {showSubTypes ? "Show All" : "Select Grade"}
               </button>
-            )}
+            ) : null)}
         </div>
 
         {showSubTypes && (
