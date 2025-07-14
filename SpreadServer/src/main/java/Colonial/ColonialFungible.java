@@ -27,13 +27,12 @@ public class ColonialFungible {
   private static final String EMAIL_SUBJECT_FILTER = "colonial - fungible deliveries";
   private static final Set<String> processedDates = new HashSet<>();
 
-
   public static void main(String[] args) {
     try {
       System.out.println("Starting fungible delivery data processing");
       String accessToken = getAccessToken();
       List<Message> messages = fetchFungibleEmails(accessToken, USER_PRINCIPAL_NAME);
-      processNewMessages(messages);
+      processAllMessages(messages);
       System.out.println("Fungible delivery data successfully processed");
     } catch (Exception e) {
       System.err.println("Error processing fungible delivery data: " + e.getMessage());
@@ -47,7 +46,7 @@ public class ColonialFungible {
     List<Message> relevantMessages = new ArrayList<>();
     LinkedList<QueryOption> requestOptions = new LinkedList<>();
     requestOptions.add(new QueryOption("$select", "subject,receivedDateTime,body"));
-    requestOptions.add(new QueryOption("$top", "50"));
+    requestOptions.add(new QueryOption("$top", "500")); // Increased to get more emails
 
     MessageCollectionPage messagesPage;
     MessageCollectionRequestBuilder nextPage = null;
@@ -72,39 +71,38 @@ public class ColonialFungible {
     return relevantMessages;
   }
 
-  public static void processMessages(List<Message> messages) throws IOException {
+  public static void processAllMessages(List<Message> messages) throws IOException {
     Map<String, Map<String, List<String>>> gbjData = new HashMap<>();
     Map<String, Map<String, List<String>>> lnjData = new HashMap<>();
 
+    // Sort messages chronologically
     messages.sort(Comparator.comparing(m -> m.receivedDateTime));
 
+    // Process all messages
     for (Message message : messages) {
       try {
         if (message.body == null || message.body.content == null) continue;
-        parseFungibleBody(message.body.content, gbjData, lnjData, processedDates);
+        parseFungibleBody(message.body.content, gbjData, lnjData);
       } catch (Exception e) {
         System.err.println("Failed to process message with subject: " + message.subject);
         e.printStackTrace();
       }
     }
 
-    updateCsv(GBJ_CSV_PATH, gbjData);
-    updateCsv(LNJ_CSV_PATH, lnjData);
+    // Write the complete data to CSVs
+    writeCompleteCsv(GBJ_CSV_PATH, gbjData);
+    writeCompleteCsv(LNJ_CSV_PATH, lnjData);
   }
 
   public static void parseFungibleBody(String htmlContent,
       Map<String, Map<String, List<String>>> gbjData,
-      Map<String, Map<String, List<String>>> lnjData,
-      Set<String> processedDates) {
+      Map<String, Map<String, List<String>>> lnjData) {
     Document doc = Jsoup.parse(htmlContent);
     String plainText = doc.text().replaceAll("\\s+", " ").trim();
 
     LocalDate emailDate;
     try {
       emailDate = extractDateFromPlainText(plainText);
-      String dateKey = emailDate.format(DateTimeFormatter.ofPattern("MM/dd"));
-      if (processedDates.contains(dateKey)) return;
-      processedDates.add(dateKey);
     } catch (Exception e) {
       System.err.println("Failed to parse date: " + e.getMessage());
       return;
@@ -149,7 +147,7 @@ public class ColonialFungible {
       String fuel = rawFuel;
       String cycle = rawCycle.substring(0, 2);
       if (!fuel.startsWith("A") && !fuel.startsWith("D") && !fuel.startsWith("F") && !fuel.equals("62")) {
-        continue; // Skip any fuel not in A, D, F, or 62
+        continue;
       }
 
       String bulletinDate = emailDate.format(DateTimeFormatter.ofPattern("MM/dd"));
@@ -157,16 +155,18 @@ public class ColonialFungible {
       if (greensboroCol != -1) {
         String dateStr = cells.get(greensboroCol).text().trim();
         if (dateStr.equals(bulletinDate)) {
-          System.out.printf("Match found: Greensboro | Fuel=%s | Cycle=%s | Date=%s%n", fuel, cycle, bulletinDate);
-          gbjData.computeIfAbsent(fuel, k -> new HashMap<>()).computeIfAbsent(cycle, k -> new ArrayList<>()).add(bulletinDate);
+          gbjData.computeIfAbsent(fuel, k -> new HashMap<>())
+              .computeIfAbsent(cycle, k -> new ArrayList<>())
+              .add(bulletinDate);
         }
       }
 
       if (lindenCol != -1) {
         String dateStr = cells.get(lindenCol).text().trim();
         if (dateStr.equals(bulletinDate)) {
-          System.out.printf("Match found: Linden | Fuel=%s | Cycle=%s | Date=%s%n", fuel, cycle, bulletinDate);
-          lnjData.computeIfAbsent(fuel, k -> new HashMap<>()).computeIfAbsent(cycle, k -> new ArrayList<>()).add(bulletinDate);
+          lnjData.computeIfAbsent(fuel, k -> new HashMap<>())
+              .computeIfAbsent(cycle, k -> new ArrayList<>())
+              .add(bulletinDate);
         }
       }
     }
@@ -197,76 +197,44 @@ public class ColonialFungible {
     throw new RuntimeException("No valid date pattern found");
   }
 
-  public static void updateCsv(String csvPath, Map<String, Map<String, List<String>>> deliveryData) throws IOException {
-    Path path = Paths.get(csvPath);
-    List<String> lines = Files.exists(path) ? Files.readAllLines(path) : new ArrayList<>();
-    List<String> updatedLines = new ArrayList<>();
-
-    if (lines.isEmpty()) {
-      System.err.println("CSV file is empty or missing: " + csvPath);
-      return;
+  private static void writeCompleteCsv(String csvPath, Map<String, Map<String, List<String>>> deliveryData) throws IOException {
+    // Determine all possible cycles (01-72)
+    Set<String> allCycles = new TreeSet<>();
+    for (int i = 1; i <= 72; i++) {
+      allCycles.add(String.format("%02d", i));
     }
 
-    String[] headers = lines.get(0).split(",");
-    updatedLines.add(lines.get(0)); // Add header row
+    // Determine all fuel types in order
+    List<String> fuelTypes = new ArrayList<>(deliveryData.keySet());
+    fuelTypes.sort(Comparator.naturalOrder());
 
-    for (int i = 1; i < lines.size(); i++) {
-      String[] row = lines.get(i).split(",", -1);
-      String fuel = row[0];
+    // Prepare header row
+    List<String> lines = new ArrayList<>();
+    StringBuilder header = new StringBuilder("Type");
+    for (String cycle : allCycles) {
+      header.append(",").append(cycle);
+    }
+    lines.add(header.toString());
 
-      for (int j = 1; j < headers.length; j++) {
-        String cycle = headers[j];
+    // Prepare data rows
+    for (String fuel : fuelTypes) {
+      StringBuilder row = new StringBuilder(fuel);
+      Map<String, List<String>> cycleData = deliveryData.get(fuel);
 
-        if (deliveryData.containsKey(fuel) && deliveryData.get(fuel).containsKey(cycle)) {
-          List<String> newDates = deliveryData.get(fuel).get(cycle);
-          String existing = row[j];
-
-          if (existing == null || existing.isEmpty()) {
-            row[j] = String.join(";", newDates);
-          } else {
-            Set<String> combined = new LinkedHashSet<>(Arrays.asList(existing.split(";")));
-            combined.addAll(newDates);
-            row[j] = String.join(";", combined);
+      for (String cycle : allCycles) {
+        row.append(",");
+        if (cycleData != null && cycleData.containsKey(cycle)) {
+          List<String> dates = cycleData.get(cycle);
+          if (!dates.isEmpty()) {
+            row.append(String.join(";", dates));
           }
         }
       }
-
-      updatedLines.add(String.join(",", row));
+      lines.add(row.toString());
     }
 
-    Files.write(path, updatedLines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-    System.out.println("Updated " + csvPath + " with " + (updatedLines.size() - 1) + " rows");
+    // Write to file
+    Files.write(Paths.get(csvPath), lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    System.out.println("Updated " + csvPath + " with " + fuelTypes.size() + " fuel types");
   }
-
-  public static void processNewMessages(List<Message> messages) throws IOException {
-    if (processedDates.isEmpty()) {
-      System.out.println("No previously processed dates found. Parsing all messages.");
-      processMessages(messages);
-      return;
-    }
-
-    LocalDate latestProcessed = processedDates.stream()
-        .map(date -> LocalDate.parse(date, DateTimeFormatter.ofPattern("MM/dd")))
-        .max(LocalDate::compareTo)
-        .orElse(LocalDate.MIN);
-
-    System.out.println("Latest processed bulletin date: " + latestProcessed);
-
-    Map<String, Map<String, List<String>>> gbjData = new HashMap<>();
-    Map<String, Map<String, List<String>>> lnjData = new HashMap<>();
-
-    for (Message message : messages) {
-      if (message.receivedDateTime == null) continue;
-
-      LocalDate receivedDate = LocalDate.parse(message.receivedDateTime.toString().substring(0, 10));
-      if (receivedDate.isAfter(latestProcessed)) {
-        System.out.println("Processing new message received on: " + receivedDate);
-        parseFungibleBody(message.body.content, gbjData, lnjData, processedDates);
-      }
-    }
-
-    updateCsv(GBJ_CSV_PATH, gbjData);
-    updateCsv(LNJ_CSV_PATH, lnjData);
-  }
-
 }
