@@ -21,7 +21,8 @@ public class GCcsvupdater {
         "H", "GulfCoast/H.csv",
         "M", "GulfCoast/M.csv",
         "Chi91-GC93", "91Chi.csv",
-        "ChiRBOB-ChiCBOB", "ChiCBOB.csv"
+        "ChiRBOB-ChiCBOB", "ChiCBOB.csv",
+        "Nap", "GulfCoast/Nap.csv"
     );
 
     // Compute derived values

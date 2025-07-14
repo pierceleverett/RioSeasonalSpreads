@@ -126,7 +126,8 @@ public class GCSpreadUpdater {
           "Platts Gasoline RBOB 91.4 USGC Houston Prompt Pipeline", "H",
           "Platts Gasoline RBOB Chicago Buckeye Complex", "ChiRBOB",
           "Platts Gasoline Unl 87 USGC Prompt Pipeline", "M",
-          "Platts Gasoline Unl 93 USGC Prompt Pipeline", "GC93"
+          "Platts Gasoline Unl 93 USGC Prompt Pipeline", "GC93",
+          "Platts Naphtha Cargo FOB US Gulf Coast","Nap"
       );
 
       Row headerRow = sheet.getRow(0);
