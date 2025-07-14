@@ -75,8 +75,8 @@ const ColonialTransitChart: React.FC = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
   const [selectedSubType, setSelectedSubType] = useState<string>("");
-  const [showSubTypes, setShowSubTypes] = useState<boolean>(true);
-  const selectedFuel = showSubTypes ? selectedSubType : selectedCategory;
+  const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
+const selectedFuel = showSubTypes && selectedSubType ? selectedSubType : selectedCategory;
 
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
@@ -134,21 +134,15 @@ const ColonialTransitChart: React.FC = () => {
     };
   }, []);
 
-const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  const category = e.target.value;
-  setSelectedCategory(category);
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const category = e.target.value;
+    setSelectedCategory(category);
+    setSelectedSubType(""); // Reset subtype selection
 
-  const categoryObj = fuelCategories.find((fc) => fc.value === category);
-
-  if (categoryObj && categoryObj.subTypes.length > 0) {
-    setSelectedSubType(categoryObj.subTypes[0]);
-    // 🔥 Keep showing subtypes if they exist
-    setShowSubTypes(true);
-  } else {
-    // 🚫 Hide subtypes only if none exist
-    setShowSubTypes(false);
-  }
-};
+    // Show dropdown only for A, D, F (not for 62)
+    const categoryObj = fuelCategories.find((fc) => fc.value === category);
+    setShowSubTypes(categoryObj?.subTypes.length > 0 && category !== "62");
+  };
 
 
   const handleSubTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -370,18 +364,20 @@ const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
               </option>
             ))}
           </select>
-          {selectedCategoryObj && selectedCategoryObj.subTypes.length > 0 && (
-            <button
-              onClick={toggleSubTypes}
-              style={{
-                padding: "4px 8px",
-                cursor: "pointer",
-                backgroundColor: showSubTypes ? "#e0e0e0" : "transparent",
-              }}
-            >
-              {showSubTypes ? "Show All" : "Select Grade"}
-            </button>
-          )}
+          {selectedCategoryObj &&
+            selectedCategoryObj.subTypes.length > 0 &&
+            selectedCategory !== "62" && (
+              <button
+                onClick={toggleSubTypes}
+                style={{
+                  padding: "4px 8px",
+                  cursor: "pointer",
+                  backgroundColor: showSubTypes ? "#e0e0e0" : "transparent",
+                }}
+              >
+                {showSubTypes ? "Show All" : "Select Grade"}
+              </button>
+            )}
         </div>
 
         {showSubTypes && (
