@@ -75,9 +75,7 @@ const ColonialTransitChart: React.FC = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
   const [selectedSubType, setSelectedSubType] = useState<string>("");
-  const [showSubTypes, setShowSubTypes] = useState<boolean>(
-    selectedCategory !== "62"
-  );
+  const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
   const selectedFuel =
     showSubTypes && selectedSubType ? selectedSubType : selectedCategory;
 
@@ -397,7 +395,7 @@ const ColonialTransitChart: React.FC = () => {
               onChange={handleSubTypeChange}
               style={{ textAlign: "center" }}
             >
-              {(selectedCategoryObj?.subTypes ?? []).map((subType) => (
+              {selectedCategoryObj?.subTypes.map((subType) => (
                 <option key={subType} value={subType}>
                   {subType}
                 </option>
