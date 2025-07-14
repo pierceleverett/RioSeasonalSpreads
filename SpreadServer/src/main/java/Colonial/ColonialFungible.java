@@ -216,7 +216,7 @@ public class ColonialFungible {
     }
     lines.add(header.toString());
 
-    // Prepare data rows
+    // Prepare data rows for individual fuel types
     for (String fuel : fuelTypes) {
       StringBuilder row = new StringBuilder(fuel);
       Map<String, List<String>> cycleData = deliveryData.get(fuel);
@@ -233,8 +233,39 @@ public class ColonialFungible {
       lines.add(row.toString());
     }
 
+    // Add aggregate rows for A, D, and F types
+    addAggregateRow(lines, deliveryData, allCycles, "A", Arrays.asList("A2", "A3", "A4"));
+    addAggregateRow(lines, deliveryData, allCycles, "D", Arrays.asList("D2", "D3", "D4"));
+    addAggregateRow(lines, deliveryData, allCycles, "F", Arrays.asList("F1", "F3", "F4", "F5"));
+
     // Write to file
     Files.write(Paths.get(csvPath), lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-    System.out.println("Updated " + csvPath + " with " + fuelTypes.size() + " fuel types");
+    System.out.println("Updated " + csvPath + " with " + (fuelTypes.size() + 3) + " fuel types (including aggregates)");
+  }
+
+  private static void addAggregateRow(List<String> lines,
+      Map<String, Map<String, List<String>>> deliveryData,
+      Set<String> allCycles,
+      String aggregateType,
+      List<String> subTypes) {
+    StringBuilder row = new StringBuilder(aggregateType);
+
+    for (String cycle : allCycles) {
+      row.append(",");
+      Set<String> allDates = new LinkedHashSet<>(); // Using Set to avoid duplicates
+
+      // Collect dates from all sub-types for this cycle
+      for (String subType : subTypes) {
+        if (deliveryData.containsKey(subType) && deliveryData.get(subType).containsKey(cycle)) {
+          allDates.addAll(deliveryData.get(subType).get(cycle));
+        }
+      }
+
+      if (!allDates.isEmpty()) {
+        row.append(String.join(";", allDates));
+      }
+    }
+
+    lines.add(row.toString());
   }
 }

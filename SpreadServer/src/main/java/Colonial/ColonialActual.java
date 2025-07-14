@@ -14,7 +14,7 @@ public class ColonialActual {
       "A2", "A3", "A4", "A5",
       "D2", "D3", "D4",
       "F1", "F3", "F4", "F5",
-      "62"
+      "62", "A", "D", "F"
   };
 
   public static void main(String[] args) {
@@ -29,8 +29,8 @@ public class ColonialActual {
 
   private static String getBaseFuelType(String fuelType) {
     // Special case for "62" - it maps to itself
-    if (fuelType.equals("62")) {
-      return "62";
+    if (fuelType.equals("62") || fuelType.equals("A") || fuelType.equals("D") || fuelType.equals("F")) {
+      return fuelType;
     }
     // For others (A2, D3, F1, etc.), take first character
     return fuelType.substring(0, 1);
