@@ -74,8 +74,8 @@ const ColonialTransitChart: React.FC = () => {
   const [endCycle, setEndCycle] = useState<number>(72);
 
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
-  const [selectedSubType, setSelectedSubType] = useState<string>("A2");
-  const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
+  const [selectedSubType, setSelectedSubType] = useState<string>("");
+  const [showSubTypes, setShowSubTypes] = useState<boolean>(true);
   const selectedFuel = showSubTypes ? selectedSubType : selectedCategory;
 
   const chartRef = useRef<ChartJS<"line"> | null>(null);
