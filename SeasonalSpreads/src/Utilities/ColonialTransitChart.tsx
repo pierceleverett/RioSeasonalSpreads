@@ -245,18 +245,31 @@ const backgroundAreaPlugin = {
       const maxY = chart.scales.y.getPixelForValue(dataset.backgroundData.max);
 
       ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(firstPoint.x, minY);
-      ctx.lineTo(lastPoint.x, minY);
-      ctx.lineTo(lastPoint.x, maxY);
-      ctx.lineTo(firstPoint.x, maxY);
-      ctx.closePath();
 
-      // Use the border color with transparency
-      ctx.fillStyle = dataset.borderColor
-        .replace(")", ", 0.2)")
-        .replace("rgb", "rgba");
-      ctx.fill();
+      if (dataset.backgroundData.min === dataset.backgroundData.max) {
+        // Draw a thin line for zero-range data
+        ctx.beginPath();
+        ctx.moveTo(firstPoint.x, minY);
+        ctx.lineTo(lastPoint.x, minY);
+        ctx.lineWidth = 1; // Thinner than the main line (which is 2)
+        ctx.strokeStyle = dataset.borderColor;
+        ctx.stroke();
+      } else {
+        // Draw filled rectangle for normal range
+        ctx.beginPath();
+        ctx.moveTo(firstPoint.x, minY);
+        ctx.lineTo(lastPoint.x, minY);
+        ctx.lineTo(lastPoint.x, maxY);
+        ctx.lineTo(firstPoint.x, maxY);
+        ctx.closePath();
+
+        // Use the border color with transparency
+        ctx.fillStyle = dataset.borderColor
+          .replace(")", ", 0.2)")
+          .replace("rgb", "rgba");
+        ctx.fill();
+      }
+
       ctx.restore();
     });
   },
