@@ -139,16 +139,7 @@ const ColonialTransitChart: React.FC = () => {
     const category = e.target.value;
     setSelectedCategory(category);
     setSelectedSubType(""); // Reset subtype selection
-
-    const categoryObj = fuelCategories.find((fc) => fc.value === category);
-    // Explicit type check for subTypes existence
-    const shouldShowSubTypes =
-      categoryObj &&
-      categoryObj.subTypes &&
-      categoryObj.subTypes.length > 0 &&
-      category !== "62";
-
-    setShowSubTypes(!!shouldShowSubTypes);
+    setShowSubTypes(false); // Hide subTypes dropdown when category changes
   };
 
   const handleSubTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -345,132 +336,132 @@ const ColonialTransitChart: React.FC = () => {
     (fc) => fc.value === selectedCategory
   );
 
-  return (
-    <div style={{ width: "100%", margin: "20px 0", textAlign: "center" }}>
-      <div
-        style={{
-          marginBottom: "20px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "10px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label htmlFor="category-select">Fuel Category: </label>
-          <select
-            id="category-select"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-            style={{ textAlign: "center" }}
-          >
-            {fuelCategories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
-          {selectedCategory !== "62" &&
-            (selectedCategoryObj?.subTypes &&
-            selectedCategoryObj.subTypes.length > 0 ? (
-              <button
-                onClick={toggleSubTypes}
-                style={{
-                  padding: "4px 8px",
-                  cursor: "pointer",
-                  backgroundColor: showSubTypes ? "#e0e0e0" : "transparent",
-                }}
-              >
-                {showSubTypes ? "Show All" : "Select Grade"}
-              </button>
-            ) : null)}
-        </div>
-
-        {showSubTypes && (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <label htmlFor="subtype-select">Fuel Grade: </label>
-            <select
-              id="subtype-select"
-              value={selectedSubType}
-              onChange={handleSubTypeChange}
-              style={{ textAlign: "center" }}
+return (
+  <div style={{ width: "100%", margin: "20px 0", textAlign: "center" }}>
+    <div
+      style={{
+        marginBottom: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "10px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <label htmlFor="category-select">Fuel Category: </label>
+        <select
+          id="category-select"
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+          style={{ textAlign: "center" }}
+        >
+          {fuelCategories.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
+            </option>
+          ))}
+        </select>
+        {selectedCategory !== "62" &&
+          selectedCategoryObj?.subTypes &&
+          selectedCategoryObj.subTypes.length > 0 && (
+            <button
+              onClick={toggleSubTypes}
+              style={{
+                padding: "4px 8px",
+                cursor: "pointer",
+                backgroundColor: showSubTypes ? "#e0e0e0" : "transparent",
+              }}
             >
-              {selectedCategoryObj?.subTypes.map((subType) => (
-                <option key={subType} value={subType}>
-                  {subType}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+              {showSubTypes ? "Show All" : "Select Grade"}
+            </button>
+          )}
+      </div>
 
+      {showSubTypes && selectedCategoryObj?.subTypes && (
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label htmlFor="route-select">Route: </label>
+          <label htmlFor="subtype-select">Fuel Grade: </label>
           <select
-            id="route-select"
-            value={selectedRoute}
-            onChange={(e) => setSelectedRoute(e.target.value)}
+            id="subtype-select"
+            value={selectedSubType}
+            onChange={handleSubTypeChange}
             style={{ textAlign: "center" }}
           >
-            {routeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            <option value="">Select a grade</option>
+            {selectedCategoryObj.subTypes.map((subType) => (
+              <option key={subType} value={subType}>
+                {subType}
               </option>
             ))}
           </select>
         </div>
+      )}
 
-        <div style={{ display: "flex", gap: "20px", justifyContent: "center" }}>
-          <div>
-            <label htmlFor="start-cycle">Start Cycle: </label>
-            <input
-              type="number"
-              id="start-cycle"
-              value={startCycle}
-              min={1}
-              max={72}
-              onChange={(e) =>
-                setStartCycle(Math.min(72, Math.max(1, Number(e.target.value))))
-              }
-              style={{ width: "60px", textAlign: "center" }}
-            />
-          </div>
-          <div>
-            <label htmlFor="end-cycle">End Cycle: </label>
-            <input
-              type="number"
-              id="end-cycle"
-              value={endCycle}
-              min={1}
-              max={72}
-              onChange={(e) =>
-                setEndCycle(Math.min(72, Math.max(1, Number(e.target.value))))
-              }
-              style={{ width: "60px", textAlign: "center" }}
-            />
-          </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <label htmlFor="route-select">Route: </label>
+        <select
+          id="route-select"
+          value={selectedRoute}
+          onChange={(e) => setSelectedRoute(e.target.value)}
+          style={{ textAlign: "center" }}
+        >
+          {routeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ display: "flex", gap: "20px", justifyContent: "center" }}>
+        <div>
+          <label htmlFor="start-cycle">Start Cycle: </label>
+          <input
+            type="number"
+            id="start-cycle"
+            value={startCycle}
+            min={1}
+            max={72}
+            onChange={(e) =>
+              setStartCycle(Math.min(72, Math.max(1, Number(e.target.value))))
+            }
+            style={{ width: "60px", textAlign: "center" }}
+          />
         </div>
-      </div>
-
-      <div style={{ height: "600px", position: "relative", margin: "0 auto" }}>
-        <Line
-          key={`${selectedFuel}-${selectedRoute}-${startCycle}-${endCycle}`}
-          data={chartData}
-          options={options}
-          ref={chartRef}
-          plugins={[backgroundAreaPlugin]}
-        />
-      </div>
-
-      <div style={{ marginTop: "10px", fontSize: "12px", color: "#666" }}>
-        <p>
-          Hover over lines to see cycle details. Click on legend items to toggle
-          visibility.
-        </p>
-        <p>Shaded areas represent actual transit time ranges.</p>
+        <div>
+          <label htmlFor="end-cycle">End Cycle: </label>
+          <input
+            type="number"
+            id="end-cycle"
+            value={endCycle}
+            min={1}
+            max={72}
+            onChange={(e) =>
+              setEndCycle(Math.min(72, Math.max(1, Number(e.target.value))))
+            }
+            style={{ width: "60px", textAlign: "center" }}
+          />
+        </div>
       </div>
     </div>
-  );
-};
+
+    <div style={{ height: "600px", position: "relative", margin: "0 auto" }}>
+      <Line
+        key={`${selectedFuel}-${selectedRoute}-${startCycle}-${endCycle}`}
+        data={chartData}
+        options={options}
+        ref={chartRef}
+        plugins={[backgroundAreaPlugin]}
+      />
+    </div>
+
+    <div style={{ marginTop: "10px", fontSize: "12px", color: "#666" }}>
+      <p>
+        Hover over lines to see cycle details. Click on legend items to toggle
+        visibility.
+      </p>
+      <p>Shaded areas represent actual transit time ranges.</p>
+    </div>
+  </div>
+)};
 
 export default ColonialTransitChart;
