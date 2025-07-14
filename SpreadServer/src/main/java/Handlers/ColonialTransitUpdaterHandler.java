@@ -1,5 +1,6 @@
 package Handlers;
 
+import static Colonial.ColonialActual.calculateTransitTimes;
 import static Colonial.ColonialFungible.fetchFungibleEmails;
 import static Colonial.ColonialFungible.processNewMessages;
 import static Colonial.ColonialOrigin.processNewOriginStartsEmails;
@@ -27,6 +28,12 @@ public class ColonialTransitUpdaterHandler implements Route {
     String accessToken = getAccessToken();
     List<Message> messages = fetchFungibleEmails(accessToken, "automatedreports@rioenergy.com");
     processNewMessages(messages);
+    String originFile = "data/Colonial/Origin/HTNOrigin.csv";
+    String gbjDeliveryFile = "data/Colonial/Fungible/GBJ.csv";
+    String lnjDeliveryFile = "data/Colonial/Fungible/LNJ.csv";
+    String gbjOutputFile = "data/Colonial/Actual/GBJactual.csv";
+    String lnjOutputFile = "data/Colonial/Actual/LNJactual.csv";
+    calculateTransitTimes(originFile, gbjDeliveryFile, lnjDeliveryFile, gbjOutputFile, lnjOutputFile);
     processNewOriginStartsEmails(accessToken, "automatedreports@rioenergy.com");
     return "{\"status\":\"success\"}";
   }
