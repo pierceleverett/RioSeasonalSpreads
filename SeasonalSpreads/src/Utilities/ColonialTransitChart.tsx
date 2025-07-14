@@ -75,8 +75,11 @@ const ColonialTransitChart: React.FC = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
   const [selectedSubType, setSelectedSubType] = useState<string>("");
-  const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
-const selectedFuel = showSubTypes && selectedSubType ? selectedSubType : selectedCategory;
+  const [showSubTypes, setShowSubTypes] = useState<boolean>(
+    selectedCategory !== "62"
+  );
+  const selectedFuel =
+    showSubTypes && selectedSubType ? selectedSubType : selectedCategory;
 
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
@@ -134,22 +137,21 @@ const selectedFuel = showSubTypes && selectedSubType ? selectedSubType : selecte
     };
   }, []);
 
-const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  const category = e.target.value;
-  setSelectedCategory(category);
-  setSelectedSubType(""); // Reset subtype selection
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const category = e.target.value;
+    setSelectedCategory(category);
+    setSelectedSubType(""); // Reset subtype selection
 
-  const categoryObj = fuelCategories.find((fc) => fc.value === category);
-  // Explicit type check for subTypes existence
-  const shouldShowSubTypes =
-    categoryObj &&
-    categoryObj.subTypes &&
-    categoryObj.subTypes.length > 0 &&
-    category !== "62";
+    const categoryObj = fuelCategories.find((fc) => fc.value === category);
+    // Explicit type check for subTypes existence
+    const shouldShowSubTypes =
+      categoryObj &&
+      categoryObj.subTypes &&
+      categoryObj.subTypes.length > 0 &&
+      category !== "62";
 
-  setShowSubTypes(!!shouldShowSubTypes);
-};
-
+    setShowSubTypes(!!shouldShowSubTypes);
+  };
 
   const handleSubTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSubType(e.target.value);
@@ -395,7 +397,7 @@ const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
               onChange={handleSubTypeChange}
               style={{ textAlign: "center" }}
             >
-              {selectedCategoryObj?.subTypes.map((subType) => (
+              {(selectedCategoryObj?.subTypes ?? []).map((subType) => (
                 <option key={subType} value={subType}>
                   {subType}
                 </option>
