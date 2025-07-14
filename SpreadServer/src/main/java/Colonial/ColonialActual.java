@@ -7,9 +7,15 @@ import java.util.concurrent.TimeUnit;
 
 public class ColonialActual {
   private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
-  private static final int CURRENT_YEAR = 2025; // Adjust as needed
+  private static final int CURRENT_YEAR = 2025;
   private static final int MAX_CYCLES = 72;
-  private static final String[] ALL_FUEL_TYPES = {"A2", "A3", "A4", "D2", "D3", "D4", "F2", "F3", "F4", "62"};
+  // All fuel types present in your GBJ.csv
+  private static final String[] ALL_FUEL_TYPES = {
+      "A2", "A3", "A4", "A5",
+      "D2", "D3", "D4",
+      "F1", "F3", "F4", "F5",
+      "62"
+  };
 
   public static void main(String[] args) {
     String originFile = "data/Colonial/Origin/HTNOrigin.csv";
@@ -26,7 +32,7 @@ public class ColonialActual {
     if (fuelType.equals("62")) {
       return "62";
     }
-    // For others (A2, D3, etc.), take first character
+    // For others (A2, D3, F1, etc.), take first character
     return fuelType.substring(0, 1);
   }
 
@@ -36,11 +42,11 @@ public class ColonialActual {
       // Read origin data
       Map<String, List<Date>> originData = readOriginData(originFile);
 
-      // Process GBJ deliveries and write to GBJ output file
+      // Process GBJ deliveries
       Map<String, List<List<Long>>> gbjTransitTimes = calculateDestinationTransitTimes(originData, gbjDeliveryFile);
       writeTransitTimesToCSV(gbjTransitTimes, gbjOutputFile);
 
-      // Process LNJ deliveries and write to LNJ output file
+      // Process LNJ deliveries
       Map<String, List<List<Long>>> lnjTransitTimes = calculateDestinationTransitTimes(originData, lnjDeliveryFile);
       writeTransitTimesToCSV(lnjTransitTimes, lnjOutputFile);
 
@@ -66,7 +72,7 @@ public class ColonialActual {
 
     // Process each fuel type from delivery data
     for (Map.Entry<String, List<List<Date>>> entry : deliveryData.entrySet()) {
-      String key = entry.getKey(); // Format like A2, D3, F4, or 62
+      String key = entry.getKey();
       String baseFuelType = getBaseFuelType(key);
       List<Date> originDates = originData.get(baseFuelType);
 
@@ -91,7 +97,12 @@ public class ColonialActual {
         }
 
         if (i < MAX_CYCLES) {
-          transitTimes.get(key).set(i, cycleTransitTimes);
+          List<List<Long>> fuelTransitTimes = transitTimes.get(key);
+          if (fuelTransitTimes != null) {
+            fuelTransitTimes.set(i, cycleTransitTimes);
+          } else {
+            System.out.println("Warning: No transit times list found for fuel type: " + key);
+          }
         }
       }
     }
@@ -99,7 +110,6 @@ public class ColonialActual {
     return transitTimes;
   }
 
-  // ... (rest of the methods remain the same as previous implementation)
   private static Map<String, List<Date>> readOriginData(String filename) throws IOException, ParseException {
     Map<String, List<Date>> originData = new LinkedHashMap<>();
 
@@ -176,7 +186,7 @@ public class ColonialActual {
       }
       writer.println();
 
-      // Write data in the correct order (A2, A3, A4, D2, D3, D4, F2, F3, F4, 62)
+      // Write data in the correct order
       for (String fuelType : ALL_FUEL_TYPES) {
         writer.print(fuelType);
 
