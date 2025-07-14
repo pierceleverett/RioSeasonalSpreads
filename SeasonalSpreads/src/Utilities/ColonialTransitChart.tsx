@@ -214,48 +214,60 @@ const ColonialTransitChart: React.FC = () => {
     };
   };
 
-  const backgroundAreaPlugin = {
-    id: "backgroundArea",
-    beforeDatasetsDraw(chart: ChartJS) {
-      const ctx = chart.ctx;
-      chart.data.datasets.forEach((dataset: any, i: number) => {
-        if (!dataset.backgroundData) return;
-        const meta = chart.getDatasetMeta(i);
-        if (!meta.data.length) return;
+const backgroundAreaPlugin = {
+  id: "backgroundArea",
+  beforeDatasetsDraw(chart: ChartJS) {
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((dataset: any, i: number) => {
+      if (!dataset.backgroundData) return;
+      const meta = chart.getDatasetMeta(i);
+      if (!meta.data.length) return;
 
-        const firstPoint = meta.data[0];
-        const lastPoint = meta.data[meta.data.length - 1];
-        const minY = chart.scales.y.getPixelForValue(
-          dataset.backgroundData.min
-        );
-        const maxY = chart.scales.y.getPixelForValue(
-          dataset.backgroundData.max
-        );
+      const firstPoint = meta.data[0];
+      const lastPoint = meta.data[meta.data.length - 1];
+      const minY = chart.scales.y.getPixelForValue(dataset.backgroundData.min);
+      const maxY = chart.scales.y.getPixelForValue(dataset.backgroundData.max);
 
-        ctx.save();
-        if (dataset.backgroundData.min === dataset.backgroundData.max) {
-          ctx.beginPath();
-          ctx.moveTo(firstPoint.x, minY);
-          ctx.lineTo(lastPoint.x, minY);
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = dataset.borderColor;
-          ctx.stroke();
-        } else {
-          ctx.beginPath();
-          ctx.moveTo(firstPoint.x, minY);
-          ctx.lineTo(lastPoint.x, minY);
-          ctx.lineTo(lastPoint.x, maxY);
-          ctx.lineTo(firstPoint.x, maxY);
-          ctx.closePath();
-          ctx.fillStyle = dataset.borderColor
-            .replace(")", ", 0.2)")
-            .replace("rgb", "rgba");
-          ctx.fill();
-        }
-        ctx.restore();
-      });
-    },
-  };
+      ctx.save();
+      if (dataset.backgroundData.min === dataset.backgroundData.max) {
+        // For zero range, draw a thin rectangle (half day height)
+        const halfDayInPixels =
+          chart.scales.y.getPixelForValue(0.5) -
+          chart.scales.y.getPixelForValue(0);
+        const rectHeight = halfDayInPixels;
+        const rectTop = minY - rectHeight / 2;
+
+        ctx.beginPath();
+        ctx.rect(firstPoint.x, rectTop, lastPoint.x - firstPoint.x, rectHeight);
+        ctx.fillStyle = dataset.borderColor
+          .replace(")", ", 0.2)")
+          .replace("rgb", "rgba");
+        ctx.fill();
+
+        // Optional: Add a thin border line
+        ctx.beginPath();
+        ctx.moveTo(firstPoint.x, minY);
+        ctx.lineTo(lastPoint.x, minY);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = dataset.borderColor;
+        ctx.stroke();
+      } else {
+        // Normal range shading
+        ctx.beginPath();
+        ctx.moveTo(firstPoint.x, minY);
+        ctx.lineTo(lastPoint.x, minY);
+        ctx.lineTo(lastPoint.x, maxY);
+        ctx.lineTo(firstPoint.x, maxY);
+        ctx.closePath();
+        ctx.fillStyle = dataset.borderColor
+          .replace(")", ", 0.2)")
+          .replace("rgb", "rgba");
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+  },
+};
 
   const { chartData, xAxisRange } = prepareChartData();
 
