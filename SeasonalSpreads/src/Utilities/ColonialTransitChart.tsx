@@ -70,7 +70,6 @@ const ColonialTransitChart: React.FC = () => {
     { value: "D3", label: "D3" },
     { value: "D4", label: "D4" },
     { value: "F1", label: "F1" },
-    { value: "F2", label: "F2" },
     { value: "F3", label: "F3" },
     { value: "F4", label: "F4" },
     { value: "F5", label: "F5" },
