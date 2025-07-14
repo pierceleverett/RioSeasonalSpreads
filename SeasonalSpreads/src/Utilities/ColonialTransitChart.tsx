@@ -20,7 +20,6 @@ import type {
   ScatterDataPoint,
 } from "chart.js";
 
-// Extend Chart.js types to include our custom property
 declare module "chart.js" {
   interface ChartDatasetProperties<TType extends ChartType, TData> {
     backgroundData?: {
@@ -31,7 +30,6 @@ declare module "chart.js" {
   }
 }
 
-// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -53,16 +51,6 @@ interface RealTransitData {
   [cycle: string]: number[];
 }
 
-const ColonialTransitChart: React.FC = () => {
-  const [transitData, setTransitData] = useState<TransitData>({});
-  const [realTransitData, setRealTransitData] = useState<RealTransitData>({});
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedRoute, setSelectedRoute] = useState<string>("HTNGBJ");
-  const [startCycle, setStartCycle] = useState<number>(1);
-  const [endCycle, setEndCycle] = useState<number>(72);
-
-  // Fuel selection state
 interface FuelCategory {
   value: string;
   label: string;
@@ -75,6 +63,16 @@ const fuelCategories: FuelCategory[] = [
   { value: "F", label: "F", subTypes: ["F1", "F3", "F4", "F5"] },
   { value: "62", label: "62", subTypes: [] },
 ];
+
+const ColonialTransitChart: React.FC = () => {
+  const [transitData, setTransitData] = useState<TransitData>({});
+  const [realTransitData, setRealTransitData] = useState<RealTransitData>({});
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<string>("HTNGBJ");
+  const [startCycle, setStartCycle] = useState<number>(1);
+  const [endCycle, setEndCycle] = useState<number>(72);
+
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
   const [selectedSubType, setSelectedSubType] = useState<string>("A2");
   const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
@@ -93,42 +91,56 @@ const fuelCategories: FuelCategory[] = [
   };
 
   const fetchTransitData = async () => {
-    try {
-      const response = await fetch(
-        `https://rioseasonalspreads-production.up.railway.app/getColonialTransit?route=${getRouteParam()}`
-      );
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
-    } catch (err) {
-      throw err;
-    }
+    const response = await fetch(
+      `https://rioseasonalspreads-production.up.railway.app/getColonialTransit?route=${getRouteParam()}`
+    );
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
   };
 
   const fetchRealTransitData = async () => {
-    try {
-      const response = await fetch(
-        `https://rioseasonalspreads-production.up.railway.app/getRealTransit?fuel=${selectedFuel}&route=${selectedRoute}`
-      );
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
-    } catch (err) {
-      throw err;
-    }
+    const response = await fetch(
+      `https://rioseasonalspreads-production.up.railway.app/getRealTransit?fuel=${selectedFuel}&route=${selectedRoute}`
+    );
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
   };
 
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [transitData, realData] = await Promise.all([
+          fetchTransitData(),
+          fetchRealTransitData(),
+        ]);
+        setTransitData(transitData);
+        setRealTransitData(realData);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [selectedFuel, selectedRoute]);
+
+  useEffect(() => {
+    return () => {
+      chartRef.current?.destroy();
+    };
+  }, []);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const category = e.target.value;
     setSelectedCategory(category);
-
-    // Automatically select first sub-type when changing category
     const categoryObj = fuelCategories.find((fc) => fc.value === category);
     if (categoryObj && categoryObj.subTypes.length > 0) {
       setSelectedSubType(categoryObj.subTypes[0]);
     }
-
     setShowSubTypes(false);
   };
 
@@ -140,19 +152,11 @@ const fuelCategories: FuelCategory[] = [
     setShowSubTypes(!showSubTypes);
   };
 
-  useEffect(() => {
-    return () => {
-      chartRef.current?.destroy();
-    };
-  }, []);
-
   const generateColors = (count: number): string[] => {
-    const colors: string[] = [];
-    for (let i = 0; i < count; i++) {
-      const hue = (i * 137.508) % 360; // Golden angle distribution
-      colors.push(`hsl(${hue}, 80%, 45%)`);
-    }
-    return colors;
+    return Array.from(
+      { length: count },
+      (_, i) => `hsl(${(i * 137.508) % 360}, 80%, 45%)`
+    );
   };
 
   const prepareChartData = () => {
@@ -162,8 +166,6 @@ const fuelCategories: FuelCategory[] = [
       .sort((a, b) => a - b);
 
     const colors = generateColors(cycles.length);
-
-    // Get all unique dates across all cycles
     const allDates = new Set<string>();
     cycles.forEach((cycle) => {
       Object.keys(transitData[cycle.toString()] || {}).forEach((date) => {
@@ -182,20 +184,15 @@ const fuelCategories: FuelCategory[] = [
         const realData = realTransitData[cycleStr] || [];
 
         const lineData: ScatterDataPoint[] = sortedDates
-          .filter(
-            (date) => cycleData[date] !== null && cycleData[date] !== undefined
-          )
-          .map((date) => ({
-            x: new Date(date).getTime(),
-            y: cycleData[date],
-          }));
+          .filter((date) => cycleData[date] != null)
+          .map((date) => ({ x: new Date(date).getTime(), y: cycleData[date] }));
 
         const backgroundData =
           realData.length > 0
             ? {
                 min: Math.min(...realData),
                 max: Math.max(...realData),
-                color: colors[index] + "33", // Add alpha for transparency
+                color: colors[index] + "33",
               }
             : null;
 
@@ -214,10 +211,7 @@ const fuelCategories: FuelCategory[] = [
     );
 
     return {
-      chartData: {
-        labels: sortedDates,
-        datasets,
-      },
+      chartData: { labels: sortedDates, datasets },
       xAxisRange: { min: xMin, max: xMax },
     };
   };
@@ -228,7 +222,6 @@ const fuelCategories: FuelCategory[] = [
       const ctx = chart.ctx;
       chart.data.datasets.forEach((dataset: any, i: number) => {
         if (!dataset.backgroundData) return;
-
         const meta = chart.getDatasetMeta(i);
         if (!meta.data.length) return;
 
@@ -242,9 +235,7 @@ const fuelCategories: FuelCategory[] = [
         );
 
         ctx.save();
-
         if (dataset.backgroundData.min === dataset.backgroundData.max) {
-          // Draw a thin line for zero-range data
           ctx.beginPath();
           ctx.moveTo(firstPoint.x, minY);
           ctx.lineTo(lastPoint.x, minY);
@@ -252,20 +243,17 @@ const fuelCategories: FuelCategory[] = [
           ctx.strokeStyle = dataset.borderColor;
           ctx.stroke();
         } else {
-          // Draw filled rectangle for normal range
           ctx.beginPath();
           ctx.moveTo(firstPoint.x, minY);
           ctx.lineTo(lastPoint.x, minY);
           ctx.lineTo(lastPoint.x, maxY);
           ctx.lineTo(firstPoint.x, maxY);
           ctx.closePath();
-
           ctx.fillStyle = dataset.borderColor
             .replace(")", ", 0.2)")
             .replace("rgb", "rgba");
           ctx.fill();
         }
-
         ctx.restore();
       });
     },
@@ -277,10 +265,7 @@ const fuelCategories: FuelCategory[] = [
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: "right",
-        labels: { boxWidth: 12, padding: 20 },
-      },
+      legend: { position: "right", labels: { boxWidth: 12, padding: 20 } },
       title: {
         display: true,
         text: `${
@@ -291,18 +276,14 @@ const fuelCategories: FuelCategory[] = [
       tooltip: {
         mode: "nearest",
         intersect: false,
-        filter: function (tooltipItem) {
-          return (
-            chartData.datasets[tooltipItem.datasetIndex].backgroundData !== null
-          );
-        },
+        filter: (tooltipItem) =>
+          chartData.datasets[tooltipItem.datasetIndex].backgroundData !== null,
         callbacks: {
-          label: function (context) {
+          label: (context) => {
             const label = context.dataset.label || "";
             const value = context.parsed.y || 0;
             const realData =
               realTransitData[context.dataset.label?.split(" ")[1] || ""];
-
             let tooltipText = `${label}: ${value.toFixed(2)} days`;
             if (realData?.length) {
               tooltipText += ` (Actual range: ${Math.min(
@@ -328,17 +309,17 @@ const fuelCategories: FuelCategory[] = [
       },
       y: {
         title: { display: true, text: "Transit Time (days)" },
-        ticks: { callback: (value: any) => `${value} days` },
+        ticks: { callback: (value) => `${value} days` },
         suggestedMin:
           Math.min(
-            ...Object.values(realTransitData).flatMap((data) => data),
+            ...Object.values(realTransitData).flat(),
             ...Object.values(transitData).flatMap((cycle) =>
               Object.values(cycle)
             )
           ) - 1,
         suggestedMax:
           Math.max(
-            ...Object.values(realTransitData).flatMap((data) => data),
+            ...Object.values(realTransitData).flat(),
             ...Object.values(transitData).flatMap((cycle) =>
               Object.values(cycle)
             )
@@ -348,14 +329,14 @@ const fuelCategories: FuelCategory[] = [
     interaction: { intersect: false, mode: "index" },
   };
 
-  const selectedCategoryObj = fuelCategories.find(
-    (fc) => fc.value === selectedCategory
-  );
-
   if (loading) return <div>Loading transit data...</div>;
   if (error) return <div>Error: {error}</div>;
   if (Object.keys(transitData).length === 0)
     return <div>No transit data available</div>;
+
+  const selectedCategoryObj = fuelCategories.find(
+    (fc) => fc.value === selectedCategory
+  );
 
   return (
     <div style={{ width: "100%", margin: "20px 0", textAlign: "center" }}>
@@ -368,7 +349,6 @@ const fuelCategories: FuelCategory[] = [
           gap: "10px",
         }}
       >
-        {/* Fuel Category Selection */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <label htmlFor="category-select">Fuel Category: </label>
           <select
@@ -383,8 +363,6 @@ const fuelCategories: FuelCategory[] = [
               </option>
             ))}
           </select>
-
-          {/* Toggle for sub-types */}
           {selectedCategoryObj && selectedCategoryObj.subTypes.length > 0 && (
             <button
               onClick={toggleSubTypes}
@@ -399,7 +377,6 @@ const fuelCategories: FuelCategory[] = [
           )}
         </div>
 
-        {/* Sub-type Selection (conditionally rendered) */}
         {showSubTypes && (
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <label htmlFor="subtype-select">Fuel Grade: </label>
@@ -409,18 +386,15 @@ const fuelCategories: FuelCategory[] = [
               onChange={handleSubTypeChange}
               style={{ textAlign: "center" }}
             >
-              {fuelCategories
-                .find((fc) => fc.value === selectedCategory)
-                ?.subTypes.map((subType) => (
-                  <option key={subType} value={subType}>
-                    {subType}
-                  </option>
-                ))}
+              {selectedCategoryObj?.subTypes.map((subType) => (
+                <option key={subType} value={subType}>
+                  {subType}
+                </option>
+              ))}
             </select>
           </div>
         )}
 
-        {/* Route Selection */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <label htmlFor="route-select">Route: </label>
           <select
