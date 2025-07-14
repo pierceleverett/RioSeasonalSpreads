@@ -118,46 +118,6 @@ const fuelCategories: FuelCategory[] = [
     }
   };
 
-  const updateSpreads = async () => {
-    try {
-      const response = await fetch(
-        "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update transit data");
-      }
-      console.log("Transit data updated successfully");
-    } catch (error) {
-      console.error("Error updating transit data:", error);
-    }
-  };
-
-  const handleRefresh = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await updateSpreads();
-      const [transitData, realData] = await Promise.all([
-        fetchTransitData(),
-        fetchRealTransitData(),
-      ]);
-      setTransitData(transitData);
-      setRealTransitData(realData);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const category = e.target.value;
@@ -179,10 +139,6 @@ const fuelCategories: FuelCategory[] = [
   const toggleSubTypes = () => {
     setShowSubTypes(!showSubTypes);
   };
-
-  useEffect(() => {
-    handleRefresh();
-  }, [selectedFuel, selectedRoute]);
 
   useEffect(() => {
     return () => {
@@ -480,13 +436,6 @@ const fuelCategories: FuelCategory[] = [
             ))}
           </select>
         </div>
-
-        <button
-          onClick={handleRefresh}
-          style={{ padding: "6px 12px", cursor: "pointer" }}
-        >
-          Refresh
-        </button>
 
         <div style={{ display: "flex", gap: "20px", justifyContent: "center" }}>
           <div>
