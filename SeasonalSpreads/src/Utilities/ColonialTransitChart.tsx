@@ -13,12 +13,15 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
-import type {ChartType, ChartOptions, ChartDataset, ScatterDataPoint} from "chart.js"
-
-
+import type {
+  ChartType,
+  ChartOptions,
+  ChartDataset,
+  ScatterDataPoint,
+} from "chart.js";
 
 // Extend Chart.js types to include our custom property
-declare module 'chart.js' {
+declare module "chart.js" {
   interface ChartDatasetProperties<TType extends ChartType, TData> {
     backgroundData?: {
       min: number;
@@ -55,26 +58,29 @@ const ColonialTransitChart: React.FC = () => {
   const [realTransitData, setRealTransitData] = useState<RealTransitData>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFuel, setSelectedFuel] = useState<string>("A2");
   const [selectedRoute, setSelectedRoute] = useState<string>("HTNGBJ");
   const [startCycle, setStartCycle] = useState<number>(1);
   const [endCycle, setEndCycle] = useState<number>(72);
 
-  const chartRef = useRef<ChartJS<"line"> | null>(null);
+  // Fuel selection state
+interface FuelCategory {
+  value: string;
+  label: string;
+  subTypes: string[];
+}
 
-  const fuelOptions = [
-    { value: "A2", label: "A2" },
-    { value: "A3", label: "A3" },
-    { value: "A4", label: "A4" },
-    { value: "D2", label: "D2" },
-    { value: "D3", label: "D3" },
-    { value: "D4", label: "D4" },
-    { value: "F1", label: "F1" },
-    { value: "F3", label: "F3" },
-    { value: "F4", label: "F4" },
-    { value: "F5", label: "F5" },
-    { value: "62", label: "62" },
-  ];
+const fuelCategories: FuelCategory[] = [
+  { value: "A", label: "A", subTypes: ["A2", "A3", "A4", "A5"] },
+  { value: "D", label: "D", subTypes: ["D2", "D3", "D4"] },
+  { value: "F", label: "F", subTypes: ["F1", "F3", "F4", "F5"] },
+  { value: "62", label: "62", subTypes: [] },
+];
+  const [selectedCategory, setSelectedCategory] = useState<string>("A");
+  const [selectedSubType, setSelectedSubType] = useState<string>("A2");
+  const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
+  const selectedFuel = showSubTypes ? selectedSubType : selectedCategory;
+
+  const chartRef = useRef<ChartJS<"line"> | null>(null);
 
   const routeOptions = [
     { value: "HTNGBJ", label: "HTN to GBJ" },
@@ -91,7 +97,8 @@ const ColonialTransitChart: React.FC = () => {
       const response = await fetch(
         `https://rioseasonalspreads-production.up.railway.app/getColonialTransit?route=${getRouteParam()}`
       );
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       return await response.json();
     } catch (err) {
       throw err;
@@ -103,50 +110,74 @@ const ColonialTransitChart: React.FC = () => {
       const response = await fetch(
         `https://rioseasonalspreads-production.up.railway.app/getRealTransit?fuel=${selectedFuel}&route=${selectedRoute}`
       );
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       return await response.json();
     } catch (err) {
       throw err;
     }
   };
-    const updateSpreads = async () => {
-      try {
-        const response = await fetch(
-          "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
 
-        if (!response.ok) {
-          throw new Error("Failed to update transit data");
+  const updateSpreads = async () => {
+    try {
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-        console.log("Transit data updated successfully");
-      } catch (error) {
-        console.error("Error updating transit data:", error);
-      }
-    };
+      );
 
+      if (!response.ok) {
+        throw new Error("Failed to update transit data");
+      }
+      console.log("Transit data updated successfully");
+    } catch (error) {
+      console.error("Error updating transit data:", error);
+    }
+  };
 
   const handleRefresh = async () => {
     try {
       setLoading(true);
       setError(null);
-      updateSpreads();
+      await updateSpreads();
       const [transitData, realData] = await Promise.all([
         fetchTransitData(),
-        fetchRealTransitData()
+        fetchRealTransitData(),
       ]);
       setTransitData(transitData);
       setRealTransitData(realData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const category = e.target.value;
+    setSelectedCategory(category);
+
+    // Automatically select first sub-type when changing category
+    const categoryObj = fuelCategories.find((fc) => fc.value === category);
+    if (categoryObj && categoryObj.subTypes.length > 0) {
+      setSelectedSubType(categoryObj.subTypes[0]);
+    }
+
+    setShowSubTypes(false);
+  };
+
+  const handleSubTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedSubType(e.target.value);
+  };
+
+  const toggleSubTypes = () => {
+    setShowSubTypes(!showSubTypes);
   };
 
   useEffect(() => {
@@ -171,15 +202,15 @@ const ColonialTransitChart: React.FC = () => {
   const prepareChartData = () => {
     const cycles = Object.keys(transitData)
       .map(Number)
-      .filter(c => !isNaN(c) && c >= startCycle && c <= endCycle)
+      .filter((c) => !isNaN(c) && c >= startCycle && c <= endCycle)
       .sort((a, b) => a - b);
 
     const colors = generateColors(cycles.length);
 
     // Get all unique dates across all cycles
     const allDates = new Set<string>();
-    cycles.forEach(cycle => {
-      Object.keys(transitData[cycle.toString()] || {}).forEach(date => {
+    cycles.forEach((cycle) => {
+      Object.keys(transitData[cycle.toString()] || {}).forEach((date) => {
         allDates.add(date);
       });
     });
@@ -188,93 +219,101 @@ const ColonialTransitChart: React.FC = () => {
     const xMin = sortedDates[0];
     const xMax = sortedDates[sortedDates.length - 1];
 
-    const datasets: ChartDataset<"line", ScatterDataPoint[]>[] = cycles.map((cycle, index) => {
-      const cycleStr = cycle.toString();
-      const cycleData = transitData[cycleStr] || {};
-      const realData = realTransitData[cycleStr] || [];
-      
+    const datasets: ChartDataset<"line", ScatterDataPoint[]>[] = cycles.map(
+      (cycle, index) => {
+        const cycleStr = cycle.toString();
+        const cycleData = transitData[cycleStr] || {};
+        const realData = realTransitData[cycleStr] || [];
 
-const lineData: ScatterDataPoint[] = sortedDates
-  .filter((date) => cycleData[date] !== null && cycleData[date] !== undefined)
-  .map((date) => ({
-    x: new Date(date).getTime(), // Convert Date to timestamp
-    y: cycleData[date],
-  }));
+        const lineData: ScatterDataPoint[] = sortedDates
+          .filter(
+            (date) => cycleData[date] !== null && cycleData[date] !== undefined
+          )
+          .map((date) => ({
+            x: new Date(date).getTime(),
+            y: cycleData[date],
+          }));
 
+        const backgroundData =
+          realData.length > 0
+            ? {
+                min: Math.min(...realData),
+                max: Math.max(...realData),
+                color: colors[index] + "33", // Add alpha for transparency
+              }
+            : null;
 
-      const backgroundData = realData.length > 0 ? {
-        min: Math.min(...realData),
-        max: Math.max(...realData),
-        color: colors[index] + "33" // Add alpha for transparency
-      } : null;
-
-      return {
-        type: "line",
-        label: `Cycle ${cycle}`,
-        data: lineData,
-        borderColor: colors[index],
-        backgroundColor: colors[index],
-        borderWidth: 2,
-        pointRadius: 3,
-        tension: 0.1,
-        backgroundData
-      };
-    });
+        return {
+          type: "line",
+          label: `Cycle ${cycle}`,
+          data: lineData,
+          borderColor: colors[index],
+          backgroundColor: colors[index],
+          borderWidth: 2,
+          pointRadius: 3,
+          tension: 0.1,
+          backgroundData,
+        };
+      }
+    );
 
     return {
       chartData: {
         labels: sortedDates,
-        datasets
+        datasets,
       },
-      xAxisRange: { min: xMin, max: xMax }
+      xAxisRange: { min: xMin, max: xMax },
     };
   };
 
-const backgroundAreaPlugin = {
-  id: "backgroundArea",
-  beforeDatasetsDraw(chart: ChartJS) {
-    const ctx = chart.ctx;
-    chart.data.datasets.forEach((dataset: any, i: number) => {
-      if (!dataset.backgroundData) return;
+  const backgroundAreaPlugin = {
+    id: "backgroundArea",
+    beforeDatasetsDraw(chart: ChartJS) {
+      const ctx = chart.ctx;
+      chart.data.datasets.forEach((dataset: any, i: number) => {
+        if (!dataset.backgroundData) return;
 
-      const meta = chart.getDatasetMeta(i);
-      if (!meta.data.length) return;
+        const meta = chart.getDatasetMeta(i);
+        if (!meta.data.length) return;
 
-      const firstPoint = meta.data[0];
-      const lastPoint = meta.data[meta.data.length - 1];
-      const minY = chart.scales.y.getPixelForValue(dataset.backgroundData.min);
-      const maxY = chart.scales.y.getPixelForValue(dataset.backgroundData.max);
+        const firstPoint = meta.data[0];
+        const lastPoint = meta.data[meta.data.length - 1];
+        const minY = chart.scales.y.getPixelForValue(
+          dataset.backgroundData.min
+        );
+        const maxY = chart.scales.y.getPixelForValue(
+          dataset.backgroundData.max
+        );
 
-      ctx.save();
+        ctx.save();
 
-      if (dataset.backgroundData.min === dataset.backgroundData.max) {
-        // Draw a thin line for zero-range data
-        ctx.beginPath();
-        ctx.moveTo(firstPoint.x, minY);
-        ctx.lineTo(lastPoint.x, minY);
-        ctx.lineWidth = 1; // Thinner than the main line (which is 2)
-        ctx.strokeStyle = dataset.borderColor;
-        ctx.stroke();
-      } else {
-        // Draw filled rectangle for normal range
-        ctx.beginPath();
-        ctx.moveTo(firstPoint.x, minY);
-        ctx.lineTo(lastPoint.x, minY);
-        ctx.lineTo(lastPoint.x, maxY);
-        ctx.lineTo(firstPoint.x, maxY);
-        ctx.closePath();
+        if (dataset.backgroundData.min === dataset.backgroundData.max) {
+          // Draw a thin line for zero-range data
+          ctx.beginPath();
+          ctx.moveTo(firstPoint.x, minY);
+          ctx.lineTo(lastPoint.x, minY);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = dataset.borderColor;
+          ctx.stroke();
+        } else {
+          // Draw filled rectangle for normal range
+          ctx.beginPath();
+          ctx.moveTo(firstPoint.x, minY);
+          ctx.lineTo(lastPoint.x, minY);
+          ctx.lineTo(lastPoint.x, maxY);
+          ctx.lineTo(firstPoint.x, maxY);
+          ctx.closePath();
 
-        // Use the border color with transparency
-        ctx.fillStyle = dataset.borderColor
-          .replace(")", ", 0.2)")
-          .replace("rgb", "rgba");
-        ctx.fill();
-      }
+          ctx.fillStyle = dataset.borderColor
+            .replace(")", ", 0.2)")
+            .replace("rgb", "rgba");
+          ctx.fill();
+        }
 
-      ctx.restore();
-    });
-  },
-};
+        ctx.restore();
+      });
+    },
+  };
 
   const { chartData, xAxisRange } = prepareChartData();
 
@@ -297,7 +336,6 @@ const backgroundAreaPlugin = {
         mode: "nearest",
         intersect: false,
         filter: function (tooltipItem) {
-          // Only show tooltip for items that have background data
           return (
             chartData.datasets[tooltipItem.datasetIndex].backgroundData !== null
           );
@@ -335,29 +373,33 @@ const backgroundAreaPlugin = {
       y: {
         title: { display: true, text: "Transit Time (days)" },
         ticks: { callback: (value: any) => `${value} days` },
-        // Add this to ensure the y-axis scales to include background areas
         suggestedMin:
           Math.min(
             ...Object.values(realTransitData).flatMap((data) => data),
             ...Object.values(transitData).flatMap((cycle) =>
               Object.values(cycle)
             )
-          ) - 1, // Add some padding
+          ) - 1,
         suggestedMax:
           Math.max(
             ...Object.values(realTransitData).flatMap((data) => data),
             ...Object.values(transitData).flatMap((cycle) =>
               Object.values(cycle)
             )
-          ) + 1, // Add some padding
+          ) + 1,
       },
     },
     interaction: { intersect: false, mode: "index" },
   };
 
+  const selectedCategoryObj = fuelCategories.find(
+    (fc) => fc.value === selectedCategory
+  );
+
   if (loading) return <div>Loading transit data...</div>;
   if (error) return <div>Error: {error}</div>;
-  if (Object.keys(transitData).length === 0) return <div>No transit data available</div>;
+  if (Object.keys(transitData).length === 0)
+    return <div>No transit data available</div>;
 
   return (
     <div style={{ width: "100%", margin: "20px 0", textAlign: "center" }}>
@@ -370,22 +412,59 @@ const backgroundAreaPlugin = {
           gap: "10px",
         }}
       >
+        {/* Fuel Category Selection */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label htmlFor="fuel-select">Fuel: </label>
+          <label htmlFor="category-select">Fuel Category: </label>
           <select
-            id="fuel-select"
-            value={selectedFuel}
-            onChange={(e) => setSelectedFuel(e.target.value)}
+            id="category-select"
+            value={selectedCategory}
+            onChange={handleCategoryChange}
             style={{ textAlign: "center" }}
           >
-            {fuelOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
+            {fuelCategories.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.label}
               </option>
             ))}
           </select>
+
+          {/* Toggle for sub-types */}
+          {selectedCategoryObj && selectedCategoryObj.subTypes.length > 0 && (
+            <button
+              onClick={toggleSubTypes}
+              style={{
+                padding: "4px 8px",
+                cursor: "pointer",
+                backgroundColor: showSubTypes ? "#e0e0e0" : "transparent",
+              }}
+            >
+              {showSubTypes ? "Show All" : "Select Grade"}
+            </button>
+          )}
         </div>
 
+        {/* Sub-type Selection (conditionally rendered) */}
+        {showSubTypes && (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label htmlFor="subtype-select">Fuel Grade: </label>
+            <select
+              id="subtype-select"
+              value={selectedSubType}
+              onChange={handleSubTypeChange}
+              style={{ textAlign: "center" }}
+            >
+              {fuelCategories
+                .find((fc) => fc.value === selectedCategory)
+                ?.subTypes.map((subType) => (
+                  <option key={subType} value={subType}>
+                    {subType}
+                  </option>
+                ))}
+            </select>
+          </div>
+        )}
+
+        {/* Route Selection */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <label htmlFor="route-select">Route: </label>
           <select
