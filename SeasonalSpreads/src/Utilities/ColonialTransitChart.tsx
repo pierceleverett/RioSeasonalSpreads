@@ -134,15 +134,22 @@ const ColonialTransitChart: React.FC = () => {
     };
   }, []);
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const category = e.target.value;
-    setSelectedCategory(category);
-    const categoryObj = fuelCategories.find((fc) => fc.value === category);
-    if (categoryObj && categoryObj.subTypes.length > 0) {
-      setSelectedSubType(categoryObj.subTypes[0]);
-    }
+const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const category = e.target.value;
+  setSelectedCategory(category);
+
+  const categoryObj = fuelCategories.find((fc) => fc.value === category);
+
+  if (categoryObj && categoryObj.subTypes.length > 0) {
+    setSelectedSubType(categoryObj.subTypes[0]);
+    // 🔥 Keep showing subtypes if they exist
+    setShowSubTypes(true);
+  } else {
+    // 🚫 Hide subtypes only if none exist
     setShowSubTypes(false);
-  };
+  }
+};
+
 
   const handleSubTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedSubType(e.target.value);
