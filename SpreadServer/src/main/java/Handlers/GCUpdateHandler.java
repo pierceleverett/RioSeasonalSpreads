@@ -1,7 +1,7 @@
 package Handlers;
 
+import static GCSpreads.GCSpreadUpdater.getAllPricingData;
 import static GCSpreads.GCSpreadUpdater.getLastUpdatedDateFromCSV;
-import static GCSpreads.GCSpreadUpdater.getLatestPricingData;
 
 import GCSpreads.GCcsvupdater;
 import com.squareup.moshi.JsonAdapter;
@@ -21,16 +21,18 @@ public class GCUpdateHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
     try {
       LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv");
-      LocalDate searchStartDate = lastDataDate.plusDays(2); // Email received + 1 day
+      LocalDate today = LocalDate.now();
 
-      System.out.println("Searching for emails starting from: " + searchStartDate);
+      System.out.println("Searching for emails from " + lastDataDate + " to " + today);
 
-      OffsetDateTime since = searchStartDate.atStartOfDay().atOffset(ZoneOffset.UTC);
-      Map<String, Double> pricingData = getLatestPricingData(since);
+      // Get all pricing data since the last data date (inclusive)
+      Map<LocalDate, Map<String, Double>> allPricingData = getAllPricingData(lastDataDate, today);
 
-      if (!pricingData.isEmpty()) {
-        System.out.println("Pricing data retrieved. Updating CSVs...");
-        GCcsvupdater.updateSpreadCSVs(pricingData, searchStartDate);
+      if (!allPricingData.isEmpty()) {
+        System.out.println("Updating CSVs with all missing data...");
+        for (Map.Entry<LocalDate, Map<String, Double>> entry : allPricingData.entrySet()) {
+          GCcsvupdater.updateSpreadCSVs(entry.getValue(), entry.getKey());
+        }
       } else {
         System.out.println("No new pricing data found.");
       }
