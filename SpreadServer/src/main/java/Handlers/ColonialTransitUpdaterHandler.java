@@ -23,11 +23,16 @@ public class ColonialTransitUpdaterHandler implements Route {
     String lnjOutputFile = "data/Colonial/Actual/LNJactual.csv";
 
     //Update the estimated transit data
+    System.out.println("Starting to update missing transit data");
     ColonialTransitUpdater.updateMissingTransitData();
+    System.out.println("Finished transit data, now going to fungible");
 
     //Update the fungible data
     LocalDate lastProcessedDate = getLastProcessedDate();
+    System.out.println("last processed date: "+ lastProcessedDate);
+    System.out.println("going to process missing fungi (if any)");
     processNewBulletins(lastProcessedDate);
+    System.out.println("done processing, now moving to origin starts");
 
     //Update the origin starts if needed
     if (shouldUpdateOriginData()) {
@@ -38,6 +43,7 @@ public class ColonialTransitUpdaterHandler implements Route {
     }
 
     //Update the actual transit times
+    System.out.println("recalculating actual transit times");
     calculateTransitTimes(originFile, gbjDeliveryFile, lnjDeliveryFile, gbjOutputFile, lnjOutputFile);
 
     return "{\"status\":\"success\"}";
