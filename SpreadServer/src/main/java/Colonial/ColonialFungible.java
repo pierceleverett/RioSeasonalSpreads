@@ -9,6 +9,7 @@ import Outlook.FusionCurveParser.SimpleAuthProvider;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,9 +24,9 @@ import java.util.*;
 public class ColonialFungible {
   private static final String GBJ_CSV_PATH = "data/Colonial/Fungible/GBJ.csv";
   private static final String LNJ_CSV_PATH = "data/Colonial/Fungible/LNJ.csv";
+  private static final String PROCESSED_DATES_PATH = "data/Colonial/Fungible/processed_dates.txt";
   private static final String USER_PRINCIPAL_NAME = "automatedreports@rioenergy.com";
   private static final String EMAIL_SUBJECT_FILTER = "colonial - fungible deliveries";
-  private static final Set<String> processedDates = new HashSet<>();
 
   public static void main(String[] args) {
     try {
@@ -74,6 +75,7 @@ public class ColonialFungible {
   public static void processAllMessages(List<Message> messages) throws IOException {
     Map<String, Map<String, List<String>>> gbjData = new HashMap<>();
     Map<String, Map<String, List<String>>> lnjData = new HashMap<>();
+    Set<String> processedDates = new HashSet<>();
 
     // Sort messages chronologically
     messages.sort(Comparator.comparing(m -> m.receivedDateTime));
@@ -82,7 +84,21 @@ public class ColonialFungible {
     for (Message message : messages) {
       try {
         if (message.body == null || message.body.content == null) continue;
+
+        // Extract and store the bulletin date
+        Document doc = Jsoup.parse(message.body.content);
+        String plainText = doc.text().replaceAll("\\s+", " ").trim();
+        LocalDate emailDate = extractDateFromPlainText(plainText);
+        String formattedDate = emailDate.format(DateTimeFormatter.ofPattern("MM/dd/yy"));
+
+        // Skip if already processed
+        if (processedDates.contains(formattedDate)) {
+          continue;
+        }
+
         parseFungibleBody(message.body.content, gbjData, lnjData);
+        processedDates.add(formattedDate);
+
       } catch (Exception e) {
         System.err.println("Failed to process message with subject: " + message.subject);
         e.printStackTrace();
@@ -92,6 +108,33 @@ public class ColonialFungible {
     // Write the complete data to CSVs
     writeCompleteCsv(GBJ_CSV_PATH, gbjData);
     writeCompleteCsv(LNJ_CSV_PATH, lnjData);
+
+    // Save processed dates
+    saveProcessedDates(processedDates);
+  }
+
+  private static void saveProcessedDates(Set<String> dates) throws IOException {
+    Path path = Paths.get(PROCESSED_DATES_PATH);
+    Path parentDir = path.getParent();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yy");
+
+    // Create directory if it doesn't exist
+    if (!Files.exists(parentDir)) {
+      Files.createDirectories(parentDir);
+    }
+
+    // Write dates in MM/dd/yy format, one per line
+    List<String> dateList = dates.stream()
+        .map(date -> LocalDate.parse(date, formatter))           // Parse string to LocalDate
+        .sorted()                                                 // Sort chronologically
+        .map(date -> date.format(formatter))                      // Format back to string
+        .collect(Collectors.toList());
+
+    Files.write(path, dateList,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING);
+
+    System.out.println("Saved " + dateList.size() + " processed dates to " + PROCESSED_DATES_PATH);
   }
 
   public static void parseFungibleBody(String htmlContent,

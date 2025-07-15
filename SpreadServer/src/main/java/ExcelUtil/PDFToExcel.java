@@ -38,7 +38,7 @@ public class PDFToExcel {
 
     public static void main(String[] args) throws IOException {
         // Define the path to your test PDF file
-        String pdfPath = "data/pdfToAdd/ReportViewer (4).pdf"; // Adjust this path as needed
+        String pdfPath = "data/pdfToAdd/7152025.pdf"; // Adjust this path as needed
 
         File pdfFile = new File(pdfPath);
         if (!pdfFile.exists()) {

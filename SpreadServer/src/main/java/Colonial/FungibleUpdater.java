@@ -1,2 +1,122 @@
-package Colonial;public class FungibleUpdater {
+package Colonial;
+
+import static Outlook.ExplorerParser.getAccessToken;
+import com.microsoft.graph.models.*;
+import com.microsoft.graph.options.QueryOption;
+import com.microsoft.graph.requests.*;
+import com.microsoft.graph.authentication.IAuthenticationProvider;
+import Outlook.FusionCurveParser.SimpleAuthProvider;
+import java.io.IOException;
+import java.nio.file.*;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class FungibleUpdater {
+  private static final String PROCESSED_DATES_PATH = "data/Colonial/Fungible/processed_dates.txt";
+  private static final String USER_PRINCIPAL_NAME = "automatedreports@rioenergy.com";
+  private static final String EMAIL_SUBJECT_FILTER = "colonial - fungible deliveries";
+  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd/yy");
+
+  public static void main(String[] args) {
+    try {
+      System.out.println("=== Colonial Fungible Processor ===");
+
+      // Load the last processed date
+      LocalDate lastProcessedDate = getLastProcessedDate();
+      System.out.println("Last processed date: " +
+          (lastProcessedDate != null ? lastProcessedDate.format(DATE_FORMATTER) : "None"));
+
+      // Process new bulletins
+      processNewBulletins(lastProcessedDate);
+
+      System.out.println("=== Processing completed successfully ===");
+    } catch (Exception e) {
+      System.err.println("!!! Processing failed !!!");
+      System.err.println("Error: " + e.getMessage());
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
+
+  public static LocalDate getLastProcessedDate() throws IOException {
+    Path path = Paths.get(PROCESSED_DATES_PATH);
+    if (!Files.exists(path)) {
+      return null;
+    }
+
+    List<String> dates = Files.readAllLines(path);
+    if (dates.isEmpty()) {
+      return null;
+    }
+
+    // Get the most recent date (last line in the file)
+    String lastDateStr = dates.get(dates.size() - 1);
+    return LocalDate.parse(lastDateStr, DATE_FORMATTER);
+  }
+
+  public static void processNewBulletins(LocalDate lastProcessedDate) throws IOException {
+    String accessToken = getAccessToken();
+    List<Message> messages = fetchFungibleEmails(accessToken, USER_PRINCIPAL_NAME);
+
+    // Filter messages to only those after last processed date
+    List<Message> newMessages = messages.stream()
+        .filter(msg -> lastProcessedDate == null ||
+            msg.receivedDateTime.isAfter(OffsetDateTime.from(lastProcessedDate.atStartOfDay())))
+        .collect(Collectors.toList());
+
+    System.out.println("Found " + newMessages.size() + " new bulletins to process");
+
+    if (newMessages.isEmpty()) {
+      return;
+    }
+
+    // Process the new messages using existing functionality
+    ColonialFungible.processAllMessages(newMessages);
+  }
+
+  public static List<Message> fetchFungibleEmails(String accessToken, String userPrincipalName) throws IOException {
+    IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+    GraphServiceClient<?> graphClient = GraphServiceClient.builder()
+        .authenticationProvider(authProvider)
+        .buildClient();
+
+    List<Message> relevantMessages = new ArrayList<>();
+    LinkedList<QueryOption> requestOptions = new LinkedList<>();
+    requestOptions.add(new QueryOption("$select", "subject,receivedDateTime,body"));
+    requestOptions.add(new QueryOption("$top", "500"));
+
+    MessageCollectionPage messagesPage;
+    MessageCollectionRequestBuilder nextPage = null;
+
+    do {
+      messagesPage = (nextPage == null)
+          ? graphClient.users(userPrincipalName).messages()
+          .buildRequest(requestOptions)
+          .orderBy("receivedDateTime desc")
+          .get()
+          : nextPage.buildRequest().get();
+
+      for (Message message : messagesPage.getCurrentPage()) {
+        if (message.subject != null &&
+            message.subject.toLowerCase().contains(EMAIL_SUBJECT_FILTER)) {
+          if (message.body == null || message.body.content == null) {
+            Message fullMessage = graphClient.users(userPrincipalName)
+                .messages(message.id)
+                .buildRequest()
+                .select("body")
+                .get();
+            message.body = fullMessage.body;
+          }
+          relevantMessages.add(message);
+        }
+      }
+      nextPage = messagesPage.getNextPage();
+    } while (nextPage != null);
+
+    return relevantMessages;
+  }
 }
