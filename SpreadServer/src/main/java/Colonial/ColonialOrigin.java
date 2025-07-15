@@ -325,7 +325,7 @@ public class ColonialOrigin {
             System.out.println("Processing new email with ID: " + message.id + " from: " + bulletinDate);
             processOriginStartsEmail(message.body.content, bulletinDate);
             newMessages.add(message);
-            foundNewMessages = true;
+            return;
           }
         }
       }

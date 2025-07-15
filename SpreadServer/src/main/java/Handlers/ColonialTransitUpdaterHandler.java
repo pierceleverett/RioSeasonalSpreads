@@ -1,25 +1,13 @@
 package Handlers;
 
 import static Colonial.ColonialActual.calculateTransitTimes;
-import static Colonial.ColonialFungible.fetchFungibleEmails;
-import static Colonial.ColonialFungible.processAllMessages;
-import static Colonial.ColonialOrigin.processNewOriginStartsEmails;
-import static Colonial.ColonialTransitTime.processTransitTimes;
-import static Colonial.CsvToMap.createSortedTransitTimeMap;
 import static Colonial.FungibleUpdater.getLastProcessedDate;
 import static Colonial.FungibleUpdater.processNewBulletins;
+import static Colonial.OriginUpdater.shouldUpdateOriginData;
 import static Outlook.ExplorerParser.getAccessToken;
-
+import Colonial.ColonialOrigin;
 import Colonial.ColonialTransitUpdater;
-import com.microsoft.graph.models.Message;
-import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.Moshi;
-import com.squareup.moshi.Types;
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -42,7 +30,12 @@ public class ColonialTransitUpdaterHandler implements Route {
     processNewBulletins(lastProcessedDate);
 
     //Update the origin starts if needed
-    processNewOriginStartsEmails(accessToken, "automatedreports@rioenergy.com");
+    if (shouldUpdateOriginData()) {
+      System.out.println("Last cycle date is approaching, checking for new origin emails...");
+      ColonialOrigin.processNewOriginStartsEmails(accessToken, "automatedreports@rioenergy.com");
+    } else {
+      System.out.println("No update needed");
+    }
 
     //Update the actual transit times
     calculateTransitTimes(originFile, gbjDeliveryFile, lnjDeliveryFile, gbjOutputFile, lnjOutputFile);
