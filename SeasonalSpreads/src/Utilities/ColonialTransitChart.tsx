@@ -72,7 +72,6 @@ const ColonialTransitChart: React.FC = () => {
   const [selectedRoute, setSelectedRoute] = useState<string>("HTNGBJ");
   const [startCycle, setStartCycle] = useState<number | null>(1);
   const [endCycle, setEndCycle] = useState<number | null>(72);
-
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
   const [selectedSubType, setSelectedSubType] = useState<string>("");
   const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
