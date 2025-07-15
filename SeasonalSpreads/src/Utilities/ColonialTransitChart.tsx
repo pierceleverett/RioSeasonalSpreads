@@ -70,8 +70,8 @@ const ColonialTransitChart: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRoute, setSelectedRoute] = useState<string>("HTNGBJ");
-  const [startCycle, setStartCycle] = useState<number>(1);
-  const [endCycle, setEndCycle] = useState<number>(72);
+  const [startCycle, setStartCycle] = useState<number | null>(1);
+  const [endCycle, setEndCycle] = useState<number | null>(72);
 
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
   const [selectedSubType, setSelectedSubType] = useState<string>("");
@@ -191,6 +191,9 @@ const ColonialTransitChart: React.FC = () => {
   };
 
   const prepareChartData = () => {
+      if (startCycle === null || endCycle === null) {
+        return; // Or return empty chart data structure if needed
+      }
     const cycles = Object.keys(transitData)
       .map(Number)
       .filter((c) => !isNaN(c) && c >= startCycle && c <= endCycle)
@@ -302,7 +305,10 @@ const backgroundAreaPlugin = {
   },
 };
 
-  const { chartData, xAxisRange } = prepareChartData();
+    const prepared = prepareChartData();
+    const chartData = prepared?.chartData ?? { labels: [], datasets: [] };
+    const xAxisRange = prepared?.xAxisRange ?? { min: undefined, max: undefined };
+
 
   const options: ChartOptions<"line"> = {
     responsive: true,
@@ -477,18 +483,26 @@ return (
           <input
             type="text"
             id="start-cycle"
-            value={startCycle}
+            value={startCycle === null ? "" : startCycle}
             onChange={(e) => {
-              const value = parseInt(e.target.value);
-              if (!isNaN(value) && value >= 1 && value <= 72) {
-                setStartCycle(value);
+              const value = e.target.value;
+              if (value === "") {
+                setStartCycle(null); // allow user to clear input
+              } else {
+                const num = parseInt(value);
+                if (!isNaN(num)) {
+                  setStartCycle(num);
+                }
               }
             }}
             onBlur={(e) => {
-              if (e.target.value === "" || parseInt(e.target.value) < 1) {
+              const num = parseInt(e.target.value);
+              if (isNaN(num) || num < 1) {
                 setStartCycle(1);
-              } else if (parseInt(e.target.value) > 72) {
+              } else if (num > 72) {
                 setStartCycle(72);
+              } else {
+                setStartCycle(num);
               }
             }}
             style={{ width: "60px", textAlign: "center" }}
@@ -499,18 +513,26 @@ return (
           <input
             type="text"
             id="end-cycle"
-            value={endCycle}
+            value={endCycle === null ? "" : endCycle}
             onChange={(e) => {
-              const value = parseInt(e.target.value);
-              if (!isNaN(value) && value >= 1 && value <= 72) {
-                setEndCycle(value);
+              const value = e.target.value;
+              if (value === "") {
+                setEndCycle(null);
+              } else {
+                const num = parseInt(value);
+                if (!isNaN(num)) {
+                  setEndCycle(num);
+                }
               }
             }}
             onBlur={(e) => {
-              if (e.target.value === "" || parseInt(e.target.value) < 1) {
+              const num = parseInt(e.target.value);
+              if (isNaN(num) || num < 1) {
                 setEndCycle(1);
-              } else if (parseInt(e.target.value) > 72) {
+              } else if (num > 72) {
                 setEndCycle(72);
+              } else {
+                setEndCycle(num);
               }
             }}
             style={{ width: "60px", textAlign: "center" }}
