@@ -76,9 +76,8 @@ const ColonialTransitChart: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
   const [selectedSubType, setSelectedSubType] = useState<string>("");
   const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
-  const selectedFuel =
-    showSubTypes && selectedSubType ? selectedSubType : selectedCategory;
-
+  const selectedFuel = showSubTypes && selectedSubType ? selectedSubType : selectedCategory;
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
   const routeOptions = [
@@ -89,6 +88,40 @@ const ColonialTransitChart: React.FC = () => {
   const getRouteParam = () => {
     const product = selectedFuel === "62" ? "DISTILLATES" : "GAS";
     return `${selectedRoute}-${product}`;
+  };
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      setError(null);
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Reload the data after successful refresh
+      const [transitData, realData] = await Promise.all([
+        fetchTransitData(),
+        fetchRealTransitData(),
+      ]);
+      setTransitData(transitData);
+      setRealTransitData(realData);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const fetchTransitData = async () => {
@@ -389,8 +422,14 @@ return (
                 transition: "background-color 0.2s ease",
                 minWidth: "100px",
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e0e0e0"}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = showSubTypes ? "#e0e0e0" : "#f0f0f0"}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#e0e0e0")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = showSubTypes
+                  ? "#e0e0e0"
+                  : "#f0f0f0")
+              }
             >
               {showSubTypes ? "Show All" : "Select Grade"}
             </button>
@@ -436,31 +475,64 @@ return (
         <div>
           <label htmlFor="start-cycle">Start Cycle: </label>
           <input
-            type="number"
+            type="text"
             id="start-cycle"
             value={startCycle}
-            min={1}
-            max={72}
-            onChange={(e) =>
-              setStartCycle(Math.min(72, Math.max(1, Number(e.target.value))))
-            }
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              if (!isNaN(value) && value >= 1 && value <= 72) {
+                setStartCycle(value);
+              }
+            }}
+            onBlur={(e) => {
+              if (e.target.value === "" || parseInt(e.target.value) < 1) {
+                setStartCycle(1);
+              } else if (parseInt(e.target.value) > 72) {
+                setStartCycle(72);
+              }
+            }}
             style={{ width: "60px", textAlign: "center" }}
           />
         </div>
         <div>
           <label htmlFor="end-cycle">End Cycle: </label>
           <input
-            type="number"
+            type="text"
             id="end-cycle"
             value={endCycle}
-            min={1}
-            max={72}
-            onChange={(e) =>
-              setEndCycle(Math.min(72, Math.max(1, Number(e.target.value))))
-            }
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              if (!isNaN(value) && value >= 1 && value <= 72) {
+                setEndCycle(value);
+              }
+            }}
+            onBlur={(e) => {
+              if (e.target.value === "" || parseInt(e.target.value) < 1) {
+                setEndCycle(1);
+              } else if (parseInt(e.target.value) > 72) {
+                setEndCycle(72);
+              }
+            }}
             style={{ width: "60px", textAlign: "center" }}
           />
         </div>
+      </div>
+
+      <div style={{ marginTop: "10px" }}>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#f0f0f0",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: "bold",
+          }}
+        >
+          {isRefreshing ? "Refreshing..." : "Refresh Data"}
+        </button>
       </div>
     </div>
 
@@ -482,6 +554,6 @@ return (
       <p>Shaded areas represent actual transit time ranges.</p>
     </div>
   </div>
-)};
+);};
 
 export default ColonialTransitChart;
