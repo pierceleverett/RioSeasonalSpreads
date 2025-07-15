@@ -128,13 +128,16 @@ public class GCSpreadUpdater {
   }
 
   public static LocalDate getLastUpdatedDateFromCSV(String filePath) throws IOException {
+
+    int currentYear = Year.now().getValue();
+    String currentyear = Integer.toString(currentYear);
     List<String> lines = Files.readAllLines(Paths.get(filePath));
-    int yearIndex = Arrays.asList(lines.get(0).split(",")).indexOf("2025");
+    int yearIndex = Arrays.asList(lines.get(0).split(",")).indexOf(currentyear);
 
     for (int i = lines.size() - 1; i > 0; i--) {
       String[] parts = lines.get(i).split(",", -1);
       if (parts.length > yearIndex && !parts[yearIndex].isBlank()) {
-        return LocalDate.parse("2025/" + parts[0], DateTimeFormatter.ofPattern("yyyy/M/d"));
+        return LocalDate.parse(currentyear + "/" + parts[0], DateTimeFormatter.ofPattern("yyyy/M/d"));
       }
     }
     return LocalDate.of(2025, 1, 1); // fallback

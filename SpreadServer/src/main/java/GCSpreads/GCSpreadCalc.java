@@ -3,6 +3,7 @@ package GCSpreads;
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Year;
 import java.util.*;
 
 public class GCSpreadCalc {
@@ -34,8 +35,17 @@ public class GCSpreadCalc {
     // Calculate daily spreads for each year
     Map<String, Map<String, Float>> spreadDifferences = new LinkedHashMap<>();
 
+    int currentYear = Year.now().getValue();
+    String year1 = Integer.toString(currentYear - 5);
+    String year2 = Integer.toString(currentYear - 4);
+    String year3 = Integer.toString(currentYear - 3);
+    String year4 = Integer.toString(currentYear - 2);
+    String year5 = Integer.toString(currentYear - 1);
+    String currentyear = Integer.toString(currentYear);
+
+
     // Process each year from 2020-2025
-    for (String year : Arrays.asList("2020", "2021", "2022", "2023", "2024", "2025")) {
+    for (String year : Arrays.asList(year1, year2, year3, year4, year5, currentyear)) {
       if (data1.containsKey(year) && data2.containsKey(year)) {
         Map<String, Float> yearDiff = new LinkedHashMap<>();
         Map<String, Float> yearData1 = data1.get(year);
@@ -56,14 +66,14 @@ public class GCSpreadCalc {
     // Calculate 5-year average (2020-2024)
     if (spreadDifferences.size() >= 5) {
       Map<String, Float> avgMap = new LinkedHashMap<>();
-      Set<String> commonDates = new HashSet<>(data1.get("2020").keySet());
-      commonDates.retainAll(data2.get("2020").keySet());
+      Set<String> commonDates = new HashSet<>(data1.get(year1).keySet());
+      commonDates.retainAll(data2.get(year1).keySet());
 
       for (String date : commonDates) {
         float sum = 0f;
         int count = 0;
 
-        for (String year : Arrays.asList("2020", "2021", "2022", "2023", "2024")) {
+        for (String year : Arrays.asList(year1, year2, year3, year4, year5)) {
           if (spreadDifferences.get(year) != null &&
               spreadDifferences.get(year).get(date) != null) {
             sum += spreadDifferences.get(year).get(date);

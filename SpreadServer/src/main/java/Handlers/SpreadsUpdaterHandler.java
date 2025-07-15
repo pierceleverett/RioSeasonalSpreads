@@ -10,6 +10,7 @@ import com.microsoft.graph.models.Message;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.Year;
 import java.util.Comparator;
 import java.util.List;
 import spark.Request;
@@ -22,7 +23,8 @@ public class SpreadsUpdaterHandler implements Route {
     try {
       String accessToken = getAccessToken();
       String userPrincipalName = "automatedreports@rioenergy.com";
-      String csvPath = "data/spreads/RBOB2025.csv";
+      String currentYear = Integer.toString(Year.now().getValue());
+      String csvPath = "data/spreads/RBOB" + currentYear + ".csv";
       System.out.println("attempting to fetch messages");
       List<Message> messages = fetchCurveReportEmails(accessToken, userPrincipalName, csvPath);
       System.out.println("fetched messages");

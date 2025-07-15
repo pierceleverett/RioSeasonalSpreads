@@ -12,7 +12,8 @@ public class GCcsvupdater {
   public static void updateSpreadCSVs(Map<String, Double> pricingData, LocalDate emailReceivedDate) throws IOException {
     LocalDate targetDate = emailReceivedDate.minusDays(1);
     String dateKey = targetDate.format(DateTimeFormatter.ofPattern("M/d"));
-    String yearColumn = "2025";
+    int currentYear = LocalDate.now().getYear();
+    String yearColumn = Integer.toString(currentYear);
 
     Map<String, String> fileMap = Map.of(
         "A", "GulfCoast/A.csv",
