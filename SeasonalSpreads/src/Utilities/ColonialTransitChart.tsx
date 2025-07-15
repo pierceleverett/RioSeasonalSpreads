@@ -90,39 +90,67 @@ const ColonialTransitChart: React.FC = () => {
     return `${selectedRoute}-${product}`;
   };
 
-  const handleRefresh = async () => {
-    try {
-      setIsRefreshing(true);
-      setError(null);
-      const response = await fetch(
-        "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+const handleRefresh = async () => {
+  try {
+    setIsRefreshing(true);
+    setError(null);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    // Show loading state immediately
+    setLoading(true);
+
+    const response = await fetch(
+      "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
+    );
 
-      // Reload the data after successful refresh
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message ||
+          `Server error: ${response.status} ${response.statusText}`
+      );
+    }
+
+    // Add delay before reloading to ensure backend completes processing
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Reload the data
+    const [transitData, realData] = await Promise.all([
+      fetchTransitData(),
+      fetchRealTransitData(),
+    ]);
+
+    setTransitData(transitData);
+    setRealTransitData(realData);
+  } catch (err) {
+    console.error("Refresh failed:", err);
+    setError(
+      err instanceof Error
+        ? `Refresh failed: ${err.message}`
+        : "An unknown error occurred during refresh"
+    );
+
+    // Attempt to reload data anyway in case partial update succeeded
+    try {
       const [transitData, realData] = await Promise.all([
         fetchTransitData(),
         fetchRealTransitData(),
       ]);
       setTransitData(transitData);
       setRealTransitData(realData);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred"
-      );
-    } finally {
-      setIsRefreshing(false);
+    } catch (reloadErr) {
+      console.error("Data reload failed:", reloadErr);
     }
-  };
+  } finally {
+    setIsRefreshing(false);
+    setLoading(false);
+  }
+};
 
   const fetchTransitData = async () => {
     const response = await fetch(
@@ -546,14 +574,24 @@ return (
           disabled={isRefreshing}
           style={{
             padding: "8px 16px",
-            backgroundColor: "#f0f0f0",
+            backgroundColor: isRefreshing ? "#e0e0e0" : "#f0f0f0",
             border: "1px solid #ccc",
             borderRadius: "4px",
-            cursor: "pointer",
+            cursor: isRefreshing ? "wait" : "pointer",
             fontWeight: "bold",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
           }}
         >
-          {isRefreshing ? "Refreshing..." : "Refresh Data"}
+          {isRefreshing ? (
+            <>
+              <span className="spinner"></span>
+              Refreshing...
+            </>
+          ) : (
+            "Refresh Data"
+          )}
         </button>
       </div>
     </div>
