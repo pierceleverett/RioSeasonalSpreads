@@ -37,8 +37,8 @@ public class ColonialTransitTime {
     try {
       String accessToken = getAccessToken();
       String userPrincipalName = "automatedreports@rioenergy.com";
-
-      List<Message> messages = fetchTransitTimeEmails(accessToken, userPrincipalName);
+      List<LocalDate> targetDates = Collections.singletonList(LocalDate.now());
+      List<Message> messages = fetchTransitTimeEmails(accessToken, userPrincipalName, targetDates);
       System.out.println("found " + messages.size() + " messages, going to process");
       processMessages(messages);
 
@@ -49,7 +49,8 @@ public class ColonialTransitTime {
     }
   }
 
-  public static List<Message> fetchTransitTimeEmails(String accessToken, String userPrincipalName) throws IOException {
+  public static List<Message> fetchTransitTimeEmails(String accessToken, String userPrincipalName, List<LocalDate> targetDates) throws IOException {
+
     IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
     GraphServiceClient<?> graphClient = GraphServiceClient.builder()
         .authenticationProvider(authProvider)
@@ -61,8 +62,19 @@ public class ColonialTransitTime {
 
     // Request additional properties including body content
     LinkedList<QueryOption> requestOptions = new LinkedList<>();
+// Build filter string for receivedDateTime
+    String filter = targetDates.stream()
+        .map(date -> {
+          String start = date + "T00:00:00Z";
+          String end = date + "T23:59:59Z";
+          return "(receivedDateTime ge " + start + " and receivedDateTime le " + end + ")";
+        })
+        .collect(Collectors.joining(" or "));
+
+    requestOptions.add(new QueryOption("$filter", filter));
     requestOptions.add(new QueryOption("$select", "subject,receivedDateTime,body,bodyPreview"));
-    requestOptions.add(new QueryOption("$top", "50"));
+    requestOptions.add(new QueryOption("$top", "50")); // Optional: adjust or remove if needed
+
 
     do {
       messagesPage = (nextPage == null)
@@ -90,6 +102,12 @@ public class ColonialTransitTime {
 
       nextPage = messagesPage.getNextPage();
     } while (nextPage != null);
+
+    // Filter messages to only include those received on targetDates
+    relevantMessages = relevantMessages.stream()
+        .filter(msg -> msg.receivedDateTime != null && targetDates.contains(msg.receivedDateTime.toLocalDate()))
+        .collect(Collectors.toList());
+
 
     return relevantMessages;
   }

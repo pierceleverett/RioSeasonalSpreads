@@ -34,7 +34,8 @@ public class ColonialTransitUpdater {
 
       String accessToken = Outlook.ExplorerParser.getAccessToken();
       String userPrincipalName = "automatedreports@rioenergy.com";
-      List<Message> allMessages = ColonialTransitTime.fetchTransitTimeEmails(accessToken, userPrincipalName);
+      List<Message> allMessages = ColonialTransitTime.fetchTransitTimeEmails(accessToken, userPrincipalName, missingDates);
+
 
       List<Message> filteredMessages = allMessages.stream()
           .filter(msg -> msg.receivedDateTime != null &&

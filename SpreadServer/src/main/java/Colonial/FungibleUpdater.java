@@ -60,7 +60,8 @@ public class FungibleUpdater {
 
   public static void processNewBulletins(LocalDate lastProcessedDate) throws IOException {
     String accessToken = getAccessToken();
-    List<Message> messages = fetchFungibleEmails(accessToken, USER_PRINCIPAL_NAME);
+    List<Message> messages = fetchFungibleEmails(accessToken, USER_PRINCIPAL_NAME, lastProcessedDate);
+
 
     // Filter messages to only those after last processed date
     List<Message> newMessages = messages.stream()
@@ -78,7 +79,7 @@ public class FungibleUpdater {
     ColonialFungible.processAllMessages(newMessages);
   }
 
-  public static List<Message> fetchFungibleEmails(String accessToken, String userPrincipalName) throws IOException {
+  public static List<Message> fetchFungibleEmails(String accessToken, String userPrincipalName, LocalDate lastProcessedDate) throws IOException {
     IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
     GraphServiceClient<?> graphClient = GraphServiceClient.builder()
         .authenticationProvider(authProvider)
@@ -86,6 +87,14 @@ public class FungibleUpdater {
 
     List<Message> relevantMessages = new ArrayList<>();
     LinkedList<QueryOption> requestOptions = new LinkedList<>();
+
+    // Apply filter if lastProcessedDate is available
+    if (lastProcessedDate != null) {
+      String start = lastProcessedDate.toString() + "T00:00:00Z";
+      String filter = "receivedDateTime ge " + start;
+      requestOptions.add(new QueryOption("$filter", filter));
+    }
+
     requestOptions.add(new QueryOption("$select", "subject,receivedDateTime,body"));
     requestOptions.add(new QueryOption("$top", "500"));
 
@@ -102,7 +111,8 @@ public class FungibleUpdater {
 
       for (Message message : messagesPage.getCurrentPage()) {
         if (message.subject != null &&
-            message.subject.toLowerCase().contains(EMAIL_SUBJECT_FILTER)) {
+            message.subject.toLowerCase().contains("colonial - fungible deliveries")) {
+
           if (message.body == null || message.body.content == null) {
             Message fullMessage = graphClient.users(userPrincipalName)
                 .messages(message.id)
@@ -111,9 +121,11 @@ public class FungibleUpdater {
                 .get();
             message.body = fullMessage.body;
           }
+
           relevantMessages.add(message);
         }
       }
+
       nextPage = messagesPage.getNextPage();
     } while (nextPage != null);
 
