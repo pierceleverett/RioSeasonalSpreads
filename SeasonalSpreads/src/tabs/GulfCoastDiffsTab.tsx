@@ -30,25 +30,33 @@ const GulfCoastDiffsTab: React.FC = () => {
 const handleRefresh = async () => {
   try {
     setIsLoading(true);
-    const response = await fetch(
+    setError(null);
+
+    // First update the data
+    const updateResponse = await fetch(
       "https://rioseasonalspreads-production.up.railway.app/updateGC",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          code1: code1,
+          code2: code2,
+        }),
       }
     );
 
-    if (!response.ok) {
-      throw new Error("Failed to update spread data");
+    if (!updateResponse.ok) {
+      throw new Error("Failed to update GC data");
     }
 
-    console.log("Spread data updated successfully");
-    // Refresh the data after updating
+    console.log("GC data updated successfully");
+
+    // Then refresh the displayed data
     await fetchGCSpreads();
   } catch (error) {
-    console.error("Error updating spread data:", error);
+    console.error("Error updating GC data:", error);
     setError(error instanceof Error ? error.message : "Failed to refresh data");
   } finally {
     setIsLoading(false);
