@@ -16,6 +16,19 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
+    const currentYear = new Date().getFullYear().toString();
+    const prevYears = [
+      currentYear,
+      (parseInt(currentYear) - 1).toString(),
+      (parseInt(currentYear) - 2).toString(),
+      (parseInt(currentYear) - 3).toString(),
+      (parseInt(currentYear) - 4).toString(),
+      (parseInt(currentYear) - 5).toString(),
+      "5YEARAVG",
+      "10YEARAVG",
+    ];
+    const yearList = prevYears.filter((year) => !year.includes("AVG"));
+
   const colorPalette = [
     "rgba(0, 123, 255, OPACITY)",
     "rgba(40, 167, 69, OPACITY)",
@@ -101,7 +114,7 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
 
   const get30DatesWith2025Data = (): string[] => {
     const datesWith2025 = allDates.filter((date) =>
-      dataMap.get("2025")?.has(date)
+      dataMap.get(currentYear)?.has(date)
     );
     const recent =
       datesWith2025.length > 0 ? datesWith2025.slice(-30) : allDates.slice(-30);
@@ -130,13 +143,13 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
         borderWidth: 0,
         pointRadius: 0,
       },
-      ...["2020", "2021", "2022", "2023", "2024", "2025"].map((year) => ({
+      ...yearList.map((year) => ({
         label: year,
         data: allDates.map((date) => dataMap.get(year)?.get(date) ?? null),
         borderColor: getYearColor(year),
         backgroundColor: getYearColor(year, 0.5),
-        borderWidth: year === "2025" ? 3 : 1,
-        borderDash: year === "2025" ? [] : [5, 5],
+        borderWidth: year === currentYear ? 3 : 1,
+        borderDash: year === currentYear ? [] : [5, 5],
         tension: 0.1,
         pointRadius: 0,
       })),
@@ -259,20 +272,12 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
 
       {!isLoading && !error && dataMap.size > 0 && (
         <div className="table-container">
-          <h3>Last 30 Days Data - 2025</h3>
+          <h3>Last 30 Days Data - {currentYear}</h3>
           <table>
             <thead>
               <tr>
                 <th>Date</th>
-                {[
-                  "2020",
-                  "2021",
-                  "2022",
-                  "2023",
-                  "2024",
-                  "2025",
-                  "5YEARAVG",
-                ].map((year) => (
+                {[...yearList, "5YEARAVG"].map((year) => (
                   <th key={year}>{year}</th>
                 ))}
               </tr>
@@ -281,23 +286,15 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
               {datesToDisplay.map((date, index) => (
                 <tr key={index}>
                   <td>{date}</td>
-                  {[
-                    "2020",
-                    "2021",
-                    "2022",
-                    "2023",
-                    "2024",
-                    "2025",
-                    "5YEARAVG",
-                  ].map((year) => {
+                  {[...yearList, "5YEARAVG"].map((year) => {
                     const value = dataMap.get(year)?.get(date);
                     return (
                       <td
                         key={year}
                         style={{
                           fontFamily: "'Courier New', Courier, monospace",
-                          fontWeight: year === "2025" ? "bold" : "normal",
-                          color: year === "2025" ? "#2c3e50" : "inherit",
+                          fontWeight: year === currentYear ? "bold" : "normal",
+                          color: year === currentYear ? "#2c3e50" : "inherit",
                         }}
                       >
                         {value?.toFixed(4) ?? "N/A"}
