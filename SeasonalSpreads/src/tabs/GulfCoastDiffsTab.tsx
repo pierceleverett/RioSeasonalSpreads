@@ -268,20 +268,6 @@ const GulfCoastDiffsTab: React.FC = () => {
             ))}
           </select>
         </label>
-        <button
-          onClick={handleRefresh}
-          disabled={isLoading}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          {isLoading ? "Refreshing..." : "Refresh Data"}
-        </button>
       </div>
 
       {isLoading ? (
