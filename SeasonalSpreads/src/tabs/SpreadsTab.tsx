@@ -67,36 +67,38 @@ const SpreadsTab: React.FC = () => {
     "X",
     "Z",
   ];
-  useEffect(() => {
-    const updateSpreads = async () => {
-      try {
-        const response = await fetch(
-          "https://rioseasonalspreads-production.up.railway.app/updateSpreads",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              commodity: commodity,
-              startMonth: startMonth,
-              endMonth: endMonth,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to update spread data");
-        }
-        console.log("Spread data updated successfully");
-      } catch (error) {
-        console.error("Error updating spread data:", error);
+const handleRefresh = async () => {
+  try {
+    setIsLoading(true);
+    const response = await fetch(
+      "https://rioseasonalspreads-production.up.railway.app/updateSpreads",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          commodity: commodity,
+          startMonth: startMonth,
+          endMonth: endMonth,
+        }),
       }
-    };
+    );
 
-    // Call updateSpreads when component mounts and when commodity changes
-    updateSpreads();
-  }, [commodity, startMonth, endMonth]); // Add dependencies as needed
+    if (!response.ok) {
+      throw new Error("Failed to update spread data");
+    }
+
+    console.log("Spread data updated successfully");
+    // Refresh the data after updating
+    await fetchSpreadData();
+  } catch (error) {
+    console.error("Error updating spread data:", error);
+    setError(error instanceof Error ? error.message : "Failed to refresh data");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchSpreadData();
@@ -334,6 +336,20 @@ const SpreadsTab: React.FC = () => {
             </option>
           ))}
         </select>
+        <button
+          onClick={handleRefresh}
+          disabled={isLoading}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          {isLoading ? "Refreshing..." : "Refresh Data"}
+        </button>
       </div>
 
       {isLoading ? (
