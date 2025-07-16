@@ -26,6 +26,20 @@ const FungibleDeliveriesTable: React.FC = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
 
+  // Auto-select A2, D2, and 62 products when cycle changes
+  useEffect(() => {
+    if (!apiData || !selectedCycle) return;
+
+    const cycleData = apiData.currentData.data[selectedCycle];
+    if (!cycleData) return;
+
+    const autoSelectedProducts = Object.keys(cycleData).filter((product) =>
+      ["A2", "D2", "62"].includes(product)
+    );
+
+    setSelectedProducts(autoSelectedProducts);
+  }, [selectedCycle, apiData]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -77,7 +91,6 @@ const FungibleDeliveriesTable: React.FC = () => {
 
   const handleRefresh = () => {
     fetchData();
-    setSelectedProducts([]);
   };
 
   const handleProductToggle = (product: string) => {
@@ -101,10 +114,9 @@ const FungibleDeliveriesTable: React.FC = () => {
   ): number | null => {
     if (!previousDate) return null;
 
-    // Parse dates in MM/DD format
     const parseDate = (dateStr: string) => {
       const [month, day] = dateStr.split("/").map(Number);
-      return new Date(2025, month - 1, day); // Using 2025 as the year
+      return new Date(2025, month - 1, day);
     };
 
     try {
@@ -247,6 +259,47 @@ const FungibleDeliveriesTable: React.FC = () => {
     );
   };
 
+  const renderCycleTabs = () => {
+    if (!apiData) return null;
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          marginBottom: "20px",
+          overflowX: "auto",
+          paddingBottom: "8px",
+        }}
+      >
+        {Object.keys(apiData.currentData.data)
+          .sort()
+          .map((cycle) => (
+            <button
+              key={cycle}
+              onClick={() => setSelectedCycle(cycle)}
+              style={{
+                padding: "8px 16px",
+                marginRight: "8px",
+                backgroundColor:
+                  selectedCycle === cycle ? "#1890ff" : "#f5f5f5",
+                color: selectedCycle === cycle ? "white" : "#333",
+                border: "1px solid #d9d9d9",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "14px",
+                transition: "all 0.3s",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {cycle}
+            </button>
+          ))}
+      </div>
+    );
+  };
+
   if (loading && !apiData) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -286,38 +339,7 @@ const FungibleDeliveriesTable: React.FC = () => {
 
       {apiData && (
         <>
-          <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontWeight: "600",
-              }}
-            >
-              Select Cycle:
-              <select
-                value={selectedCycle}
-                onChange={(e) => {
-                  setSelectedCycle(e.target.value);
-                  setSelectedProducts([]);
-                }}
-                style={{
-                  marginLeft: "8px",
-                  padding: "8px 12px",
-                  borderRadius: "4px",
-                  border: "1px solid #d9d9d9",
-                }}
-              >
-                {Object.keys(apiData.currentData.data)
-                  .sort()
-                  .map((cycle) => (
-                    <option key={cycle} value={cycle}>
-                      {cycle}
-                    </option>
-                  ))}
-              </select>
-            </label>
-          </div>
+          {renderCycleTabs()}
 
           <div style={{ display: "flex" }}>
             <div
@@ -354,7 +376,7 @@ const FungibleDeliveriesTable: React.FC = () => {
               ))}
             </div>
 
-            <div style={{ width: "95%" }}>
+            <div style={{ width: "75%" }}>
               {selectedProducts.length > 0 ? (
                 renderTable()
               ) : (
