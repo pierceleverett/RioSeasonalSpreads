@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
@@ -58,20 +60,25 @@ public class FungibleUpdater {
     return LocalDate.parse(lastDateStr, DATE_FORMATTER);
   }
 
+  // Replace the processNewBulletins method with this updated version
   public static void processNewBulletins(LocalDate lastProcessedDate) throws IOException {
     String accessToken = getAccessToken();
     List<Message> messages = fetchFungibleEmails(accessToken, USER_PRINCIPAL_NAME, lastProcessedDate);
 
-
     // Filter messages to only those after last processed date
     List<Message> newMessages = messages.stream()
         .filter(msg -> lastProcessedDate == null ||
-            msg.receivedDateTime.isAfter(OffsetDateTime.from(lastProcessedDate.atStartOfDay())))
-        .collect(Collectors.toList());
+            msg.receivedDateTime.isAfter(
+                    lastProcessedDate.plusDays(1)  // Start from next day
+                        .atStartOfDay()           // Beginning of that day
+                        .atZone(ZoneId.of("America/Chicago"))  // In Central Time
+                        .toOffsetDateTime()))     // Convert to OffsetDateTime
+                .collect(Collectors.toList());
 
     System.out.println("Found " + newMessages.size() + " new bulletins to process");
 
     if (newMessages.isEmpty()) {
+      System.out.println("No new bulletins to process");
       return;
     }
 

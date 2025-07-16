@@ -73,9 +73,10 @@ public class ColonialFungible {
   }
 
   public static void processAllMessages(List<Message> messages) throws IOException {
-    Map<String, Map<String, List<String>>> gbjData = new HashMap<>();
-    Map<String, Map<String, List<String>>> lnjData = new HashMap<>();
-    Set<String> processedDates = new HashSet<>();
+    // Read existing data
+    Map<String, Map<String, List<String>>> existingGbjData = readExistingCsv(GBJ_CSV_PATH);
+    Map<String, Map<String, List<String>>> existingLnjData = readExistingCsv(LNJ_CSV_PATH);
+    Set<String> processedDates = readProcessedDates();
 
     // Sort messages chronologically
     messages.sort(Comparator.comparing(m -> m.receivedDateTime));
@@ -96,7 +97,8 @@ public class ColonialFungible {
           continue;
         }
 
-        parseFungibleBody(message.body.content, gbjData, lnjData);
+        // Parse and merge with existing data
+        parseFungibleBody(message.body.content, existingGbjData, existingLnjData);
         processedDates.add(formattedDate);
 
       } catch (Exception e) {
@@ -105,9 +107,9 @@ public class ColonialFungible {
       }
     }
 
-    // Write the complete data to CSVs
-    writeCompleteCsv(GBJ_CSV_PATH, gbjData);
-    writeCompleteCsv(LNJ_CSV_PATH, lnjData);
+    // Write the merged data to CSVs
+    writeCompleteCsv(GBJ_CSV_PATH, existingGbjData);
+    writeCompleteCsv(LNJ_CSV_PATH, existingLnjData);
 
     // Save processed dates
     saveProcessedDates(processedDates);
@@ -123,11 +125,20 @@ public class ColonialFungible {
       Files.createDirectories(parentDir);
     }
 
-    // Write dates in MM/dd/yy format, one per line
-    List<String> dateList = dates.stream()
-        .map(date -> LocalDate.parse(date, formatter))           // Parse string to LocalDate
-        .sorted()                                                 // Sort chronologically
-        .map(date -> date.format(formatter))                      // Format back to string
+    // Read existing dates if file exists
+    Set<String> allDates = new TreeSet<>();
+    if (Files.exists(path)) {
+      allDates.addAll(Files.readAllLines(path));
+    }
+
+    // Add new dates
+    allDates.addAll(dates);
+
+    // Write all dates back to file
+    List<String> dateList = allDates.stream()
+        .map(date -> LocalDate.parse(date, formatter))
+        .sorted()
+        .map(date -> date.format(formatter))
         .collect(Collectors.toList());
 
     Files.write(path, dateList,
@@ -310,5 +321,54 @@ public class ColonialFungible {
     }
 
     lines.add(row.toString());
+  }
+
+  // Add these new methods to ColonialFungible.java
+
+  private static Map<String, Map<String, List<String>>> readExistingCsv(String csvPath) throws IOException {
+    Map<String, Map<String, List<String>>> existingData = new HashMap<>();
+
+    if (!Files.exists(Paths.get(csvPath))) {
+      return existingData;
+    }
+
+    List<String> lines = Files.readAllLines(Paths.get(csvPath));
+    if (lines.isEmpty()) return existingData;
+
+    // Skip header
+    for (int i = 1; i < lines.size(); i++) {
+      String[] parts = lines.get(i).split(",");
+      if (parts.length < 2) continue;
+
+      String fuelType = parts[0];
+      Map<String, List<String>> cycleData = new HashMap<>();
+
+      // Cycles are columns 1-72 (01-72)
+      for (int cycle = 1; cycle <= 72 && cycle < parts.length; cycle++) {
+        String cycleStr = String.format("%02d", cycle);
+        if (!parts[cycle].isEmpty()) {
+          List<String> dates = new ArrayList<>(Arrays.asList(parts[cycle].split(";")));
+          cycleData.put(cycleStr, dates);
+        }
+      }
+
+      if (!cycleData.isEmpty()) {
+        existingData.put(fuelType, cycleData);
+      }
+    }
+
+    return existingData;
+  }
+
+  private static Set<String> readProcessedDates() throws IOException {
+    Set<String> dates = new HashSet<>();
+    Path path = Paths.get(PROCESSED_DATES_PATH);
+
+    if (!Files.exists(path)) {
+      return dates;
+    }
+
+    dates.addAll(Files.readAllLines(path));
+    return dates;
   }
 }
