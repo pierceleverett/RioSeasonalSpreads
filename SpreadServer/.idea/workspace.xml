@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/Noms/MainLine.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/ColonialFungible.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Colonial/ColonialFungible.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/FungibleUpdater.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Colonial/FungibleUpdater.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,6 +47,7 @@
     "Application.FusionCurveParser.executor": "Run",
     "Application.GCSpreadCalc.executor": "Run",
     "Application.GCSpreadUpdater.executor": "Run",
+    "Application.MainLine.executor": "Run",
     "Application.OutlookEmailReader.executor": "Run",
     "Application.PDFToExcel.executor": "Run",
     "Application.Server.executor": "Run",
@@ -80,7 +80,7 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.FungibleUpdater">
+  <component name="RunManager" selected="Application.MainLine">
     <configuration name="ColonialTransitTime" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Colonial.ColonialTransitTime" />
       <module name="moshi" />
@@ -107,12 +107,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ExcelUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="ExcelUtil.ExcelUpdater" />
+    <configuration name="FungibleUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Colonial.FungibleUpdater" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="ExcelUtil.*" />
+          <option name="PATTERN" value="Colonial.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -120,12 +120,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="FungibleUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Colonial.FungibleUpdater" />
+    <configuration name="MainLine" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Noms.MainLine" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="Colonial.*" />
+          <option name="PATTERN" value="Noms.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -142,11 +142,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.MainLine" />
+        <item itemvalue="Application.Server" />
         <item itemvalue="Application.FungibleUpdater" />
         <item itemvalue="Application.ColonialTransitUpdater" />
         <item itemvalue="Application.ColonialTransitTime" />
-        <item itemvalue="Application.Server" />
-        <item itemvalue="Application.ExcelUpdater" />
       </list>
     </recent_temporary>
   </component>
