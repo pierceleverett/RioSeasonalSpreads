@@ -57,6 +57,17 @@ const MagellanTab: React.FC = () => {
   const [lastDate, setLastDate] = useState<string>("");
   const chartRef = useRef<ChartJS<"line"> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const currentYear = new Date().getFullYear().toString();
+  const prevYears = [
+    currentYear,
+    (parseInt(currentYear) - 1).toString(),
+    (parseInt(currentYear) - 2).toString(),
+    (parseInt(currentYear) - 3).toString(),
+    (parseInt(currentYear) - 4).toString(),
+    (parseInt(currentYear) - 5).toString(),
+    "5YEARAVG",
+    "10YEARAVG",
+  ];
 
   useEffect(() => {
     fetchChartData();
@@ -148,15 +159,15 @@ const fetchChartData = async () => {
     return (valid.length >= 30 ? valid.slice(-30) : all.slice(-30)).reverse();
   };
 
-  const currentYear: number = new Date().getFullYear();
-  const currYear = String(currentYear);
-  const year6 = String(currentYear - 5);
-  const year7 = String(currentYear - 4);
-  const year8 = String(currentYear - 3);
-  const year9 = String(currentYear - 2);
-  const year10 = String(currentYear - 1);
 
 const getYearColor = (year: string, opacity = 1) => {
+      const currentYearNum = new Date().getFullYear();
+      const year6 = String(currentYearNum - 5);
+      const year7 = String(currentYearNum - 4);
+      const year8 = String(currentYearNum - 3);
+      const year9 = String(currentYearNum - 2);
+      const year10 = String(currentYearNum - 1);
+      const currYear = String(currentYearNum);
   const predefined: Record<string, string> = {
     [year6]: `rgba(128, 0, 128, ${opacity})`,
     [year7]: `rgba(128, 128, 128, ${opacity})`,
@@ -187,7 +198,7 @@ const getYearColor = (year: string, opacity = 1) => {
   const allDates = getAllDates();
   const last30Dates = getLast30Dates();
 
-  const chart: ChartData<"line"> = {
+  const chart: ChartData<"line"> = { 
     labels: allDates,
     datasets: [
       {
@@ -217,10 +228,10 @@ const getYearColor = (year: string, opacity = 1) => {
       ...Array.from(chartData.entries()).map(([year, map]) => ({
         label: year,
         data: allDates.map((d) => map.get(d) ?? null),
-        borderColor: year === currYear ? "orange" : getYearColor(year),
+        borderColor: year === currentYear ? "orange" : getYearColor(year),
         backgroundColor: getYearColor(year, 0.5),
-        borderWidth: year === currYear || year.includes("AVG") ? 3 : 1,
-        borderDash: year === currYear || year.includes("AVG") ? [] : [5, 5],
+        borderWidth: year === currentYear || year.includes("AVG") ? 3 : 1,
+        borderDash: year === currentYear || year.includes("AVG") ? [] : [5, 5],
         tension: 0.1,
         pointRadius: 0,
       })),
@@ -418,7 +429,7 @@ return (
             }}
           >
             <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
-              Last 30 Days Data - {currYear}
+              Last 30 Days Data - {currentYear}
             </h3>
             <table
               style={{
@@ -431,39 +442,32 @@ return (
               <thead>
                 <tr style={{ backgroundColor: "#f8f9fa" }}>
                   <th
-                    style={{
-                      padding: "10px",
-                      textAlign: "left",
-                      borderBottom: "1px solid #ddd",
-                    }}
+                    style={
+                      {
+                        /* your styles */
+                      }
+                    }
                   >
                     Date
                   </th>
-                  {Array.from(chartData.keys())
-                    .filter((year) =>
-                      [
-                        [year6],
-                        [year7],
-                        [year8],
-                        [year9],
-                        [year10],
-                        [currYear],
-                        "5YEARAVG",
-                        "10YEARAVG",
-                      ].includes(year)
-                    )
-                    .map((year) => (
-                      <th
-                        key={year}
-                        style={{
-                          padding: "10px",
-                          textAlign: "right",
-                          borderBottom: "1px solid #ddd",
-                        }}
-                      >
-                        {year}
-                      </th>
-                    ))}
+                  {prevYears.map((year) => (
+                    <th
+                      key={year}
+                      style={{
+                        padding: "clamp(8px, 1.5vw, 12px)",
+                        textAlign: "right",
+                        borderBottom: "1px solid #ddd",
+                        fontWeight: "bold",
+                        fontSize: "clamp(0.9rem, 1.7vw, 1.1rem)",
+                      }}
+                    >
+                      {year === "5YEARAVG"
+                        ? "5-Yr Avg"
+                        : year === "10YEARAVG"
+                        ? "10-Yr Avg"
+                        : year}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -471,42 +475,38 @@ return (
                   <tr
                     key={index}
                     style={{
+                      borderBottom: "1px solid #eee",
                       backgroundColor: index % 2 === 0 ? "#fff" : "#f8f9fa",
                     }}
                   >
-                    <td style={{ padding: "10px", fontWeight: "bold" }}>
+                    <td
+                      style={
+                        {
+                          /* your date cell styles */
+                        }
+                      }
+                    >
                       {date}
                     </td>
-                    {Array.from(chartData.keys())
-                      .filter((year) =>
-                        [
-                          [year6],
-                          [year7],
-                          [year8],
-                          [year9],
-                          [year10],
-                          [currYear],
-                          "5YEARAVG",
-                          "10YEARAVG",
-                        ].includes(year)
-                      )
-                      .map((year) => {
-                        const value = chartData.get(year)?.get(date);
-                        return (
-                          <td
-                            key={year}
-                            style={{
-                              padding: "10px",
-                              textAlign: "right",
-                              fontFamily: "Courier New, monospace",
-                              fontWeight: year === "2025" ? "bold" : "normal",
-                              color: year === currYear ? "#2c3e50" : "inherit",
-                            }}
-                          >
-                            {value?.toFixed(2) ?? "N/A"}
-                          </td>
-                        );
-                      })}
+                    {prevYears.map((year) => {
+                      const value = chartData.get(year)?.get(date);
+                      const isCurrentYear = year === currentYear;
+                      return (
+                        <td
+                          key={year}
+                          style={{
+                            padding: "clamp(8px, 1.5vw, 12px)",
+                            textAlign: "right",
+                            borderBottom: "1px solid #eee",
+                            fontFamily: "'Courier New', Courier, monospace",
+                            fontWeight: isCurrentYear ? "bold" : "normal",
+                            color: isCurrentYear ? "#2c3e50" : "inherit",
+                          }}
+                        >
+                          {value?.toFixed(2) ?? "N/A"}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
