@@ -27,7 +27,35 @@ const GulfCoastDiffsTab: React.FC = () => {
 
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
 
+const handleRefresh = async () => {
+  try {
+    setIsLoading(true);
+    const response = await fetch(
+      "https://rioseasonalspreads-production.up.railway.app/updateGC",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
+    if (!response.ok) {
+      throw new Error("Failed to update spread data");
+    }
+
+    console.log("Spread data updated successfully");
+    // Refresh the data after updating
+    await fetchGCSpreads();
+  } catch (error) {
+    console.error("Error updating spread data:", error);
+    setError(error instanceof Error ? error.message : "Failed to refresh data");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+    
 
   useEffect(() => {
     fetchGCSpreads();
@@ -59,36 +87,6 @@ const GulfCoastDiffsTab: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-    const handleRefresh = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(
-          "https://rioseasonalspreads-production.up.railway.app/updateGC",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to update spread data");
-        }
-
-        console.log("Spread data updated successfully");
-        // Refresh the data after updating
-        await fetchGCSpreads();
-      } catch (error) {
-        console.error("Error updating spread data:", error);
-        setError(
-          error instanceof Error ? error.message : "Failed to refresh data"
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
   const getAllDates = (): string[] => {
     const allDates = new Set<string>();
