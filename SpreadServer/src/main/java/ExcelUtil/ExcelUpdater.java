@@ -11,7 +11,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 public class ExcelUpdater {
-    private static final String EXCEL_DIR = "data/";
+    private static final String EXCEL_DIR = "data/new";
     private static final String PDF_DIR = "data/pdfToAdd/";
     private static final Object FILE_LOCK = new Object();
 

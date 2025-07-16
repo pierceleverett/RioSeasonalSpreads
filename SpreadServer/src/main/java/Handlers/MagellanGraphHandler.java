@@ -1,6 +1,7 @@
 package Handlers;
 
 import com.google.gson.Gson;
+import java.time.LocalDate;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import spark.Request;
@@ -14,23 +15,45 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class MagellanGraphHandler implements Route {
+  int currYearint = LocalDate.now().getYear();
+  String currYear = Integer.toString(currYearint);
+  String year1 = Integer.toString(currYearint - 10);
+  String year2 = Integer.toString(currYearint - 9);
+  String year3 = Integer.toString(currYearint - 8);
+  String year4 = Integer.toString(currYearint - 7);
+  String year5 = Integer.toString(currYearint - 6);
+  String year6 = Integer.toString(currYearint - 5);
+  String year7 = Integer.toString(currYearint - 4);
+  String year8 = Integer.toString(currYearint - 3);
+  String year9 = Integer.toString(currYearint - 2);
+  String year10 = Integer.toString(currYearint - 1);
+  List<String> YEARS = Arrays.asList(currYear, year1, year2, year3, year4, year5, year6, year7, year8, year9, year10);
 
-  private static final List<String> YEARS = Arrays.asList(
-      "2014", "2015", "2016", "2017", "2018", "2019",
-      "2020", "2021", "2022", "2023", "2024", "2025"
-  );
 
   @Override
   public Object handle(Request request, Response response) {
     String fuel = request.queryParams("fuel");
     String dataHeader = request.queryParams("data");
+    int currYearint = LocalDate.now().getYear();
+    String currYear = Integer.toString(currYearint);
+    String year1 = Integer.toString(currYearint - 10);
+    String year2 = Integer.toString(currYearint - 9);
+    String year3 = Integer.toString(currYearint - 8);
+    String year4 = Integer.toString(currYearint - 7);
+    String year5 = Integer.toString(currYearint - 6);
+    String year6 = Integer.toString(currYearint - 5);
+    String year7 = Integer.toString(currYearint - 4);
+    String year8 = Integer.toString(currYearint - 3);
+    String year9 = Integer.toString(currYearint - 2);
+    String year10 = Integer.toString(currYearint - 1);
+
 
     if (fuel == null || dataHeader == null) {
       response.status(400);
       return "Missing required query parameters: 'fuel' and 'data'";
     }
 
-    String filePath = "data/" + fuel + ".xlsx";
+    String filePath = "data/new" + fuel + ".xlsx";
     File file = new File(filePath);
     if (!file.exists()) {
       response.status(404);
@@ -83,7 +106,7 @@ public class MagellanGraphHandler implements Route {
       }
 
       for (Map<String, Double> values : result.values()) {
-        values.put("5YEARAVG", average(values, Arrays.asList("2020", "2021", "2022", "2023", "2024")));
+        values.put("5YEARAVG", average(values, Arrays.asList(year6, year7, year8, year9, year10)));
         values.put("10YEARAVG", average(values, YEARS.subList(0, 11)));
       }
 
