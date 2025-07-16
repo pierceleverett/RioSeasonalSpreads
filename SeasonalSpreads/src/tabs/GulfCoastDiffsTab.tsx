@@ -13,9 +13,20 @@ const GulfCoastDiffsTab: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
+    const currentYear = new Date().getFullYear().toString();
+    const prevYears = [
+      currentYear,
+      (parseInt(currentYear) - 1).toString(),
+      (parseInt(currentYear) - 2).toString(),
+      (parseInt(currentYear) - 3).toString(),
+      (parseInt(currentYear) - 4).toString(),
+      (parseInt(currentYear) - 5).toString(),
+      "5YEARAVG",
+      "10YEARAVG",
+    ];
 
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
-  
+
     useEffect(() => {
       const updateSpreads = async () => {
         try {
@@ -134,10 +145,10 @@ const chartData: ChartData<"line"> = {
     ...Array.from(dataMap.entries()).map(([year, yearMap]) => ({
       label: year,
       data: allDates.map((date) => yearMap.get(date) ?? null),
-      borderColor: year === "2025" ? "orange" : getYearColor(year),
+      borderColor: year === currentYear ? "orange" : getYearColor(year),
       backgroundColor: getYearColor(year, 0.5),
-      borderWidth: year === "2025" || year.includes("AVG") ? 3 : 1,
-      borderDash: year === "2025" || year.includes("AVG") ? [] : [5, 5],
+      borderWidth: year === currentYear || year.includes("AVG") ? 3 : 1,
+      borderDash: year === currentYear || year.includes("AVG") ? [] : [5, 5],
       tension: 0.1,
       pointRadius: 0,
     })),
@@ -219,24 +230,15 @@ const chartOptions: ChartOptions<"line"> = {
 
   const getLast30Dates = () => {
     const all = getAllDates();
-    const valid = all.filter((d) => dataMap.get("2025")?.has(d));
+    const valid = all.filter((d) => dataMap.get(currentYear)?.has(d));
     return (valid.length >= 30 ? valid.slice(-30) : all.slice(-30)).reverse();
   };
 
   const last30Days = getLast30Dates();
 
-  const selectedYears = Array.from(dataMap.keys()).filter((year) =>
-    [
-      "2020",
-      "2021",
-      "2022",
-      "2023",
-      "2024",
-      "2025",
-      "5YEARAVG",
-      "10YEARAVG",
-    ].includes(year)
-  );
+const selectedYears = Array.from(dataMap.keys()).filter((year) =>
+  prevYears.includes(year)
+);
 
 
 return (
@@ -342,8 +344,8 @@ return (
                         padding: "10px",
                         textAlign: "right",
                         fontFamily: "Courier New, monospace",
-                        fontWeight: year === "2025" ? "bold" : "normal",
-                        color: year === "2025" ? "#2c3e50" : "inherit",
+                        fontWeight: year === currentYear ? "bold" : "normal",
+                        color: year === currentYear ? "#2c3e50" : "inherit",
                       }}
                     >
                       {dataMap.get(year)?.get(date)?.toFixed(4) ?? "N/A"}
