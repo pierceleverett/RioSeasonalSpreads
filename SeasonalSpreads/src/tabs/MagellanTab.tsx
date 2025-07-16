@@ -148,14 +148,22 @@ const fetchChartData = async () => {
     return (valid.length >= 30 ? valid.slice(-30) : all.slice(-30)).reverse();
   };
 
+  const currentYear: number = new Date().getFullYear();
+  const currYear = String(currentYear);
+  const year6 = String(currentYear - 5);
+  const year7 = String(currentYear - 4);
+  const year8 = String(currentYear - 3);
+  const year9 = String(currentYear - 2);
+  const year10 = String(currentYear - 1);
+
 const getYearColor = (year: string, opacity = 1) => {
   const predefined: Record<string, string> = {
-    "2020": `rgba(128, 0, 128, ${opacity})`,
-    "2021": `rgba(128, 128, 128, ${opacity})`,
-    "2022": `rgba(0, 128, 0, ${opacity})`,
-    "2023": `rgba(0, 0, 255, ${opacity})`,
-    "2024": `rgba(255, 165, 0, ${opacity})`,
-    "2025": `rgba(255, 140, 0, ${opacity})`,
+    [year6]: `rgba(128, 0, 128, ${opacity})`,
+    [year7]: `rgba(128, 128, 128, ${opacity})`,
+    [year8]: `rgba(0, 128, 0, ${opacity})`,
+    [year9]: `rgba(0, 0, 255, ${opacity})`,
+    [year10]: `rgba(255, 165, 0, ${opacity})`,
+    [currYear]: `rgba(255, 140, 0, ${opacity})`,
     "5YEARAVG": `rgba(255, 0, 0, ${opacity})`,
     "10YEARAVG": `rgba(0, 0, 0, ${opacity})`,
   };
@@ -209,10 +217,10 @@ const getYearColor = (year: string, opacity = 1) => {
       ...Array.from(chartData.entries()).map(([year, map]) => ({
         label: year,
         data: allDates.map((d) => map.get(d) ?? null),
-        borderColor: year === "2025" ? "orange" : getYearColor(year),
+        borderColor: year === currYear ? "orange" : getYearColor(year),
         backgroundColor: getYearColor(year, 0.5),
-        borderWidth: year === "2025" || year.includes("AVG") ? 3 : 1,
-        borderDash: year === "2025" || year.includes("AVG") ? [] : [5, 5],
+        borderWidth: year === currYear || year.includes("AVG") ? 3 : 1,
+        borderDash: year === currYear || year.includes("AVG") ? [] : [5, 5],
         tension: 0.1,
         pointRadius: 0,
       })),
@@ -410,7 +418,7 @@ return (
             }}
           >
             <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
-              Last 30 Days Data - 2025
+              Last 30 Days Data - {currYear}
             </h3>
             <table
               style={{
@@ -434,12 +442,12 @@ return (
                   {Array.from(chartData.keys())
                     .filter((year) =>
                       [
-                        "2020",
-                        "2021",
-                        "2022",
-                        "2023",
-                        "2024",
-                        "2025",
+                        [year6],
+                        [year7],
+                        [year8],
+                        [year9],
+                        [year10],
+                        [currYear],
                         "5YEARAVG",
                         "10YEARAVG",
                       ].includes(year)
@@ -472,12 +480,12 @@ return (
                     {Array.from(chartData.keys())
                       .filter((year) =>
                         [
-                          "2020",
-                          "2021",
-                          "2022",
-                          "2023",
-                          "2024",
-                          "2025",
+                          [year6],
+                          [year7],
+                          [year8],
+                          [year9],
+                          [year10],
+                          [currYear],
                           "5YEARAVG",
                           "10YEARAVG",
                         ].includes(year)
@@ -492,7 +500,7 @@ return (
                               textAlign: "right",
                               fontFamily: "Courier New, monospace",
                               fontWeight: year === "2025" ? "bold" : "normal",
-                              color: year === "2025" ? "#2c3e50" : "inherit",
+                              color: year === currYear ? "#2c3e50" : "inherit",
                             }}
                           >
                             {value?.toFixed(2) ?? "N/A"}
