@@ -42,9 +42,41 @@ type MonthCode =
   | "Z";
 
 const SpreadsTab: React.FC = () => {
-  const [commodity, setCommodity] = useState<"RBOB" | "HO">("RBOB");
-  const [startMonth, setStartMonth] = useState<MonthCode>("Q");
-  const [endMonth, setEndMonth] = useState<MonthCode>("U");
+const [commodity, setCommodity] = useState<"RBOB" | "HO">("RBOB");
+const MONTH_TO_CODE_MAPPING: Record<number, MonthCode> = {
+  1: 'F',
+  2: 'G',
+  3: 'H',
+  4: 'J',
+  5: 'K',
+  6: 'M',
+  7: 'N',
+  8: 'Q',
+  9: 'U',
+  10: 'V',
+  11: 'X',
+  12: 'Z'
+};
+
+// Function to get the next month codes
+const getDefaultMonthCodes = (): [MonthCode, MonthCode] => {
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-11
+  
+  // Calculate next month (current + 1) and month after (current + 2)
+  const nextMonth = currentMonth + 1 > 12 ? 1 : currentMonth + 1;
+  const monthAfter = nextMonth + 1 > 12 ? 1 : nextMonth + 1;
+  
+  // Get the corresponding codes
+  const nextMonthCode = MONTH_TO_CODE_MAPPING[nextMonth];
+  const monthAfterCode = MONTH_TO_CODE_MAPPING[monthAfter];
+  
+  return [nextMonthCode, monthAfterCode];
+};
+
+// Then in your component:
+const [startMonth, setStartMonth] = useState<MonthCode>(getDefaultMonthCodes()[0]);
+const [endMonth, setEndMonth] = useState<MonthCode>(getDefaultMonthCodes()[1]);
   const [spreadData, setSpreadData] = useState<
     Map<string, Map<string, number>>
   >(new Map());
