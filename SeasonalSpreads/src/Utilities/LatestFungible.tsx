@@ -303,60 +303,62 @@ const FungibleDeliveriesTable: React.FC = () => {
   if (loading && !apiData) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  return (
+return (
+  <div
+    style={{
+      padding: "20px",
+      fontFamily: "Segoe UI, sans-serif",
+      maxWidth: "1400px",
+      margin: "0 auto",
+    }}
+  >
     <div
       style={{
-        padding: "20px",
-        fontFamily: "Segoe UI, sans-serif",
-        maxWidth: "1200px",
-        margin: "0 auto",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "20px",
       }}
     >
-      <div
+      <button
+        onClick={handleRefresh}
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
+          backgroundColor: "#1890ff",
+          color: "white",
+          border: "none",
+          padding: "8px 16px",
+          borderRadius: "4px",
+          cursor: "pointer",
+          fontWeight: "600",
+          fontSize: "14px",
         }}
       >
-        <button
-          onClick={handleRefresh}
-          style={{
-            backgroundColor: "#1890ff",
-            color: "white",
-            border: "none",
-            padding: "8px 16px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontWeight: "600",
-            fontSize: "14px",
-          }}
-        >
-          Refresh Data
-        </button>
-      </div>
+        Refresh Data
+      </button>
+    </div>
 
-      {apiData && (
-        <>
-          {renderCycleTabs()}
+    {apiData && (
+      <>
+        {renderCycleTabs()}
 
-          <div style={{ display: "flex" }}>
-            <div
+        <div style={{ display: "flex", gap: "20px" }}>
+          <div
+            style={{
+              width: "200px",
+              flexShrink: 0,
+              paddingRight: "10px",
+            }}
+          >
+            <h2
               style={{
-                width: "25%",
-                paddingRight: "20px",
+                fontSize: "18px",
+                fontWeight: "600",
+                marginBottom: "12px",
               }}
             >
-              <h2
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  marginBottom: "12px",
-                }}
-              >
-                Products
-              </h2>
+              Products
+            </h2>
+            <div style={{ maxHeight: "500px", overflowY: "auto" }}>
               {getProductsForCycle().map((product) => (
                 <div key={product} style={{ marginBottom: "8px" }}>
                   <label style={{ display: "flex", alignItems: "center" }}>
@@ -375,42 +377,114 @@ const FungibleDeliveriesTable: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
 
-            <div style={{ width: "75%" }}>
-              {selectedProducts.length > 0 ? (
-                renderTable()
-              ) : (
-                <div
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {selectedProducts.length > 0 ? (
+              <div
+                style={{
+                  overflowX: "auto",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "4px",
+                }}
+              >
+                <table
                   style={{
-                    overflowX: "auto",
-                    marginTop: "20px",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "6px",
-                    padding: "12px",
-                    minWidth: "100%",
-                    boxSizing: "border-box",
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    minWidth: "1100px",
                   }}
                 >
-                  Select products to display the delivery table
-                </div>
-              )}
-            </div>
+                  <thead>
+                    <tr style={{ backgroundColor: "#f5f5f5" }}>
+                      <th
+                        style={{
+                          padding: "12px",
+                          textAlign: "left",
+                          borderBottom: "1px solid #e0e0e0",
+                          fontWeight: "600",
+                          minWidth: "80px",
+                        }}
+                      >
+                        Product
+                      </th>
+                      <th
+                        style={{
+                          padding: "12px",
+                          textAlign: "left",
+                          borderBottom: "1px solid #e0e0e0",
+                          fontWeight: "600",
+                          minWidth: "60px",
+                        }}
+                      >
+                        Cycle
+                      </th>
+                      {locations.map((location) => (
+                        <th
+                          key={location}
+                          style={{
+                            padding: "12px",
+                            textAlign: "left",
+                            borderBottom: "1px solid #e0e0e0",
+                            fontWeight: "600",
+                            minWidth: "100px",
+                          }}
+                        >
+                          {location}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedProducts.map((product) => (
+                      <tr
+                        key={product}
+                        style={{ borderBottom: "1px solid #e0e0e0" }}
+                      >
+                        <td style={{ padding: "12px" }}>{product}</td>
+                        <td style={{ padding: "12px" }}>{selectedCycle}</td>
+                        {locations.map((location) => (
+                          <td
+                            key={`${product}-${location}`}
+                            style={{ padding: "12px" }}
+                          >
+                            {renderDateWithChange(product, location)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div
+                style={{
+                  border: "1px solid #e0e0e0",
+                  borderRadius: "6px",
+                  padding: "12px",
+                  textAlign: "center",
+                }}
+              >
+                Select products to display the delivery table
+              </div>
+            )}
           </div>
+        </div>
 
-          <div
-            style={{
-              marginTop: "20px",
-              fontSize: "14px",
-              color: "#666",
-              textAlign: "right",
-            }}
-          >
-            Report Date: {apiData.currentReportDate || "N/A"}
-          </div>
-        </>
-      )}
-    </div>
-  );
+        <div
+          style={{
+            marginTop: "20px",
+            fontSize: "14px",
+            color: "#666",
+            textAlign: "right",
+          }}
+        >
+          Report Date: {apiData.currentReportDate || "N/A"}
+        </div>
+      </>
+    )}
+  </div>
+);
 };
 
 export default FungibleDeliveriesTable;
