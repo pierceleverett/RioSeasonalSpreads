@@ -14,7 +14,6 @@ const GulfCoastDiffsTab: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
   const currentYear = new Date().getFullYear().toString();
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add this state
   const prevYears = [
     currentYear,
     (parseInt(currentYear) - 1).toString(),
@@ -28,9 +27,7 @@ const GulfCoastDiffsTab: React.FC = () => {
 
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
 
-    const handleRefresh = () => {
-      setRefreshTrigger((prev) => prev + 1); // Increment to trigger useEffect
-    };
+  
 
   useEffect(() => {
     const updateSpreads = async () => {
@@ -56,7 +53,7 @@ const GulfCoastDiffsTab: React.FC = () => {
 
     // Call updateSpreads when component mounts and when commodity changes
     updateSpreads();
-  }, [refreshTrigger]); // Add dependencies as needed
+  }, []); // Add dependencies as needed
 
   useEffect(() => {
     fetchGCSpreads();
@@ -273,20 +270,6 @@ const GulfCoastDiffsTab: React.FC = () => {
             ))}
           </select>
         </label>
-        <button
-          onClick={handleRefresh}
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            marginLeft: "10px",
-          }}
-        >
-          Refresh Data
-        </button>
       </div>
 
       {isLoading ? (
