@@ -27,41 +27,40 @@ const GulfCoastDiffsTab: React.FC = () => {
 
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
 
-const handleRefresh = async () => {
-  try {
-    setIsLoading(true);
-    setError(null);
+  const handleRefresh = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    // First update the data
-    const updateResponse = await fetch(
-      "https://rioseasonalspreads-production.up.railway.app/updateGC",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code1: code1,
-          code2: code2,
-        }),
+      // First make the update request (using the exact same working format)
+      const updateResponse = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/updateGC",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Note: No body since the original working version didn't send one
+        }
+      );
+
+      if (!updateResponse.ok) {
+        throw new Error("Failed to update GC data");
       }
-    );
 
-    if (!updateResponse.ok) {
-      throw new Error("Failed to update GC data");
+      console.log("GC data updated successfully");
+
+      // Then refresh the displayed data
+      await fetchGCSpreads();
+    } catch (error) {
+      console.error("Error updating GC data:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to refresh data"
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    console.log("GC data updated successfully");
-
-    // Then refresh the displayed data
-    await fetchGCSpreads();
-  } catch (error) {
-    console.error("Error updating GC data:", error);
-    setError(error instanceof Error ? error.message : "Failed to refresh data");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
     
 
