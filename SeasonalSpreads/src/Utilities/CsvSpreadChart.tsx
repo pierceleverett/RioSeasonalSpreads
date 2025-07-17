@@ -274,13 +274,6 @@ const saveTariffConstant = async () => {
   return (
     <>
       <div className="graph-container">
-        <button
-          className="reset-zoom-button"
-          onClick={() => chartRef.current?.resetZoom()}
-        >
-          <FaUndo /> Reset Zoom
-        </button>
-
         {type === "91Chi" && (
           <div style={{ marginBottom: "10px" }}>
             <label>
@@ -301,6 +294,12 @@ const saveTariffConstant = async () => {
             </button>
           </div>
         )}
+        <button
+          className="reset-zoom-button"
+          onClick={() => chartRef.current?.resetZoom()}
+        >
+          <FaUndo /> Reset Zoom
+        </button>
 
         {isLoading ? (
           <p style={{ textAlign: "center" }}>Loading chart data...</p>
