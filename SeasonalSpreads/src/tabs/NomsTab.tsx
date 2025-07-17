@@ -80,19 +80,31 @@ const NomsTab: React.FC = () => {
     return `${day}-${monthNames[month - 1]}`;
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!data) return <div>No data available</div>;
+  if (loading) return <div style={{ textAlign: "center" }}>Loading...</div>;
+  if (error)
+    return (
+      <div style={{ textAlign: "center", color: "red" }}>Error: {error}</div>
+    );
+  if (!data)
+    return <div style={{ textAlign: "center" }}>No data available</div>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Main Line Noms Due</h1>
+    <div
+      style={{
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <h1 style={{ textAlign: "center" }}>Main Line Noms Due</h1>
       <table
         style={{
           borderCollapse: "collapse",
           width: "80%",
           marginBottom: "20px",
           border: "1px solid #ddd",
+          textAlign: "center",
         }}
       >
         <thead>
@@ -122,7 +134,13 @@ const NomsTab: React.FC = () => {
             <th style={{ border: "1px solid #ddd", padding: "8px" }}>
               HTN lift
             </th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+            <th
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                backgroundColor: "#fffacd", // Light yellow highlight
+              }}
+            >
               51/54/62
             </th>
             {/* Line 1 headers */}
@@ -130,33 +148,85 @@ const NomsTab: React.FC = () => {
             <th style={{ border: "1px solid #ddd", padding: "8px" }}>
               HTN lift
             </th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Gas</th>
+            <th
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                backgroundColor: "#fffacd", // Light yellow highlight
+              }}
+            >
+              Gas
+            </th>
           </tr>
         </thead>
         <tbody>
           {Object.entries(data).map(([cycle, cycleData]) => (
             <tr key={cycle}>
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
+              >
                 {cycle}
               </td>
               {/* Line 2 data */}
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
+              >
                 {formatDate(cycleData["62_Scheduling_Date"])}
               </td>
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
+              >
                 {formatDate(cycleData["62_Origin_Date"])}
               </td>
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "8px",
+                  textAlign: "center",
+                  backgroundColor: "#fffacd", // Light yellow highlight
+                }}
+              >
                 {formatDate(cycleData.Distillate_Nomination)}
               </td>
               {/* Line 1 data */}
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
+              >
                 {formatDate(cycleData.A_Scheduling_Date)}
               </td>
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "8px",
+                  textAlign: "center",
+                }}
+              >
                 {formatDate(cycleData.A_Origin_Date)}
               </td>
-              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "8px",
+                  textAlign: "center",
+                  backgroundColor: "#fffacd", // Light yellow highlight
+                }}
+              >
                 {formatDate(cycleData.Gas_Nomination)}
               </td>
             </tr>
@@ -165,7 +235,12 @@ const NomsTab: React.FC = () => {
       </table>
 
       {bulletinDates && (
-        <div style={{ marginTop: "20px" }}>
+        <div
+          style={{
+            marginTop: "20px",
+            textAlign: "center",
+          }}
+        >
           <div>
             <strong>Origin Bulletin Date:</strong> {bulletinDates.origin}
           </div>
