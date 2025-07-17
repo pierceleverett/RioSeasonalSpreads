@@ -55,8 +55,8 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
 
 
 useEffect(() => {
-  if (type === "91Chi" && user?.publicMetadata?.tariffConstant91Chi) {
-    setTariffConstant(Number(user.publicMetadata.tariffConstant91Chi));
+  if (type === "91Chi" && user?.unsafeMetadata?.tariffConstant91Chi) {
+    setTariffConstant(Number(user.unsafeMetadata.tariffConstant91Chi));
   }
 }, [user, type]);
 
@@ -282,8 +282,14 @@ const saveTariffConstant = async () => {
         </button>
 
         {type === "91Chi" && (
-          <div style={{ marginBottom: "10px" }}>
-            <label>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "10px",
+            }}
+          >
+            <label style={{ marginRight: "10px" }}>
               Input Tariff and Fee Constant:&nbsp;
               <input
                 type="number"
@@ -292,11 +298,7 @@ const saveTariffConstant = async () => {
                 step="0.001"
               />
             </label>
-            <button
-              onClick={saveTariffConstant}
-              disabled={isSaving}
-              style={{ marginLeft: "10px" }}
-            >
+            <button onClick={saveTariffConstant} disabled={isSaving}>
               {isSaving ? "Saving..." : "Save"}
             </button>
           </div>
