@@ -5,7 +5,7 @@ import type { ChartOptions } from "chart.js";
 import { FaUndo } from "react-icons/fa";
 
 interface CsvSpreadChartProps {
-  type: "AtoNap" | "DtoA" | "91Chi" | "ChiCBOB";
+  type: "91Chi" | "ChiCBOB";
 }
 
 const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
@@ -14,20 +14,21 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tariffConstant, setTariffConstant] = useState(24.319);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
 
-    const currentYear = new Date().getFullYear().toString();
-    const prevYears = [
-      currentYear,
-      (parseInt(currentYear) - 1).toString(),
-      (parseInt(currentYear) - 2).toString(),
-      (parseInt(currentYear) - 3).toString(),
-      (parseInt(currentYear) - 4).toString(),
-      (parseInt(currentYear) - 5).toString(),
-      "5YEARAVG",
-      "10YEARAVG",
-    ];
-    const yearList = prevYears.filter((year) => !year.includes("AVG"));
+  const currentYear = new Date().getFullYear().toString();
+  const prevYears = [
+    currentYear,
+    (parseInt(currentYear) - 1).toString(),
+    (parseInt(currentYear) - 2).toString(),
+    (parseInt(currentYear) - 3).toString(),
+    (parseInt(currentYear) - 4).toString(),
+    (parseInt(currentYear) - 5).toString(),
+    "5YEARAVG",
+    "10YEARAVG",
+  ];
+  const yearList = prevYears.filter((year) => !year.includes("AVG"));
 
   const colorPalette = [
     "rgba(0, 123, 255, OPACITY)",
@@ -48,7 +49,6 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
     }
     return yearColorMap.get(year)!;
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,6 +123,8 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
 
   const datesToDisplay = get30DatesWith2025Data();
 
+  const adjustment = type === "91Chi" ? tariffConstant - 24.319 : 0;
+
   const chartData = {
     labels: allDates,
     datasets: [
@@ -145,7 +147,10 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
       },
       ...yearList.map((year) => ({
         label: year,
-        data: allDates.map((date) => dataMap.get(year)?.get(date) ?? null),
+        data: allDates.map((date) => {
+          const val = dataMap.get(year)?.get(date) ?? null;
+          return val !== null && type === "91Chi" ? val + adjustment : val;
+        }),
         borderColor: getYearColor(year),
         backgroundColor: getYearColor(year, 0.5),
         borderWidth: year === currentYear ? 3 : 1,
@@ -157,9 +162,12 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
         ? [
             {
               label: "5-Year Average",
-              data: allDates.map(
-                (date) => dataMap.get("5YEARAVG")?.get(date) ?? null
-              ),
+              data: allDates.map((date) => {
+                const val = dataMap.get("5YEARAVG")?.get(date) ?? null;
+                return val !== null && type === "91Chi"
+                  ? val + adjustment
+                  : val;
+              }),
               borderColor: getYearColor("5YEARAVG"),
               backgroundColor: getYearColor("5YEARAVG", 0.5),
               borderWidth: 3,
@@ -184,21 +192,6 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
           },
         },
       },
-      zoom: {
-        pan: {
-          enabled: true,
-          mode: "xy",
-        },
-        zoom: {
-          wheel: {
-            enabled: true,
-          },
-          pinch: {
-            enabled: true,
-          },
-          mode: "xy",
-        },
-      },
       title: {
         display: true,
         text:
@@ -206,10 +199,6 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
             ? "91 Chi Less USGC 93 + Transport"
             : type === "ChiCBOB"
             ? "BCX RBOB - BCX CBOB"
-            : type === "AtoNap"
-            ? "A to Nap Spread"
-            : type === "DtoA"
-            ? "D to A Spread"
             : "Spread Chart",
         font: {
           size: 18,
@@ -261,6 +250,20 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
           <FaUndo /> Reset Zoom
         </button>
 
+        {type === "91Chi" && (
+          <div style={{ margin: "10px 0" }}>
+            <label>
+              Input Tariff and Fee Constant:&nbsp;
+              <input
+                type="number"
+                value={tariffConstant}
+                onChange={(e) => setTariffConstant(parseFloat(e.target.value))}
+                step="0.001"
+              />
+            </label>
+          </div>
+        )}
+
         {isLoading ? (
           <p style={{ textAlign: "center" }}>Loading chart data...</p>
         ) : error ? (
@@ -288,6 +291,10 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
                   <td>{date}</td>
                   {[...yearList, "5YEARAVG"].map((year) => {
                     const value = dataMap.get(year)?.get(date);
+                    const adjusted =
+                      value !== undefined && value !== null && type === "91Chi"
+                        ? value + adjustment
+                        : value;
                     return (
                       <td
                         key={year}
@@ -297,7 +304,7 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
                           color: year === currentYear ? "#2c3e50" : "inherit",
                         }}
                       >
-                        {value?.toFixed(4) ?? "N/A"}
+                        {adjusted?.toFixed(4) ?? "N/A"}
                       </td>
                     );
                   })}
