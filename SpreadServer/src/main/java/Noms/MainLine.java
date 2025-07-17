@@ -1,14 +1,18 @@
 package Noms;
 
+import static Colonial.OriginUpdater.updateFromMostRecentOriginEmail;
 import static Outlook.ExplorerParser.getAccessToken;
 
 import Colonial.ColonialOrigin;
+import Colonial.ColonialTransitUpdater;
 import com.microsoft.graph.models.*;
 import com.microsoft.graph.options.QueryOption;
 import com.microsoft.graph.requests.*;
 import com.microsoft.graph.authentication.IAuthenticationProvider;
 import Outlook.FusionCurveParser.SimpleAuthProvider;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -29,6 +33,7 @@ public class MainLine {
   private static final String USER_PRINCIPAL_NAME = "automatedreports@rioenergy.com";
   private static final String EMAIL_SUBJECT_FILTER = "Colonial - DATEINFO";
   private static final int MAX_DAYS_TO_SEARCH = 14;
+  private static final String ORIGIN_CSV_PATH = "data/Colonial/Origin/HTNOrigin.csv";
 
   public static class MainLineData {
     public LocalDate reportDate;
@@ -323,16 +328,76 @@ public class MainLine {
 
   private static final Set<LocalDate> FEDERAL_HOLIDAYS = Set.of(
       LocalDate.of(2025, 1, 1),   // New Year's Day
-      LocalDate.of(2025, 1, 20),  // MLK Day
-      LocalDate.of(2025, 2, 17),  // Presidents' Day
+      LocalDate.of(2025, 1, 20),  // MLK Day (third monday of january)
+      LocalDate.of(2025, 2, 17),  // Presidents' Day (thirds monday of feb)
+      LocalDate.of(2025,4,19),    // Good Friday
       LocalDate.of(2025, 5, 26),  // Memorial Day
       LocalDate.of(2025, 6, 19),  // Juneteenth
       LocalDate.of(2025, 7, 4),   // Independence Day
       LocalDate.of(2025, 9, 1),   // Labor Day
-      LocalDate.of(2025, 10, 13), // Columbus Day
       LocalDate.of(2025, 11, 11), // Veterans Day
       LocalDate.of(2025, 11, 27), // Thanksgiving
-      LocalDate.of(2025, 12, 25)  // Christmas
+      LocalDate.of(2025, 12, 25),
+
+      LocalDate.of(2026, 1, 1),   // New Year's Day (always the same)
+      LocalDate.of(2026, 1, 19),  // MLK Day (third monday of january)
+      LocalDate.of(2026, 2, 16),  // Presidents' Day (thirds monday of feb)
+      LocalDate.of(2026,4,3),    // Good Friday
+      LocalDate.of(2026, 5, 25),  // Memorial Day
+      LocalDate.of(2026, 6, 19),  // Juneteenth (always the same)
+      LocalDate.of(2026, 7, 4),   // Independence Day (always the same)
+      LocalDate.of(2026, 9, 7),   // Labor Day
+      LocalDate.of(2026, 11, 11), // Veterans Day ( always the same)
+      LocalDate.of(2026, 11, 26), // Thanksgiving
+      LocalDate.of(2026, 12, 25),
+
+      LocalDate.of(2027, 1, 1),   // New Year's Day (always the same)
+      LocalDate.of(2027, 1, 18),  // MLK Day (third monday of january)
+      LocalDate.of(2027, 2, 15),  // Presidents' Day (thirds monday of feb)
+      LocalDate.of(2027,3,26),    // Good Friday
+      LocalDate.of(2027, 5, 31),  // Memorial Day
+      LocalDate.of(2027, 6, 19),  // Juneteenth (always the same)
+      LocalDate.of(2027, 7, 4),   // Independence Day (always the same)
+      LocalDate.of(2027, 9, 6),   // Labor Day
+      LocalDate.of(2027, 11, 11), // Veterans Day ( always the same)
+      LocalDate.of(2027, 11, 25), // Thanksgiving
+      LocalDate.of(2027, 12, 25), // Christmas (always the same)
+
+      LocalDate.of(2028, 1, 1),   // New Year's Day (always the same)
+      LocalDate.of(2028, 1, 17),  // MLK Day (third monday of january)
+      LocalDate.of(2028, 2, 21),  // Presidents' Day (thirds monday of feb)
+      LocalDate.of(2028,4,14),    // Good Friday
+      LocalDate.of(2028, 5, 29),  // Memorial Day
+      LocalDate.of(2028, 6, 19),  // Juneteenth (always the same)
+      LocalDate.of(2028, 7, 4),   // Independence Day (always the same)
+      LocalDate.of(2028, 9, 4),   // Labor Day
+      LocalDate.of(2028, 11, 11), // Veterans Day ( always the same)
+      LocalDate.of(2028, 11, 23), // Thanksgiving
+      LocalDate.of(2028, 12, 25), // Christmas (always the same)
+
+      LocalDate.of(2029, 1, 1),   // New Year's Day (always the same)
+      LocalDate.of(2029, 1, 15),  // MLK Day (third monday of january)
+      LocalDate.of(2029, 2, 19),  // Presidents' Day (thirds monday of feb)
+      LocalDate.of(2029,3,30),    // Good Friday
+      LocalDate.of(2029, 5, 28),  // Memorial Day
+      LocalDate.of(2029, 6, 19),  // Juneteenth (always the same)
+      LocalDate.of(2029, 7, 4),   // Independence Day (always the same)
+      LocalDate.of(2029, 9, 3),   // Labor Day
+      LocalDate.of(2029, 11, 11), // Veterans Day ( always the same)
+      LocalDate.of(2029, 11, 23), // Thanksgiving
+      LocalDate.of(2029, 12, 25), // Christmas (always the same)
+
+      LocalDate.of(2030, 1, 1),   // New Year's Day (always the same)
+      LocalDate.of(2030, 1, 21),  // MLK Day (third monday of january)
+      LocalDate.of(2030, 2, 18),  // Presidents' Day (thirds monday of feb)
+      LocalDate.of(2030,4,19),    // Good Friday
+      LocalDate.of(2030, 5, 27),  // Memorial Day
+      LocalDate.of(2030, 6, 19),  // Juneteenth (always the same)
+      LocalDate.of(2030, 7, 4),   // Independence Day (always the same)
+      LocalDate.of(2030, 9, 2),   // Labor Day
+      LocalDate.of(2030, 11, 11), // Veterans Day ( always the same)
+      LocalDate.of(2030, 11, 28), // Thanksgiving
+      LocalDate.of(2030, 12, 25) // Christmas (always the same)
   );
 
   private static boolean isBusinessDay(LocalDate date) {
@@ -376,8 +441,15 @@ public class MainLine {
     }
   }
 
-  public static Map<String, Map<String, String>> processMainLineDates(MainLineData mainLineData) {
+  public static Map<String, Map<String, String>> processMainLineDates(MainLineData mainLineData) throws IOException {
     Map<String, Map<String, String>> result = new TreeMap<>();
+
+    // First update the origin starts from emails
+    String accessToken = getAccessToken();
+    LocalDate originBulletinDate = updateFromMostRecentOriginEmail(accessToken);
+
+    // Load origin data from CSV
+    Map<String, Map<String, String>> originData = loadOriginData();
 
     // Group grades by cycle (last 2 digits of grade)
     Map<String, List<String>> gradesByCycle = new TreeMap<>();
@@ -399,33 +471,54 @@ public class MainLine {
           .collect(Collectors.toList());
 
       // Find earliest date among distillate grades
-      Optional<String> distillateDate = distillateGrades.stream()
+      Optional<String> earliestDistillateDate = distillateGrades.stream()
           .flatMap(g -> mainLineData.data.get(g).values().stream())
           .filter(Objects::nonNull)
           .min(Comparator.naturalOrder());
 
-      // Get specific date for 62
-      Optional<String> date62 = entry.getValue().stream()
-          .filter(g -> g.startsWith("62-"))
-          .findFirst()
-          .flatMap(g -> mainLineData.data.get(g).values().stream().findFirst());
-
-      // Find date for A grade (original)
-      Optional<String> originalGasDate = entry.getValue().stream()
+      // Get specific date for A grade
+      Optional<String> aSchedulingDate = entry.getValue().stream()
           .filter(g -> g.startsWith("A"))
           .findFirst()
           .flatMap(g -> mainLineData.data.get(g).values().stream().findFirst());
 
-      // Calculate adjusted dates (subtract 5 business days)
-      Optional<String> adjustedDistillateDate = distillateDate.flatMap(d -> adjustSchedulingDate(d, 5));
-      Optional<String> adjustedGasDate = originalGasDate.flatMap(d -> adjustSchedulingDate(d, 5));
+      // Get specific date for 62 grade
+      Optional<String> distillate62SchedulingDate = entry.getValue().stream()
+          .filter(g -> g.startsWith("62-"))
+          .findFirst()
+          .flatMap(g -> mainLineData.data.get(g).values().stream().findFirst());
 
-      // Put all dates in cycle data
-      distillateDate.ifPresent(date -> cycleData.put("original_distillate_date", date));
-      adjustedDistillateDate.ifPresent(date -> cycleData.put("distillate_scheduling_date", date));
-      date62.ifPresent(date -> cycleData.put("date_62", date));
-      originalGasDate.ifPresent(date -> cycleData.put("A_date", date));
-      adjustedGasDate.ifPresent(date -> cycleData.put("gas_scheduling_date", date));
+      // Calculate adjusted dates (subtract 5 business days)
+      Optional<String> distillateNomination = earliestDistillateDate.flatMap(d -> adjustSchedulingDate(d, 5));
+      Optional<String> gasNomination = aSchedulingDate.flatMap(d -> adjustSchedulingDate(d, 5));
+
+      // Convert cycle from two-digit string to number for CSV lookup
+      int cycleNumber;
+      try {
+        cycleNumber = Integer.parseInt(cycle);
+      } catch (NumberFormatException e) {
+        System.err.println("Invalid cycle format: " + cycle);
+        continue;
+      }
+
+      // Add origin dates from CSV
+      Optional<String> aOriginDate = getOriginDateForCycle(originData, "A", String.valueOf(cycleNumber));
+      Optional<String> distillate62OriginDate = getOriginDateForCycle(originData, "62", String.valueOf(cycleNumber));
+
+      // Put all requested fields in cycle data
+      distillateNomination.ifPresent(date -> cycleData.put("Distillate_Nomination", date));
+      gasNomination.ifPresent(date -> cycleData.put("Gas_Nomination", date));
+      earliestDistillateDate.ifPresent(date -> cycleData.put("Earliest_Distillate_Scheduling_Date", date));
+      aSchedulingDate.ifPresent(date -> cycleData.put("A_Scheduling_Date", date));
+      distillate62SchedulingDate.ifPresent(date -> cycleData.put("62_Scheduling_Date", date));
+      aOriginDate.ifPresent(date -> cycleData.put("A_Origin_Date", date));
+      distillate62OriginDate.ifPresent(date -> cycleData.put("62_Origin_Date", date));
+      if (mainLineData.reportDate != null) {
+        cycleData.put("DateInfo_Bulletin_Date", mainLineData.reportDate.toString());
+      }
+      if (originBulletinDate != null) {
+        cycleData.put("Origin_Bulletin_Date", originBulletinDate.toString());
+      }
 
       if (!cycleData.isEmpty()) {
         result.put(cycle, cycleData);
@@ -433,5 +526,53 @@ public class MainLine {
     }
 
     return result;
+  }
+
+  private static Optional<String> getOriginDateForCycle(Map<String, Map<String, String>> originData, String type, String cycle) {
+    if (!originData.containsKey(type)) {
+      return Optional.empty();
+    }
+
+    Map<String, String> typeDates = originData.get(type);
+    // Check if the cycle exists in the type's dates
+    if (typeDates.containsKey(cycle)) {
+      String date = typeDates.get(cycle);
+      if (date != null && !date.trim().isEmpty()) {
+        return Optional.of(date);
+      }
+    }
+    return Optional.empty();
+  }
+
+  private static Map<String, Map<String, String>> loadOriginData() throws IOException {
+    Map<String, Map<String, String>> originData = new HashMap<>();
+    List<String> lines = Files.readAllLines(Paths.get(ORIGIN_CSV_PATH));
+
+    if (lines.isEmpty()) {
+      return originData;
+    }
+
+    // First line contains cycle numbers (1-72)
+    String[] cycles = lines.get(0).split(",");
+    int cycleCount = cycles.length - 1; // Subtract 1 for "Type" column
+
+    // Process each type (A, D, F, 62)
+    for (int i = 1; i < lines.size(); i++) {
+      String[] parts = lines.get(i).split(",");
+      if (parts.length < 2) continue;
+
+      String type = parts[0];
+      Map<String, String> typeDates = new HashMap<>();
+
+      for (int j = 1; j <= cycleCount && j < parts.length; j++) {
+        if (!parts[j].isEmpty()) {
+          typeDates.put(String.valueOf(j), parts[j]);
+        }
+      }
+
+      originData.put(type, typeDates);
+    }
+
+    return originData;
   }
 }

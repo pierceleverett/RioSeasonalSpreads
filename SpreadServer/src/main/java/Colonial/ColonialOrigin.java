@@ -160,6 +160,7 @@ public class ColonialOrigin {
 
           // Only process if this email has the most recent bulletin for this cycle
           if (bulletinDate.equals(latestBulletinDates.get(cycle))) {
+            System.out.println("new bulleting, updating all fuels");
             updateFuelDate(csvData, "A", cycle, cleanDate(cells.get(2).text()), bulletinDate);
             updateFuelDate(csvData, "D", cycle, cleanDate(cells.get(4).text()), bulletinDate);
             updateFuelDate(csvData, "F", cycle, cleanDate(cells.get(5).text()), bulletinDate);

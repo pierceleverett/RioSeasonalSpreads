@@ -3,7 +3,6 @@ package Handlers;
 import static Colonial.ColonialActual.calculateTransitTimes;
 import static Colonial.FungibleUpdater.getLastProcessedDate;
 import static Colonial.FungibleUpdater.processNewBulletins;
-import static Colonial.OriginUpdater.shouldUpdateOriginData;
 import static Outlook.ExplorerParser.getAccessToken;
 import Colonial.ColonialOrigin;
 import Colonial.ColonialTransitUpdater;
@@ -35,12 +34,7 @@ public class ColonialTransitUpdaterHandler implements Route {
     System.out.println("done processing, now moving to origin starts");
 
     //Update the origin starts if needed
-    if (shouldUpdateOriginData()) {
-      System.out.println("Last cycle date is approaching, checking for new origin emails...");
-      ColonialOrigin.processNewOriginStartsEmails(accessToken, "automatedreports@rioenergy.com");
-    } else {
-      System.out.println("No update needed");
-    }
+    ColonialOrigin.processNewOriginStartsEmails(accessToken, "automatedreports@rioenergy.com");
 
     //Update the actual transit times
     System.out.println("recalculating actual transit times");
