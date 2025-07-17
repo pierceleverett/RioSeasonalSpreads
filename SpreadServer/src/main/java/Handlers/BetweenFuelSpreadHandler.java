@@ -3,6 +3,7 @@ package Handlers;
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
+import java.time.LocalDate;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -21,7 +22,9 @@ public class BetweenFuelSpreadHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
     String type = request.queryParams("type");
     System.out.println(type);
-
+    int currentYear = LocalDate.now().getYear();
+    String secondYear = Integer.toString(currentYear - 1);
+    String firstYear = Integer.toString(currentYear - 5);
     String filePath = "data/spreads/" + type + ".csv";
     System.out.println(filePath);
     Map<String, Map<String, Float>> yearMap = new LinkedHashMap<>();
@@ -48,7 +51,7 @@ public class BetweenFuelSpreadHandler implements Route {
               float value = Float.parseFloat(valueStr);
               yearMap.get(year).put(date, value);
 
-              if (year.compareTo("2020") >= 0 && year.compareTo("2024") <= 0) {
+              if (year.compareTo(firstYear) >= 0 && year.compareTo(secondYear) <= 0) {
                 avgCollector.computeIfAbsent(date, k -> new ArrayList<>()).add(value);
               }
             } catch (NumberFormatException ignored) {}
