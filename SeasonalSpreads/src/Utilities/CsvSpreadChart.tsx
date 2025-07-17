@@ -270,7 +270,7 @@ const saveTariffConstant = async () => {
       y: {
         title: {
           display: true,
-          text: "Spread ($/gal)",
+          text: "Spread (cents/gal)",
         },
         ticks: {
           font: {
@@ -317,7 +317,7 @@ const saveTariffConstant = async () => {
             }}
           >
             <label>
-              Input Tariff and Fee Constant:
+              Input Tariff and Fee Constant (cents/gal):
               <input
                 type="number"
                 value={tariffConstant}
