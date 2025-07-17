@@ -274,26 +274,6 @@ const saveTariffConstant = async () => {
   return (
     <>
       <div className="graph-container">
-        {type === "91Chi" && (
-          <div style={{ marginBottom: "10px" }}>
-            <label>
-              Input Tariff and Fee Constant:&nbsp;
-              <input
-                type="number"
-                value={tariffConstant}
-                onChange={(e) => setTariffConstant(parseFloat(e.target.value))}
-                step="0.001"
-              />
-            </label>
-            <button
-              onClick={saveTariffConstant}
-              disabled={isSaving}
-              style={{ marginLeft: "10px" }}
-            >
-              {isSaving ? "Saving..." : "Save"}
-            </button>
-          </div>
-        )}
         <button
           className="reset-zoom-button"
           onClick={() => chartRef.current?.resetZoom()}
@@ -309,6 +289,26 @@ const saveTariffConstant = async () => {
           <Line ref={chartRef} data={chartData} options={chartOptions} />
         )}
       </div>
+      {type === "91Chi" && (
+        <div style={{ marginBottom: "10px" }}>
+          <label>
+            Input Tariff and Fee Constant:&nbsp;
+            <input
+              type="number"
+              value={tariffConstant}
+              onChange={(e) => setTariffConstant(parseFloat(e.target.value))}
+              step="0.001"
+            />
+          </label>
+          <button
+            onClick={saveTariffConstant}
+            disabled={isSaving}
+            style={{ marginLeft: "10px" }}
+          >
+            {isSaving ? "Saving..." : "Save"}
+          </button>
+        </div>
+      )}
 
       {!isLoading && !error && dataMap.size > 0 && (
         <div className="table-container">
