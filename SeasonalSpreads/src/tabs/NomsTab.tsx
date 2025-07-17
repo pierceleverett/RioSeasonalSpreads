@@ -2,13 +2,13 @@
 import React, { useEffect, useState } from "react";
 
 interface NomData {
-  Distillate_Nomination: string;
+  Distillate_Nomination: string | null;
   A_Scheduling_Date: string;
   Origin_Bulletin_Date: string;
   DateInfo_Bulletin_Date: string;
   A_Origin_Date: string;
   "62_Origin_Date": string;
-  Gas_Nomination: string;
+  Gas_Nomination: string | null;
   Earliest_Distillate_Scheduling_Date: string;
   "62_Scheduling_Date": string;
 }
@@ -59,7 +59,7 @@ const NomsTab: React.FC = () => {
   }, []);
 
   // Format date from "mm/dd" to "d-Mmm" format (e.g., "07/07" to "7-Jul")
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
 
     const [month, day] = dateStr.split("/").map(Number);
@@ -90,7 +90,7 @@ const NomsTab: React.FC = () => {
       <table
         style={{
           borderCollapse: "collapse",
-          width: "100%",
+          width: "80%",
           marginBottom: "20px",
           border: "1px solid #ddd",
         }}
