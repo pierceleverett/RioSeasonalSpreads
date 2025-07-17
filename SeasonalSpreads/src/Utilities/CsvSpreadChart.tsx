@@ -3,6 +3,7 @@ import { Line } from "react-chartjs-2";
 import { Chart as ChartJS } from "chart.js";
 import type { ChartOptions } from "chart.js";
 import { FaUndo } from "react-icons/fa";
+import { useUser } from "@clerk/clerk-react"; 
 
 interface CsvSpreadChartProps {
   type: "91Chi" | "ChiCBOB";
@@ -15,7 +16,9 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tariffConstant, setTariffConstant] = useState(24.319);
+  const [isSaving, setIsSaving] = useState(false);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
+  const { user } = useUser(); 
 
   const currentYear = new Date().getFullYear().toString();
   const prevYears = [
@@ -49,6 +52,34 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
     }
     return yearColorMap.get(year)!;
   };
+
+
+useEffect(() => {
+  if (type === "91Chi" && user?.publicMetadata?.tariffConstant91Chi) {
+    setTariffConstant(Number(user.publicMetadata.tariffConstant91Chi));
+  }
+}, [user, type]);
+
+const saveTariffConstant = async () => {
+  if (!user) return;
+  setIsSaving(true);
+  try {
+    await user?.update({
+      unsafeMetadata: {
+        tariffConstant91Chi: tariffConstant,
+      },
+    });
+    
+    
+    alert("Tariff constant saved!");
+  } catch (err) {
+    console.error("Failed to save tariff constant:", err);
+    alert("Failed to save.");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -251,7 +282,7 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
         </button>
 
         {type === "91Chi" && (
-          <div style={{ margin: "10px 0" }}>
+          <div style={{ marginBottom: "10px" }}>
             <label>
               Input Tariff and Fee Constant:&nbsp;
               <input
@@ -261,6 +292,13 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
                 step="0.001"
               />
             </label>
+            <button
+              onClick={saveTariffConstant}
+              disabled={isSaving}
+              style={{ marginLeft: "10px" }}
+            >
+              {isSaving ? "Saving..." : "Save"}
+            </button>
           </div>
         )}
 
