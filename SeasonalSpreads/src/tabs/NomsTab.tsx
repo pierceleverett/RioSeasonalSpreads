@@ -145,7 +145,7 @@ const NomsTab: React.FC = () => {
             <th
               style={{
                 border: "1px solid #ddd",
-                padding: "8px",
+                padding: "4px",
                 textAlign: "center",
               }}
             >
@@ -154,7 +154,7 @@ const NomsTab: React.FC = () => {
             <th
               style={{
                 border: "1px solid #ddd",
-                padding: "8px",
+                padding: "4px",
                 textAlign: "center",
               }}
             >
@@ -163,7 +163,7 @@ const NomsTab: React.FC = () => {
             <th
               style={{
                 border: "1px solid #ddd",
-                padding: "8px",
+                padding: "4px",
                 backgroundColor: "#fffacd",
                 textAlign: "center",
               }}
@@ -174,7 +174,7 @@ const NomsTab: React.FC = () => {
             <th
               style={{
                 border: "1px solid #ddd",
-                padding: "8px",
+                padding: "4px",
                 textAlign: "center",
               }}
             >
@@ -183,7 +183,7 @@ const NomsTab: React.FC = () => {
             <th
               style={{
                 border: "1px solid #ddd",
-                padding: "8px",
+                padding: "4px",
                 textAlign: "center",
               }}
             >
@@ -192,7 +192,7 @@ const NomsTab: React.FC = () => {
             <th
               style={{
                 border: "1px solid #ddd",
-                padding: "8px",
+                padding: "4px",
                 backgroundColor: "#fffacd",
                 textAlign: "center",
               }}
@@ -207,7 +207,7 @@ const NomsTab: React.FC = () => {
               <td
                 style={{
                   border: "1px solid #ddd",
-                  padding: "8px",
+                  padding: "4px",
                   textAlign: "center",
                 }}
               >
@@ -217,7 +217,7 @@ const NomsTab: React.FC = () => {
               <td
                 style={{
                   border: "1px solid #ddd",
-                  padding: "8px",
+                  padding: "4px",
                   textAlign: "center",
                 }}
               >
@@ -226,7 +226,7 @@ const NomsTab: React.FC = () => {
               <td
                 style={{
                   border: "1px solid #ddd",
-                  padding: "8px",
+                  padding: "4px",
                   textAlign: "center",
                 }}
               >
@@ -235,7 +235,7 @@ const NomsTab: React.FC = () => {
               <td
                 style={{
                   border: "1px solid #ddd",
-                  padding: "8px",
+                  padding: "4px",
                   textAlign: "center",
                   backgroundColor: "#fffacd",
                 }}
@@ -246,7 +246,7 @@ const NomsTab: React.FC = () => {
               <td
                 style={{
                   border: "1px solid #ddd",
-                  padding: "8px",
+                  padding: "4px",
                   textAlign: "center",
                 }}
               >
@@ -255,7 +255,7 @@ const NomsTab: React.FC = () => {
               <td
                 style={{
                   border: "1px solid #ddd",
-                  padding: "8px",
+                  padding: "4px",
                   textAlign: "center",
                 }}
               >
@@ -264,7 +264,7 @@ const NomsTab: React.FC = () => {
               <td
                 style={{
                   border: "1px solid #ddd",
-                  padding: "8px",
+                  padding: "4px",
                   textAlign: "center",
                   backgroundColor: "#fffacd",
                 }}
