@@ -274,43 +274,63 @@ const saveTariffConstant = async () => {
   return (
     <>
       <div className="graph-container">
-        <button
-          className="reset-zoom-button"
-          onClick={() => chartRef.current?.resetZoom()}
-        >
-          <FaUndo /> Reset Zoom
-        </button>
-
+        {/* Moved tariff input section here */}
         {type === "91Chi" && (
           <div
             style={{
               display: "flex",
               justifyContent: "center",
               marginBottom: "10px",
+              alignItems: "center",
+              gap: "10px",
             }}
           >
-            <label style={{ marginRight: "10px" }}>
-              Input Tariff and Fee Constant:&nbsp;
+            <label>
+              Input Tariff and Fee Constant:
               <input
                 type="number"
                 value={tariffConstant}
                 onChange={(e) => setTariffConstant(parseFloat(e.target.value))}
                 step="0.001"
+                style={{ marginLeft: "10px" }}
               />
             </label>
-            <button onClick={saveTariffConstant} disabled={isSaving}>
+            <button
+              onClick={saveTariffConstant}
+              disabled={isSaving}
+              style={{ padding: "5px 10px" }}
+            >
               {isSaving ? "Saving..." : "Save"}
             </button>
           </div>
         )}
 
-        {isLoading ? (
-          <p style={{ textAlign: "center" }}>Loading chart data...</p>
-        ) : error ? (
-          <p style={{ textAlign: "center", color: "red" }}>{error}</p>
-        ) : (
-          <Line ref={chartRef} data={chartData} options={chartOptions} />
-        )}
+        <div style={{ position: "relative", height: "400px" }}>
+          <button
+            className="reset-zoom-button"
+            onClick={() => chartRef.current?.resetZoom()}
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "10px",
+              zIndex: 100,
+              padding: "5px 10px",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+            }}
+          >
+            <FaUndo /> Reset Zoom
+          </button>
+
+          {isLoading ? (
+            <p style={{ textAlign: "center" }}>Loading chart data...</p>
+          ) : error ? (
+            <p style={{ textAlign: "center", color: "red" }}>{error}</p>
+          ) : (
+            <Line ref={chartRef} data={chartData} options={chartOptions} />
+          )}
+        </div>
       </div>
 
       {!isLoading && !error && dataMap.size > 0 && (
