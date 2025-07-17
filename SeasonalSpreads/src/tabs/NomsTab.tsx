@@ -110,7 +110,7 @@ const NomsTab: React.FC = () => {
               Line 2
             </th>
             <th
-              colSpan={2}
+              colSpan={3}
               style={{ border: "1px solid #ddd", padding: "8px" }}
             >
               Line 1
