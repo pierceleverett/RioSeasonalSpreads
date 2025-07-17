@@ -108,51 +108,93 @@ const NomsTab: React.FC = () => {
         }}
       >
         <thead>
-          <tr>
+          <tr style={{ textAlign: "center" }}>
             <th
               rowSpan={2}
-              style={{ border: "1px solid #ddd", padding: "8px" }}
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                textAlign: "center",
+              }}
             >
               Cycle
             </th>
             <th
               colSpan={3}
-              style={{ border: "1px solid #ddd", padding: "8px" }}
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                textAlign: "center",
+              }}
             >
               Line 2
             </th>
             <th
               colSpan={3}
-              style={{ border: "1px solid #ddd", padding: "8px" }}
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                textAlign: "center",
+              }}
             >
               Line 1
             </th>
           </tr>
-          <tr>
+          <tr style={{ textAlign: "center" }}>
             {/* Line 2 headers */}
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>62</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+            <th
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                textAlign: "center",
+              }}
+            >
+              62
+            </th>
+            <th
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                textAlign: "center",
+              }}
+            >
               HTN lift
             </th>
             <th
               style={{
                 border: "1px solid #ddd",
                 padding: "8px",
-                backgroundColor: "#fffacd", // Light yellow highlight
+                backgroundColor: "#fffacd",
+                textAlign: "center",
               }}
             >
               51/54/62
             </th>
             {/* Line 1 headers */}
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>A</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+            <th
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                textAlign: "center",
+              }}
+            >
+              A
+            </th>
+            <th
+              style={{
+                border: "1px solid #ddd",
+                padding: "8px",
+                textAlign: "center",
+              }}
+            >
               HTN lift
             </th>
             <th
               style={{
                 border: "1px solid #ddd",
                 padding: "8px",
-                backgroundColor: "#fffacd", // Light yellow highlight
+                backgroundColor: "#fffacd",
+                textAlign: "center",
               }}
             >
               Gas
@@ -161,7 +203,7 @@ const NomsTab: React.FC = () => {
         </thead>
         <tbody>
           {Object.entries(data).map(([cycle, cycleData]) => (
-            <tr key={cycle}>
+            <tr key={cycle} style={{ textAlign: "center" }}>
               <td
                 style={{
                   border: "1px solid #ddd",
@@ -195,7 +237,7 @@ const NomsTab: React.FC = () => {
                   border: "1px solid #ddd",
                   padding: "8px",
                   textAlign: "center",
-                  backgroundColor: "#fffacd", // Light yellow highlight
+                  backgroundColor: "#fffacd",
                 }}
               >
                 {formatDate(cycleData.Distillate_Nomination)}
@@ -224,7 +266,7 @@ const NomsTab: React.FC = () => {
                   border: "1px solid #ddd",
                   padding: "8px",
                   textAlign: "center",
-                  backgroundColor: "#fffacd", // Light yellow highlight
+                  backgroundColor: "#fffacd",
                 }}
               >
                 {formatDate(cycleData.Gas_Nomination)}
