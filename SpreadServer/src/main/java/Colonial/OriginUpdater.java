@@ -126,11 +126,11 @@ public class OriginUpdater {
           cycleCol = i;
         } else if (headerText.contains("Regular CBOB") || headerText.contains("L Grade")) {
           aCol = i;
-        } else if (headerText.contains("Ultra Low Sulfur Diesel")) {
+        } else if (headerText.contains("Premium")) {
           dCol = i;
         } else if (headerText.contains("Conventional Regular")) {
           fCol = i;
-        } else if (headerText.contains("Regular RBOB")) {
+        } else if (headerText.contains("Ultra Low Sulfur Diesel")) {
           col62 = i;
         }
       }
