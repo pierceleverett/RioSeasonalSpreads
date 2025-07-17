@@ -128,8 +128,14 @@ const saveTariffConstant = async () => {
     allDates.forEach((date) => {
       const values = Array.from(dataMap.entries())
         .filter(([year]) => year !== "5YEARAVG")
-        .map(([_, yearMap]) => yearMap.get(date))
+        .map(([_, yearMap]) => {
+          const val = yearMap.get(date);
+          return val !== undefined && val !== null && type === "91Chi"
+            ? val + adjustment
+            : val;
+        })
         .filter((v): v is number => v !== undefined && v !== null);
+
       if (values.length > 0) {
         min.push(Math.min(...values));
         max.push(Math.max(...values));
@@ -140,6 +146,7 @@ const saveTariffConstant = async () => {
     });
     return { min, max };
   };
+
 
 
   const get30DatesWith2025Data = (): string[] => {
