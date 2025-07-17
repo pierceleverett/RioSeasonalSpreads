@@ -290,23 +290,35 @@ const saveTariffConstant = async () => {
         )}
       </div>
       {type === "91Chi" && (
-        <div style={{ marginBottom: "10px" }}>
-          <label>
-            Input Tariff and Fee Constant:&nbsp;
-            <input
-              type="number"
-              value={tariffConstant}
-              onChange={(e) => setTariffConstant(parseFloat(e.target.value))}
-              step="0.001"
-            />
-          </label>
-          <button
-            onClick={saveTariffConstant}
-            disabled={isSaving}
-            style={{ marginLeft: "10px" }}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "10px",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
           >
-            {isSaving ? "Saving..." : "Save"}
-          </button>
+            <label>
+              Input Tariff and Fee Constant:
+              <input
+                type="number"
+                value={tariffConstant}
+                onChange={(e) => setTariffConstant(parseFloat(e.target.value))}
+                step="0.001"
+                style={{ marginLeft: "10px" }}
+              />
+            </label>
+            <button onClick={saveTariffConstant} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save"}
+            </button>
+          </div>
         </div>
       )}
 
