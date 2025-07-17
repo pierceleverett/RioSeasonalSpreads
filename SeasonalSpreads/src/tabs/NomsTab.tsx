@@ -118,12 +118,15 @@ const NomsTab: React.FC = () => {
           </tr>
           <tr>
             {/* Line 2 headers */}
+            <th style={{ border: "1px solid #ddd", padding: "8px" }}>62</th>
             <th style={{ border: "1px solid #ddd", padding: "8px" }}>
               HTN lift
             </th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>51</th>
-            <th style={{ border: "1px solid #ddd", padding: "8px" }}>A</th>
+            <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+              51/54/62
+            </th>
             {/* Line 1 headers */}
+            <th style={{ border: "1px solid #ddd", padding: "8px" }}>A</th>
             <th style={{ border: "1px solid #ddd", padding: "8px" }}>
               HTN lift
             </th>
@@ -138,15 +141,18 @@ const NomsTab: React.FC = () => {
               </td>
               {/* Line 2 data */}
               <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                {formatDate(cycleData["62_Scheduling_Date"])}
+              </td>
+              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                 {formatDate(cycleData["62_Origin_Date"])}
               </td>
               <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                 {formatDate(cycleData.Distillate_Nomination)}
               </td>
+              {/* Line 1 data */}
               <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                 {formatDate(cycleData.A_Scheduling_Date)}
               </td>
-              {/* Line 1 data */}
               <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                 {formatDate(cycleData.A_Origin_Date)}
               </td>
