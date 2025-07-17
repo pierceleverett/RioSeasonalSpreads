@@ -470,12 +470,26 @@ public class MainLine {
           .filter(g -> g.startsWith("51-") || g.startsWith("54-") || g.startsWith("62-"))
           .collect(Collectors.toList());
 
-      // Find earliest date among distillate grades
-      Optional<String> earliestDistillateDate = distillateGrades.stream()
-          .flatMap(g -> mainLineData.data.get(g).values().stream())
-          .filter(Objects::nonNull)
-          .min(Comparator.naturalOrder());
+      // Check if we have all three required grades (51, 54, and 62)
+      boolean hasAllGrades = distillateGrades.stream()
+          .map(g -> g.split("-")[0]) // Extract the prefix (51, 54, or 62)
+          .collect(Collectors.toSet())
+          .containsAll(Set.of("51", "54", "62"));
 
+      // Only include Distillate_Nomination if we have all three grades
+      if (hasAllGrades) {
+        // Find earliest date among distillate grades
+        Optional<String> earliestDistillateDate = distillateGrades.stream()
+            .flatMap(g -> mainLineData.data.get(g).values().stream())
+            .filter(Objects::nonNull)
+            .min(Comparator.naturalOrder());
+
+        // Calculate adjusted date (subtract 5 business days)
+        earliestDistillateDate.flatMap(d -> adjustSchedulingDate(d, 5))
+            .ifPresent(date -> cycleData.put("Distillate_Nomination", date));
+      }
+
+      // Process other fields regardless of distillate grades
       // Get specific date for A grade
       Optional<String> aSchedulingDate = entry.getValue().stream()
           .filter(g -> g.startsWith("A"))
@@ -489,7 +503,6 @@ public class MainLine {
           .flatMap(g -> mainLineData.data.get(g).values().stream().findFirst());
 
       // Calculate adjusted dates (subtract 5 business days)
-      Optional<String> distillateNomination = earliestDistillateDate.flatMap(d -> adjustSchedulingDate(d, 5));
       Optional<String> gasNomination = aSchedulingDate.flatMap(d -> adjustSchedulingDate(d, 5));
 
       // Convert cycle from two-digit string to number for CSV lookup
@@ -505,10 +518,8 @@ public class MainLine {
       Optional<String> aOriginDate = getOriginDateForCycle(originData, "A", String.valueOf(cycleNumber));
       Optional<String> distillate62OriginDate = getOriginDateForCycle(originData, "62", String.valueOf(cycleNumber));
 
-      // Put all requested fields in cycle data
-      distillateNomination.ifPresent(date -> cycleData.put("Distillate_Nomination", date));
+      // Put all other fields in cycle data
       gasNomination.ifPresent(date -> cycleData.put("Gas_Nomination", date));
-      earliestDistillateDate.ifPresent(date -> cycleData.put("Earliest_Distillate_Scheduling_Date", date));
       aSchedulingDate.ifPresent(date -> cycleData.put("A_Scheduling_Date", date));
       distillate62SchedulingDate.ifPresent(date -> cycleData.put("62_Scheduling_Date", date));
       aOriginDate.ifPresent(date -> cycleData.put("A_Origin_Date", date));
