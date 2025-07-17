@@ -141,7 +141,6 @@ const saveTariffConstant = async () => {
     return { min, max };
   };
 
-  const rangeData = calculateMinMaxRange();
 
   const get30DatesWith2025Data = (): string[] => {
     const datesWith2025 = allDates.filter((date) =>
@@ -154,7 +153,12 @@ const saveTariffConstant = async () => {
 
   const datesToDisplay = get30DatesWith2025Data();
 
-  const adjustment = type === "91Chi" ? tariffConstant - 24.319 : 0;
+  const adjustment = type === "91Chi" ? 24.319 - tariffConstant : 0;
+
+  const rangeData = React.useMemo(
+    () => calculateMinMaxRange(),
+    [dataMap, allDates, type, adjustment]
+  );
 
   const chartData = {
     labels: allDates,
