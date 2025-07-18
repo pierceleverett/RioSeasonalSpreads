@@ -11,6 +11,7 @@ const GulfCoastDiffsTab: React.FC = () => {
     new Map()
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [RefreshTick, setRefreshTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
   const currentYear = new Date().getFullYear().toString();
@@ -159,6 +160,10 @@ const GulfCoastDiffsTab: React.FC = () => {
     ],
   };
 
+  const handleRefresh = async () => {
+    setRefreshTick(RefreshTick + 1)
+  };
+
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -272,6 +277,20 @@ const GulfCoastDiffsTab: React.FC = () => {
             ))}
           </select>
         </label>
+        <button
+          onClick={handleRefresh}
+          disabled={isLoading}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          {isLoading ? "Refreshing..." : "Refresh Data"}
+        </button>
       </div>
 
       {isLoading ? (
