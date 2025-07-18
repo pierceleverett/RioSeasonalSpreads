@@ -28,6 +28,7 @@ interface FungibleResponse {
       };
     };
   };
+  currentReportDate: string;
   previousData: {
     reportDate: string;
     data: {
@@ -366,7 +367,7 @@ const NomsTab: React.FC = () => {
           <h2 style={{ textAlign: "center" }}>Stub Lines</h2>
           <div style={{ textAlign: "center", marginBottom: 20 }}>
             <strong>Report Date:</strong>{" "}
-            {fungibleData.currentData.reportDate}
+            {fungibleData.currentReportDate}
           </div>
 
           <div
