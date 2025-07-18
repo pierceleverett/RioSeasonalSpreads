@@ -65,9 +65,7 @@ const NomsTab: React.FC = () => {
     new Date(2023, 10, 10), // Veterans Day
     new Date(2023, 10, 23), // Thanksgiving Day
     new Date(2023, 11, 25), // Christmas Day
-
-    // 2024-2030 holidays would continue here...
-    // (See previous holiday list for complete implementation)
+    // ... (other years would continue here)
   ];
 
   useEffect(() => {
@@ -75,7 +73,7 @@ const NomsTab: React.FC = () => {
       try {
         setLoading(true);
 
-        // Fetch main line data
+        // Fetch both APIs in parallel
         const [mainLineResponse, fungibleResponse] = await Promise.all([
           fetch(
             "https://rioseasonalspreads-production.up.railway.app/getMainLine"
@@ -85,23 +83,20 @@ const NomsTab: React.FC = () => {
           ),
         ]);
 
-        if (!mainLineResponse.ok || !fungibleResponse.ok) {
-          throw new Error(
-            `HTTP error! status: ${
-              mainLineResponse.status || fungibleResponse.status
-            }`
-          );
-        }
+        if (!mainLineResponse.ok)
+          throw new Error(`Main line error: ${mainLineResponse.status}`);
+        if (!fungibleResponse.ok)
+          throw new Error(`Fungible error: ${fungibleResponse.status}`);
 
         const [mainLineResult, fungibleResult] = await Promise.all([
-          mainLineResponse.json() as Promise<ApiData>,
-          fungibleResponse.json() as Promise<FungibleResponse>,
+          mainLineResponse.json(),
+          fungibleResponse.json(),
         ]);
 
         setData(mainLineResult);
         setFungibleData(fungibleResult);
 
-        // Get bulletin dates from the first available cycle
+        // Get bulletin dates
         const firstCycle = Object.values(mainLineResult)[0];
         if (firstCycle) {
           setBulletinDates({
@@ -121,44 +116,34 @@ const NomsTab: React.FC = () => {
     fetchData();
   }, []);
 
-  // Check if a date is a holiday
-  const isHoliday = (date: Date): boolean => {
-    return HOLIDAYS.some(
-      (holiday) =>
-        holiday.getDate() === date.getDate() &&
-        holiday.getMonth() === date.getMonth() &&
-        holiday.getFullYear() === date.getFullYear()
+  // Date utilities
+  const isHoliday = (date: Date): boolean =>
+    HOLIDAYS.some(
+      (h) =>
+        h.getDate() === date.getDate() &&
+        h.getMonth() === date.getMonth() &&
+        h.getFullYear() === date.getFullYear()
     );
-  };
 
-  // Check if a date is a weekend
-  const isWeekend = (date: Date): boolean => {
-    return date.getDay() === 0 || date.getDay() === 6;
-  };
+  const isWeekend = (date: Date): boolean =>
+    date.getDay() === 0 || date.getDay() === 6;
 
-  // Subtract business days from a date (excluding weekends and holidays)
   const subtractBusinessDays = (dateStr: string, days: number): string => {
     if (!dateStr) return "";
-
     const [month, day] = dateStr.split("/").map(Number);
     let date = new Date(new Date().getFullYear(), month - 1, day);
     let daysSubtracted = 0;
 
     while (daysSubtracted < days) {
-      date = new Date(date.getTime() - 24 * 60 * 60 * 1000); // Subtract one day
-
-      if (!isWeekend(date) && !isHoliday(date)) {
-        daysSubtracted++;
-      }
+      date = new Date(date.getTime() - 86400000); // Subtract one day
+      if (!isWeekend(date) && !isHoliday(date)) daysSubtracted++;
     }
 
     return formatDate(`${date.getMonth() + 1}/${date.getDate()}`);
   };
 
-  // Format date from "mm/dd" to "d-Mmm" format (e.g., "07/07" to "7-Jul")
   const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
-
     const [month, day] = dateStr.split("/").map(Number);
     const monthNames = [
       "Jan",
@@ -177,20 +162,16 @@ const NomsTab: React.FC = () => {
     return `${day}-${monthNames[month - 1]}`;
   };
 
-  // Get fungible date for a specific location and product
   const getFungibleDate = (
     cycle: string,
     product: string,
     location: string
   ): string => {
-    if (!fungibleData?.currentData?.data) return "";
-    return fungibleData.currentData.data[cycle]?.[product]?.[location] || "";
+    return fungibleData?.currentData?.data[cycle]?.[product]?.[location] || "";
   };
 
-  // Render fungible table for a specific location
   const renderFungibleTable = (location: string, locationName: string) => {
-    if (!fungibleData?.currentData?.data) return null;
-
+    if (!fungibleData) return null;
     const cycles = Object.keys(fungibleData.currentData.data).sort();
 
     return (
@@ -200,7 +181,6 @@ const NomsTab: React.FC = () => {
           style={{
             borderCollapse: "collapse",
             width: "100%",
-            margin: "0 auto",
             border: "1px solid #ddd",
             textAlign: "center",
           }}
@@ -211,10 +191,10 @@ const NomsTab: React.FC = () => {
                 Cycle
               </th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                62
+                62 (-2bd)
               </th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                54
+                54 (-2bd)
               </th>
             </tr>
           </thead>
@@ -254,9 +234,8 @@ const NomsTab: React.FC = () => {
 
   return (
     <div style={{ padding: "20px", maxWidth: 1200, margin: "0 auto" }}>
+      {/* Main Line Table */}
       <h1 style={{ textAlign: "center" }}>Main Line Noms Due</h1>
-
-      {/* Main Table */}
       <table
         style={{
           borderCollapse: "collapse",
@@ -266,11 +245,103 @@ const NomsTab: React.FC = () => {
           textAlign: "center",
         }}
       >
-        {/* ... existing table headers and body ... */}
+        <thead>
+          <tr>
+            <th
+              rowSpan={2}
+              style={{ border: "1px solid #ddd", padding: "8px" }}
+            >
+              Cycle
+            </th>
+            <th
+              colSpan={3}
+              style={{ border: "1px solid #ddd", padding: "8px" }}
+            >
+              Line 2
+            </th>
+            <th
+              colSpan={3}
+              style={{ border: "1px solid #ddd", padding: "8px" }}
+            >
+              Line 1
+            </th>
+          </tr>
+          <tr>
+            {/* Line 2 headers */}
+            <th style={{ border: "1px solid #ddd", padding: "4px" }}>62</th>
+            <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+              HTN lift
+            </th>
+            <th
+              style={{
+                border: "1px solid #ddd",
+                padding: "4px",
+                backgroundColor: "#fffacd",
+              }}
+            >
+              51/54/62
+            </th>
+            {/* Line1 headers */}
+            <th style={{ border: "1px solid #ddd", padding: "4px" }}>A</th>
+            <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+              HTN lift
+            </th>
+            <th
+              style={{
+                border: "1px solid #ddd",
+                padding: "4px",
+                backgroundColor: "#fffacd",
+              }}
+            >
+              Gas
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(data).map(([cycle, cycleData]) => (
+            <tr key={cycle}>
+              <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                {cycle}
+              </td>
+              {/* Line2 data */}
+              <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                {formatDate(cycleData["62_Scheduling_Date"])}
+              </td>
+              <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                {formatDate(cycleData["62_Origin_Date"])}
+              </td>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "4px",
+                  backgroundColor: "#fffacd",
+                }}
+              >
+                {formatDate(cycleData.Distillate_Nomination)}
+              </td>
+              {/* Line1 data */}
+              <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                {formatDate(cycleData.A_Scheduling_Date)}
+              </td>
+              <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                {formatDate(cycleData.A_Origin_Date)}
+              </td>
+              <td
+                style={{
+                  border: "1px solid #ddd",
+                  padding: "4px",
+                  backgroundColor: "#fffacd",
+                }}
+              >
+                {formatDate(cycleData.Gas_Nomination)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
       </table>
 
       {bulletinDates && (
-        <div style={{ margin: "20px 0", textAlign: "center" }}>
+        <div style={{ textAlign: "center", margin: "20px 0" }}>
           <div>
             <strong>Origin Bulletin Date:</strong> {bulletinDates.origin}
           </div>
@@ -297,9 +368,9 @@ const NomsTab: React.FC = () => {
               flexWrap: "wrap",
             }}
           >
-            {renderFungibleTable("Atlanta", "ATJ")}
-            {renderFungibleTable("Belton", "BLJ")}
-            {renderFungibleTable("Dorsey", "DYJ")}
+            {renderFungibleTable("Atlanta", "Line 20 - ATJ")}
+            {renderFungibleTable("Belton", "Line 29 - BLJ")}
+            {renderFungibleTable("Dorsey", "Line 32 - DYJ")}
           </div>
         </div>
       )}
