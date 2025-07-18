@@ -53,6 +53,71 @@ const CsvSpreadChart: React.FC<CsvSpreadChartProps> = ({ type }) => {
     return yearColorMap.get(year)!;
   };
 
+  const [refreshStatus, setRefreshStatus] = useState<{
+    message: string;
+    color: string;
+  }>({
+    message: "Checking...",
+    color: "gray",
+  });
+
+  const checkDataFreshness = () => {
+    if (!dataMap || dataMap.size === 0) {
+      setRefreshStatus({ message: "No Data Available", color: "gray" });
+      return;
+    }
+
+    const currentYearData = dataMap.get(currentYear);
+    if (!currentYearData || currentYearData.size === 0) {
+      setRefreshStatus({ message: "No Current Data", color: "gray" });
+      return;
+    }
+
+    const sortedDates = Array.from(currentYearData.keys())
+      .map((d) => d.replace("/", "-"))
+      .sort((a, b) => {
+        const [aMonth, aDay] = a.split("-").map(Number);
+        const [bMonth, bDay] = b.split("-").map(Number);
+        return (
+          new Date(2000, aMonth - 1, aDay).getTime() -
+          new Date(2000, bMonth - 1, bDay).getTime()
+        );
+      });
+
+    const lastDateStr = sortedDates.pop();
+    if (!lastDateStr) {
+      setRefreshStatus({ message: "No Dates Found", color: "gray" });
+      return;
+    }
+
+    const [month, day] = lastDateStr.split("-").map(Number);
+    const lastDataDate = new Date(new Date().getFullYear(), month - 1, day);
+    lastDataDate.setHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    if (lastDataDate.getTime() === today.getTime()) {
+      setRefreshStatus({ message: "Data Is Up-To-Date", color: "green" });
+    } else if (lastDataDate.getTime() === yesterday.getTime()) {
+      setRefreshStatus({
+        message: "Data Is Up-To-Date (Yesterday)",
+        color: "green",
+      });
+    } else {
+      setRefreshStatus({
+        message: `Data Stale (Last: ${lastDateStr})`,
+        color: "red",
+      });
+    }
+  };
+  
+
+  
+
 
 useEffect(() => {
   if (type === "91Chi" && user?.unsafeMetadata?.tariffConstant91Chi) {
@@ -96,6 +161,7 @@ const saveTariffConstant = async () => {
           ])
         );
         setDataMap(parsed);
+        checkDataFreshness();
       } catch (err) {
         setError("Failed to load data");
       } finally {
@@ -104,6 +170,13 @@ const saveTariffConstant = async () => {
     };
     fetchData();
   }, [type]);
+
+  useEffect(() => {
+    if (dataMap.size > 0) {
+      checkDataFreshness();
+    }
+  }, [dataMap]);
+  
 
   const getAllDates = () => {
     const allDates = new Set<string>();
@@ -284,6 +357,58 @@ const saveTariffConstant = async () => {
 
   return (
     <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: "20px",
+          marginBottom: "20px",
+        }}
+      >
+        <button
+          onClick={() => {
+            setIsLoading(true);
+            fetch(
+              `https://rioseasonalspreads-production.up.railway.app/getBetweenSpreads?type=${type}`
+            )
+              .then((res) => res.json())
+              .then((json) => {
+                const parsed = new Map<string, Map<string, number>>(
+                  Object.entries(json).map(([year, entries]) => [
+                    year,
+                    new Map(Object.entries(entries as Record<string, number>)),
+                  ])
+                );
+                setDataMap(parsed);
+                checkDataFreshness();
+              })
+              .catch(() => setError("Failed to refresh data"))
+              .finally(() => setIsLoading(false));
+          }}
+          disabled={isLoading}
+          style={{
+            padding: "8px 16px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          {isLoading ? "Refreshing..." : "Refresh Data"}
+        </button>
+        <span
+          style={{
+            color: refreshStatus.color,
+            fontWeight: "bold",
+            fontSize: "clamp(12px, 1.2vw, 16px)",
+          }}
+        >
+          {refreshStatus.message}
+        </span>
+      </div>
+
       <div className="graph-container">
         <button
           className="reset-zoom-button"
