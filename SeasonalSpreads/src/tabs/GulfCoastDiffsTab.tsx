@@ -164,20 +164,29 @@ const GulfCoastDiffsTab: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      // First update the spreads
-      const response = await fetch(
-        "https://rioseasonalspreads-production.up.railway.app/updateGC",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const updateSpreads = async () => {
+        try {
+          const response = await fetch(
+            "https://rioseasonalspreads-production.up.railway.app/updateGC",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
-      if (!response.ok) {
-        throw new Error("Failed to update spread data");
-      }
+          if (!response.ok) {
+            throw new Error("Failed to update spread data");
+          }
+          console.log("Spread data updated successfully");
+        } catch (error) {
+          console.error("Error updating spread data:", error);
+        }
+      };
+
+      // Call updateSpreads when component mounts and when commodity changes
+      updateSpreads();
 
       // Then fetch the updated data
       await fetchGCSpreads();
