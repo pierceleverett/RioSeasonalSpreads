@@ -32,35 +32,41 @@ const GulfCoastDiffsTab: React.FC = () => {
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
 
   const checkDataFreshness = () => {
-    if (!dataMap.size) return;
+    if (!dataMap.size) {
+      setRefreshStatus({ message: "No Data Loaded", color: "gray" });
+      return;
+    }
 
     const currentYearData = dataMap.get(currentYear);
-    if (!currentYearData?.size) return;
+    if (!currentYearData?.size) {
+      setRefreshStatus({ message: "No Current Year Data", color: "gray" });
+      return;
+    }
 
-    // Get most recent date string (works with both MM-DD and MM/DD)
     const lastDateStr = Array.from(currentYearData.keys())
       .pop()
       ?.replace("/", "-");
-    if (!lastDateStr) return;
+    if (!lastDateStr) {
+      setRefreshStatus({ message: "No Dates Found", color: "gray" });
+      return;
+    }
 
-    // Parse the last data date (set to midnight)
-    const [month, day] = lastDateStr.split("-").map(Number);
+    // Parse date (handles both MM-DD and MM/DD formats)
+    const [month, day] = lastDateStr.split(/[-\/]/).map(Number);
     const lastDataDate = new Date(new Date().getFullYear(), month - 1, day);
-    lastDataDate.setHours(0, 0, 0, 0); // Normalize to midnight
+    lastDataDate.setHours(0, 0, 0, 0);
 
-    // Create comparison dates (today and yesterday at midnight)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // Compare dates properly
     if (lastDataDate.getTime() === today.getTime()) {
       setRefreshStatus({ message: "Data Is Up-To-Date", color: "green" });
     } else if (lastDataDate.getTime() === yesterday.getTime()) {
       setRefreshStatus({
-        message: "Data Is Up-To-Date (Yesterday)",
+        message: `Data Is Up-To-Date (${lastDateStr})`,
         color: "green",
       });
     } else {
