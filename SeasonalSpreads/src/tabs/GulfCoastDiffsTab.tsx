@@ -32,41 +32,63 @@ const GulfCoastDiffsTab: React.FC = () => {
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
 
   const checkDataFreshness = () => {
-    if (!dataMap.size) {
-      setRefreshStatus({ message: "No Data Loaded", color: "gray" });
+    // Check if dataMap exists and has data
+    if (!dataMap || dataMap.size === 0) {
+      console.warn("Data freshness check: Empty dataMap");
+      setRefreshStatus({ message: "No Data Available", color: "gray" });
       return;
     }
-
+  
     const currentYearData = dataMap.get(currentYear);
-    if (!currentYearData?.size) {
-      setRefreshStatus({ message: "No Current Year Data", color: "gray" });
+    if (!currentYearData || currentYearData.size === 0) {
+      console.warn(`No data found for year ${currentYear}`);
+      setRefreshStatus({ message: "No Current Data", color: "gray" });
       return;
     }
-
-    const lastDateStr = Array.from(currentYearData.keys())
-      .pop()
-      ?.replace("/", "-");
+  
+    // Get the latest date from the data (handles both MM-DD and MM/DD formats)
+    const sortedDates = Array.from(currentYearData.keys())
+      .map(date => date.replace("/", "-"))  // Normalize to MM-DD format
+      .sort((a, b) => {
+        const [aMonth, aDay] = a.split("-").map(Number);
+        const [bMonth, bDay] = b.split("-").map(Number);
+        return (
+          new Date(2000, aMonth - 1, aDay).getTime() -
+          new Date(2000, bMonth - 1, bDay).getTime()
+        );
+      });
+  
+    const lastDateStr = sortedDates.pop();  // Get the most recent date
     if (!lastDateStr) {
       setRefreshStatus({ message: "No Dates Found", color: "gray" });
       return;
     }
-
-    // Parse date (handles both MM-DD and MM/DD formats)
-    const [month, day] = lastDateStr.split(/[-\/]/).map(Number);
+  
+    // Parse the last date (MM-DD format)
+    const [month, day] = lastDateStr.split("-").map(Number);
     const lastDataDate = new Date(new Date().getFullYear(), month - 1, day);
-    lastDataDate.setHours(0, 0, 0, 0);
-
+    lastDataDate.setHours(0, 0, 0, 0);  // Normalize to midnight
+  
+    // Get today's and yesterday's dates (normalized to midnight)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
+  
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-
+  
+    console.log("Date comparison:", {
+      lastDataDate,
+      today,
+      yesterday,
+      lastDateStr,
+    });
+  
+    // Compare last data date with today and yesterday
     if (lastDataDate.getTime() === today.getTime()) {
       setRefreshStatus({ message: "Data Is Up-To-Date", color: "green" });
     } else if (lastDataDate.getTime() === yesterday.getTime()) {
       setRefreshStatus({
-        message: `Data Is Up-To-Date (${lastDateStr})`,
+        message: `Data Is Up-To-Date (Yesterday)`,
         color: "green",
       });
     } else {
@@ -76,6 +98,8 @@ const GulfCoastDiffsTab: React.FC = () => {
       });
     }
   };
+  
+    
 
   useEffect(() => {
     const updateSpreads = async () => {
