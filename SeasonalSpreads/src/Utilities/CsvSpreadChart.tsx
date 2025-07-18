@@ -406,7 +406,7 @@ const saveTariffConstant = async () => {
           setIsLoading(false);
         }
       };
-      
+
       fetchData();
     } catch (error) {
       console.error("Error refreshing data:", error);
