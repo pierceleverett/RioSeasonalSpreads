@@ -210,35 +210,41 @@ const handleRefresh = async () => {
   };
 
   const checkDataFreshness = () => {
-    if (spreadData.size === 0) return;
+    if (!spreadData.size) return;
 
     const currentYearData = spreadData.get(currentYear);
-    if (!currentYearData || currentYearData.size === 0) return;
+    if (!currentYearData?.size) return;
 
-    // Get the most recent date string (e.g., "07-13")
+    // Get most recent date string (works with both MM-DD and MM/DD)
     const lastDateStr = Array.from(currentYearData.keys())
       .pop()
       ?.replace("/", "-");
     if (!lastDateStr) return;
 
-    // Parse the date (assuming current year)
+    // Parse the last data date (set to midnight)
     const [month, day] = lastDateStr.split("-").map(Number);
-    const lastDate = new Date(new Date().getFullYear(), month - 1, day);
+    const lastDataDate = new Date(new Date().getFullYear(), month - 1, day);
+    lastDataDate.setHours(0, 0, 0, 0); // Normalize to midnight
 
-    // Get yesterday's date for comparison
-    const yesterday = new Date();
+    // Create comparison dates (today and yesterday at midnight)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // Update status based on comparison
-    if (lastDate < yesterday) {
+    // Compare dates properly
+    if (lastDataDate.getTime() === today.getTime()) {
+      setRefreshStatus({ message: "Data Is Up-To-Date", color: "green" });
+    } else if (lastDataDate.getTime() === yesterday.getTime()) {
       setRefreshStatus({
-        message: `Data Stale (Last: ${lastDateStr})`,
-        color: "red",
+        message: "Data Is Up-To-Date (Yesterday)",
+        color: "green",
       });
     } else {
       setRefreshStatus({
-        message: "Data Is Up-To-Date",
-        color: "green",
+        message: `Data Stale (Last: ${lastDateStr})`,
+        color: "red",
       });
     }
   };
