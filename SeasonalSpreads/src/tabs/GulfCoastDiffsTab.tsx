@@ -11,7 +11,6 @@ const GulfCoastDiffsTab: React.FC = () => {
     new Map()
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [RefreshTick, setRefreshTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
   const currentYear = new Date().getFullYear().toString();
@@ -56,7 +55,7 @@ const GulfCoastDiffsTab: React.FC = () => {
 
     // Call updateSpreads when component mounts and when commodity changes
     updateSpreads();
-  }, [RefreshTick]); // Add dependencies as needed
+  }, []); // Add dependencies as needed
 
   useEffect(() => {
     fetchGCSpreads();
@@ -161,7 +160,35 @@ const GulfCoastDiffsTab: React.FC = () => {
   };
 
   const handleRefresh = async () => {
-    setRefreshTick(RefreshTick + 1)
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // First update the spreads
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/updateGC",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update spread data");
+      }
+
+      // Then fetch the updated data
+      await fetchGCSpreads();
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to refresh data"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const chartOptions: ChartOptions<"line"> = {
