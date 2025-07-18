@@ -196,10 +196,10 @@ const NomsTab: React.FC = () => {
                 Cycle
               </th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                62 (-2bd)
+                62
               </th>
               <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                54 (-2bd)
+                54
               </th>
             </tr>
           </thead>
@@ -228,6 +228,10 @@ const NomsTab: React.FC = () => {
       </div>
     );
   };
+
+  if (fungibleData) {
+  console.log(fungibleData.currentData.reportDate);
+  }
 
   if (loading) return <div style={{ textAlign: "center" }}>Loading...</div>;
   if (error)
@@ -359,10 +363,10 @@ const NomsTab: React.FC = () => {
       {/* Fungible Tables */}
       {fungibleData && (
         <div style={{ marginTop: 40 }}>
-          <h2 style={{ textAlign: "center" }}>Fungible Delivery Dates</h2>
+          <h2 style={{ textAlign: "center" }}>Stub Lines</h2>
           <div style={{ textAlign: "center", marginBottom: 20 }}>
             <strong>Report Date:</strong>{" "}
-            {formatDate(fungibleData.currentData.reportDate)}
+            {fungibleData.currentData.reportDate}
           </div>
 
           <div
