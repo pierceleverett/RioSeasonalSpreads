@@ -68,6 +68,10 @@ const NomsTab: React.FC = () => {
     // ... (other years would continue here)
   ];
 
+  function isNomData(obj: any): obj is NomData {
+    return "Origin_Bulletin_Date" in obj && "DateInfo_Bulletin_Date" in obj;
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -97,8 +101,9 @@ const NomsTab: React.FC = () => {
         setFungibleData(fungibleResult);
 
         // Get bulletin dates
+        // Update the bulletin dates section in the fetchData function
         const firstCycle = Object.values(mainLineResult)[0];
-        if (firstCycle) {
+        if (firstCycle && isNomData(firstCycle)) {
           setBulletinDates({
             origin: firstCycle.Origin_Bulletin_Date,
             dateInfo: firstCycle.DateInfo_Bulletin_Date,
