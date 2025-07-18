@@ -210,23 +210,36 @@ const handleRefresh = async () => {
   };
 
   const checkDataFreshness = () => {
-    if (spreadData.size === 0 || availableYears.length === 0) return;
-    
-    const currentYearData = spreadData.get(availableYears[availableYears.length - 1]);
-    if (!currentYearData) return;
-    
-    const lastDateStr = Array.from(currentYearData.keys()).pop();
+    if (spreadData.size === 0) return;
+
+    const currentYearData = spreadData.get(currentYear);
+    if (!currentYearData || currentYearData.size === 0) return;
+
+    // Get the most recent date string (e.g., "07-13")
+    const lastDateStr = Array.from(currentYearData.keys())
+      .pop()
+      ?.replace("/", "-");
     if (!lastDateStr) return;
-    
-    const [month, day] = lastDateStr.split('/').map(Number);
+
+    // Parse the date (assuming current year)
+    const [month, day] = lastDateStr.split("-").map(Number);
     const lastDate = new Date(new Date().getFullYear(), month - 1, day);
+
+    // Get yesterday's date for comparison
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
+    // Update status based on comparison
     if (lastDate < yesterday) {
-      setRefreshStatus({ message: "Refresh Needed", color: "red" });
+      setRefreshStatus({
+        message: `Data Stale (Last: ${lastDateStr})`,
+        color: "red",
+      });
     } else {
-      setRefreshStatus({ message: "Data Is Up-To-Date", color: "green" });
+      setRefreshStatus({
+        message: "Data Is Up-To-Date",
+        color: "green",
+      });
     }
   };
 
@@ -235,6 +248,12 @@ const handleRefresh = async () => {
       checkDataFreshness();
     }
   }, [spreadData, availableYears]);
+
+  useEffect(() => {
+    if (spreadData.size > 0) {
+      checkDataFreshness();
+    }
+  }, []);
 
   const allDates = getAllDates();
   const last30Dates = getLast30Dates();
@@ -416,7 +435,7 @@ const handleRefresh = async () => {
         >
           {isLoading ? "Refreshing..." : "Refresh Data"}
         </button>
-        
+
         <span
           style={{
             color: refreshStatus.color,
