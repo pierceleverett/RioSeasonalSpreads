@@ -130,14 +130,14 @@ const GulfCoastDiffsTab: React.FC = () => {
 
   useEffect(() => {
     fetchGCSpreads();
-    checkDataFreshness()
   }, [code1, code2]);
 
   useEffect(() => {
-      if (dataMap.size > 0) {
-        checkDataFreshness();
-      }
-    }, []);
+    if (dataMap.size > 0) {
+      checkDataFreshness();
+    }
+  }, [dataMap]);
+  
 
   const fetchGCSpreads = async () => {
     setIsLoading(true);
