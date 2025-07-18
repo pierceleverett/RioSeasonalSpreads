@@ -10,6 +10,10 @@ const GulfCoastDiffsTab: React.FC = () => {
   const [dataMap, setDataMap] = useState<Map<string, Map<string, number>>>(
     new Map()
   );
+  const [refreshStatus, setRefreshStatus] = useState<{
+    message: string;
+    color: string;
+  }>({ message: "Checking...", color: "gray" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
@@ -27,9 +31,45 @@ const GulfCoastDiffsTab: React.FC = () => {
 
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
 
+  const checkDataFreshness = () => {
+    if (!dataMap.size) return;
 
+    const currentYearData = dataMap.get(currentYear);
+    if (!currentYearData?.size) return;
 
-  
+    // Get most recent date string (works with both MM-DD and MM/DD)
+    const lastDateStr = Array.from(currentYearData.keys())
+      .pop()
+      ?.replace("/", "-");
+    if (!lastDateStr) return;
+
+    // Parse the last data date (set to midnight)
+    const [month, day] = lastDateStr.split("-").map(Number);
+    const lastDataDate = new Date(new Date().getFullYear(), month - 1, day);
+    lastDataDate.setHours(0, 0, 0, 0); // Normalize to midnight
+
+    // Create comparison dates (today and yesterday at midnight)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Compare dates properly
+    if (lastDataDate.getTime() === today.getTime()) {
+      setRefreshStatus({ message: "Data Is Up-To-Date", color: "green" });
+    } else if (lastDataDate.getTime() === yesterday.getTime()) {
+      setRefreshStatus({
+        message: "Data Is Up-To-Date (Yesterday)",
+        color: "green",
+      });
+    } else {
+      setRefreshStatus({
+        message: `Data Stale (Last: ${lastDateStr})`,
+        color: "red",
+      });
+    }
+  };
 
   useEffect(() => {
     const updateSpreads = async () => {
@@ -47,6 +87,7 @@ const GulfCoastDiffsTab: React.FC = () => {
         if (!response.ok) {
           throw new Error("Failed to update spread data");
         }
+        checkDataFreshness()
         console.log("Spread data updated successfully");
       } catch (error) {
         console.error("Error updating spread data:", error);
@@ -59,7 +100,14 @@ const GulfCoastDiffsTab: React.FC = () => {
 
   useEffect(() => {
     fetchGCSpreads();
+    checkDataFreshness()
   }, [code1, code2]);
+
+  useEffect(() => {
+      if (dataMap.size > 0) {
+        checkDataFreshness();
+      }
+    }, []);
 
   const fetchGCSpreads = async () => {
     setIsLoading(true);
@@ -327,6 +375,15 @@ const GulfCoastDiffsTab: React.FC = () => {
         >
           {isLoading ? "Refreshing..." : "Refresh Data"}
         </button>
+        <span
+          style={{
+            color: refreshStatus.color,
+            fontWeight: "bold",
+            fontSize: "clamp(12px, 1.2vw, 16px)",
+          }}
+        >
+          {refreshStatus.message}
+        </span>
       </div>
 
       {isLoading ? (
