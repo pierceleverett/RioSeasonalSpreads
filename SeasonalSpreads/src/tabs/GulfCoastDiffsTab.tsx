@@ -56,7 +56,7 @@ const GulfCoastDiffsTab: React.FC = () => {
 
     // Call updateSpreads when component mounts and when commodity changes
     updateSpreads();
-  }, []); // Add dependencies as needed
+  }, [RefreshTick]); // Add dependencies as needed
 
   useEffect(() => {
     fetchGCSpreads();
