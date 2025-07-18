@@ -370,7 +370,7 @@ const saveTariffConstant = async () => {
           onClick={() => {
             setIsLoading(true);
             fetch(
-              `https://rioseasonalspreads-production.up.railway.app/getBetweenSpreads?type=${type}`
+              `https://rioseasonalspreads-production.up.railway.app/updateGC`
             )
               .then((res) => res.json())
               .then((json) => {
