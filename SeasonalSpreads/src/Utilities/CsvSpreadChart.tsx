@@ -355,6 +355,69 @@ const saveTariffConstant = async () => {
     },
   };
 
+  const handleRefresh = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const updateSpreads = async () => {
+        try {
+          const response = await fetch(
+            "https://rioseasonalspreads-production.up.railway.app/updateGC",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to update spread data");
+          }
+          console.log("Spread data updated successfully");
+        } catch (error) {
+          console.error("Error updating spread data:", error);
+        }
+      };
+
+      // Call updateSpreads when component mounts and when commodity changes
+      updateSpreads();
+
+      // Then fetch the updated data
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          const res = await fetch(
+            `https://rioseasonalspreads-production.up.railway.app/getBetweenSpreads?type=${type}`
+          );
+          const json = await res.json();
+          const parsed = new Map<string, Map<string, number>>(
+            Object.entries(json).map(([year, entries]) => [
+              year,
+              new Map(Object.entries(entries as Record<string, number>)),
+            ])
+          );
+          setDataMap(parsed);
+          checkDataFreshness();
+        } catch (err) {
+          setError("Failed to load data");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchData();
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to refresh data"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       <div
@@ -367,25 +430,7 @@ const saveTariffConstant = async () => {
         }}
       >
         <button
-          onClick={() => {
-            setIsLoading(true);
-            fetch(
-              `https://rioseasonalspreads-production.up.railway.app/updateGC`
-            )
-              .then((res) => res.json())
-              .then((json) => {
-                const parsed = new Map<string, Map<string, number>>(
-                  Object.entries(json).map(([year, entries]) => [
-                    year,
-                    new Map(Object.entries(entries as Record<string, number>)),
-                  ])
-                );
-                setDataMap(parsed);
-                checkDataFreshness();
-              })
-              .catch(() => setError("Failed to refresh data"))
-              .finally(() => setIsLoading(false));
-          }}
+          onClick={handleRefresh}
           disabled={isLoading}
           style={{
             padding: "8px 16px",
