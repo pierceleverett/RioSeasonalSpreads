@@ -27,6 +27,8 @@ const GulfCoastDiffsTab: React.FC = () => {
 
   const codeOptions = ["A", "D", "F", "M", "H", "Nap"];
 
+
+
   
 
   useEffect(() => {

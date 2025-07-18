@@ -58,6 +58,11 @@ const MONTH_TO_CODE_MAPPING: Record<number, MonthCode> = {
   12: 'Z'
 };
 
+const [refreshStatus, setRefreshStatus] = useState<{
+  message: string;
+  color: string;
+}>({ message: "Checking...", color: "gray" });
+
 // Function to get the next month codes
 const getDefaultMonthCodes = (): [MonthCode, MonthCode] => {
   const currentDate = new Date();
@@ -124,6 +129,7 @@ const handleRefresh = async () => {
     console.log("Spread data updated successfully");
     // Refresh the data after updating
     await fetchSpreadData();
+    checkDataFreshness();
   } catch (error) {
     console.error("Error updating spread data:", error);
     setError(error instanceof Error ? error.message : "Failed to refresh data");
@@ -202,6 +208,33 @@ const handleRefresh = async () => {
     const index = availableYears.indexOf(year) % palette.length;
     return palette[index].replace("OPACITY", opacity.toString());
   };
+
+  const checkDataFreshness = () => {
+    if (spreadData.size === 0 || availableYears.length === 0) return;
+    
+    const currentYearData = spreadData.get(availableYears[availableYears.length - 1]);
+    if (!currentYearData) return;
+    
+    const lastDateStr = Array.from(currentYearData.keys()).pop();
+    if (!lastDateStr) return;
+    
+    const [month, day] = lastDateStr.split('/').map(Number);
+    const lastDate = new Date(new Date().getFullYear(), month - 1, day);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (lastDate < yesterday) {
+      setRefreshStatus({ message: "Refresh Needed", color: "red" });
+    } else {
+      setRefreshStatus({ message: "Data Is Up-To-Date", color: "green" });
+    }
+  };
+
+  useEffect(() => {
+    if (spreadData.size > 0) {
+      checkDataFreshness();
+    }
+  }, [spreadData, availableYears]);
 
   const allDates = getAllDates();
   const last30Dates = getLast30Dates();
@@ -339,6 +372,7 @@ const handleRefresh = async () => {
           justifyContent: "center",
           gap: "10px",
           marginBottom: "20px",
+          alignItems: "center",
         }}
       >
         <select
@@ -382,6 +416,16 @@ const handleRefresh = async () => {
         >
           {isLoading ? "Refreshing..." : "Refresh Data"}
         </button>
+        
+        <span
+          style={{
+            color: refreshStatus.color,
+            fontWeight: "bold",
+            fontSize: "clamp(12px, 1.2vw, 16px)",
+          }}
+        >
+          {refreshStatus.message}
+        </span>
       </div>
 
       {isLoading ? (
