@@ -265,13 +265,13 @@ const NomsTab: React.FC = () => {
             </th>
             <th
               colSpan={3}
-              style={{ border: "1px solid #ddd", padding: "8px" }}
+              style={{ border: "1px solid #ddd", padding: "8px", textAlign: "center" }}
             >
               Line 2
             </th>
             <th
               colSpan={3}
-              style={{ border: "1px solid #ddd", padding: "8px" }}
+              style={{ border: "1px solid #ddd", padding: "8px", textAlign: "center"}}
             >
               Line 1
             </th>
