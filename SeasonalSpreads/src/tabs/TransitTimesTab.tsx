@@ -96,7 +96,7 @@ const TransitTimesTab: React.FC = () => {
             transition: "all 0.3s ease",
             minWidth: "180px",
           }}
-          onClick={() => setActiveTab("colonialFungible")}
+          onClick={() => setActiveTab("colonialOrigin")}
         >
           Colonial Latest Origins
         </button>
