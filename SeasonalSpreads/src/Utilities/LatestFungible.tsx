@@ -179,235 +179,234 @@ const FungibleDeliveriesTable: React.FC = () => {
     );
   };
 
-  const renderCycleTabs = () => {
-    if (!apiData) return null;
-
-    return (
-      <div
-        style={{
-          display: "flex",
-          marginBottom: "20px",
-          overflowX: "auto",
-          paddingBottom: "8px",
-        }}
-      >
-        {Object.keys(apiData.currentData.data)
-          .sort()
-          .map((cycle) => (
-            <button
-              key={cycle}
-              onClick={() => setSelectedCycle(cycle)}
-              style={{
-                padding: "8px 16px",
-                marginRight: "8px",
-                backgroundColor:
-                  selectedCycle === cycle ? "#1890ff" : "#f5f5f5",
-                color: selectedCycle === cycle ? "white" : "#333",
-                border: "1px solid #d9d9d9",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: "600",
-                fontSize: "14px",
-                transition: "all 0.3s",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-              }}
-            >
-              {cycle}
-            </button>
-          ))}
-      </div>
-    );
-  };
-
   if (loading && !apiData) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
-return (
-  <div
-    style={{
-      padding: "15px",
-      fontFamily: "Segoe UI, sans-serif",
-      maxWidth: "1400px",
-      margin: "0 auto",
-      fontSize: "13px", // Reduced base font size
-    }}
-  >
+  return (
     <div
       style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: "15px",
+        padding: "15px",
+        fontFamily: "Segoe UI, sans-serif",
+        maxWidth: "1400px",
+        margin: "0 auto",
+        fontSize: "13px",
       }}
     >
-      <button
-        onClick={handleRefresh}
+      {/* Centered header with refresh button and cycle tabs */}
+      <div
         style={{
-          backgroundColor: "#1890ff",
-          color: "white",
-          border: "none",
-          padding: "6px 12px",
-          borderRadius: "3px",
-          cursor: "pointer",
-          fontWeight: "600",
-          fontSize: "12px", // Smaller button text
+          display: "flex",
+          justifyContent: "center",
+          marginBottom: "15px",
+          width: "100%",
         }}
       >
-        Refresh Data
-      </button>
-    </div>
-
-    {apiData && (
-      <>
-        {renderCycleTabs()}
-
-        <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
-          <div
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+            maxWidth: "100%",
+            overflowX: "auto",
+            padding: "8px 0",
+          }}
+        >
+          <button
+            onClick={handleRefresh}
             style={{
-              width: "120px", // Narrower product list
+              backgroundColor: "#1890ff",
+              color: "white",
+              border: "none",
+              padding: "6px 12px",
+              borderRadius: "3px",
+              cursor: "pointer",
+              fontWeight: "600",
+              fontSize: "12px",
               flexShrink: 0,
-              justifyContent: "center"
             }}
           >
-            <h2
+            Refresh Data
+          </button>
+
+          {apiData && (
+            <div
               style={{
-                fontSize: "14px", // Smaller heading
-                fontWeight: "600",
-                marginBottom: "10px",
+                display: "flex",
+                gap: "8px",
+                flexShrink: 0,
+                paddingRight: "15px",
               }}
             >
-              Products
-            </h2>
-            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-              {getProductsForCycle().map((product) => (
-                <div key={product} style={{ marginBottom: "6px" }}>
-                  <label style={{ display: "flex", alignItems: "center" }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedProducts.includes(product)}
-                      onChange={() => handleProductToggle(product)}
-                      style={{
-                        marginRight: "6px",
-                        width: "14px",
-                        height: "14px",
-                      }}
-                    />
-                    <span style={{ fontSize: "12px" }}>{product}</span>
-                  </label>
-                </div>
-              ))}
+              {Object.keys(apiData.currentData.data)
+                .sort()
+                .map((cycle) => (
+                  <button
+                    key={cycle}
+                    onClick={() => setSelectedCycle(cycle)}
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor:
+                        selectedCycle === cycle ? "#1890ff" : "#f5f5f5",
+                      color: selectedCycle === cycle ? "white" : "#333",
+                      border: "1px solid #d9d9d9",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                      fontSize: "14px",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {cycle}
+                  </button>
+                ))}
             </div>
-          </div>
+          )}
+        </div>
+      </div>
 
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {selectedProducts.length > 0 ? (
-              <div
-                style={{
-                  overflowX: "auto",
-                  border: "1px solid #e0e0e0",
-                  borderRadius: "3px",
-                }}
-              >
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    minWidth: "900px", // More compact table
-                    fontSize: "12px", // Smaller table text
-                  }}
-                >
-                  <thead>
-                    <tr style={{ backgroundColor: "#f5f5f5" }}>
-                      <th
-                        style={{
-                          padding: "8px",
-                          textAlign: "left",
-                          borderBottom: "1px solid #e0e0e0",
-                          fontWeight: "600",
-                          minWidth: "60px", // Narrower columns
-                        }}
-                      >
-                        Product
-                      </th>
-                      <th
-                        style={{
-                          padding: "8px",
-                          textAlign: "left",
-                          borderBottom: "1px solid #e0e0e0",
-                          fontWeight: "600",
-                          minWidth: "50px",
-                        }}
-                      >
-                        Cycle
-                      </th>
-                      {locations.map((location) => (
-                        <th
-                          key={location}
-                          style={{
-                            padding: "8px",
-                            textAlign: "left",
-                            borderBottom: "1px solid #e0e0e0",
-                            fontWeight: "600",
-                            minWidth: "80px", // Narrower location columns
-                          }}
-                        >
-                          {location}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedProducts.map((product) => (
-                      <tr
-                        key={product}
-                        style={{ borderBottom: "1px solid #e0e0e0" }}
-                      >
-                        <td style={{ padding: "8px" }}>{product}</td>
-                        <td style={{ padding: "8px" }}>{selectedCycle}</td>
-                        {locations.map((location) => (
-                          <td
-                            key={`${product}-${location}`}
-                            style={{ padding: "8px" }}
-                          >
-                            {renderDateWithChange(product, location)}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+      {/* Main content area */}
+      <div style={{ display: "flex", gap: "15px" }}>
+        {/* Product selection panel */}
+        <div style={{ width: "120px", flexShrink: 0 }}>
+          <h2
+            style={{
+              fontSize: "14px",
+              fontWeight: "600",
+              marginBottom: "10px",
+            }}
+          >
+            Products
+          </h2>
+          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+            {getProductsForCycle().map((product) => (
+              <div key={product} style={{ marginBottom: "6px" }}>
+                <label style={{ display: "flex", alignItems: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product)}
+                    onChange={() => handleProductToggle(product)}
+                    style={{
+                      marginRight: "6px",
+                      width: "14px",
+                      height: "14px",
+                    }}
+                  />
+                  <span style={{ fontSize: "12px" }}>{product}</span>
+                </label>
               </div>
-            ) : (
-              <div
+            ))}
+          </div>
+        </div>
+
+        {/* Delivery table */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {selectedProducts.length > 0 ? (
+            <div
+              style={{
+                overflowX: "auto",
+                border: "1px solid #e0e0e0",
+                borderRadius: "3px",
+              }}
+            >
+              <table
                 style={{
-                  border: "1px solid #e0e0e0",
-                  borderRadius: "4px",
-                  padding: "10px",
-                  textAlign: "center",
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: "900px",
                   fontSize: "12px",
                 }}
               >
-                Select products to display the delivery table
-              </div>
-            )}
-          </div>
+                <thead>
+                  <tr style={{ backgroundColor: "#f5f5f5" }}>
+                    <th
+                      style={{
+                        padding: "8px",
+                        textAlign: "left",
+                        borderBottom: "1px solid #e0e0e0",
+                        fontWeight: "600",
+                        minWidth: "60px",
+                      }}
+                    >
+                      Product
+                    </th>
+                    <th
+                      style={{
+                        padding: "8px",
+                        textAlign: "left",
+                        borderBottom: "1px solid #e0e0e0",
+                        fontWeight: "600",
+                        minWidth: "50px",
+                      }}
+                    >
+                      Cycle
+                    </th>
+                    {locations.map((location) => (
+                      <th
+                        key={location}
+                        style={{
+                          padding: "8px",
+                          textAlign: "left",
+                          borderBottom: "1px solid #e0e0e0",
+                          fontWeight: "600",
+                          minWidth: "80px",
+                        }}
+                      >
+                        {location}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedProducts.map((product) => (
+                    <tr
+                      key={product}
+                      style={{ borderBottom: "1px solid #e0e0e0" }}
+                    >
+                      <td style={{ padding: "8px" }}>{product}</td>
+                      <td style={{ padding: "8px" }}>{selectedCycle}</td>
+                      {locations.map((location) => (
+                        <td
+                          key={`${product}-${location}`}
+                          style={{ padding: "8px" }}
+                        >
+                          {renderDateWithChange(product, location)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div
+              style={{
+                border: "1px solid #e0e0e0",
+                borderRadius: "4px",
+                padding: "10px",
+                textAlign: "center",
+                fontSize: "12px",
+              }}
+            >
+              Select products to display the delivery table
+            </div>
+          )}
         </div>
+      </div>
 
-        <div
-          style={{
-            marginTop: "15px",
-            fontSize: "12px",
-            color: "#666",
-            textAlign: "right",
-          }}
-        >
-          Report Date: {apiData.currentReportDate || "N/A"}
-        </div>
-      </>
-    )}
-  </div>
-);
+      {/* Report date footer */}
+      <div
+        style={{
+          marginTop: "15px",
+          fontSize: "12px",
+          color: "#666",
+          textAlign: "right",
+        }}
+      >
+        Report Date: {apiData?.currentReportDate || "N/A"}
+      </div>
+    </div>
+  );
 };
 
 export default FungibleDeliveriesTable;
