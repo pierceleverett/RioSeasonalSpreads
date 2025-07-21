@@ -14,6 +14,7 @@ import Handlers.GCUpdateHandler;
 import Handlers.LatestUploadHandler;
 import Handlers.MagellanGraphHandler;
 import Handlers.MainLineHandler;
+import Handlers.OriginStartsHandler;
 import Handlers.RecentFungibleHandler;
 import Handlers.SpreadHandler;
 import Handlers.SpreadsUpdaterHandler;
@@ -92,6 +93,7 @@ public final class Server {
       Spark.get("/getRecentFungible", new RecentFungibleHandler());
       Spark.post("/updateGC", new GCUpdateHandler());
       Spark.get("/getMainLine", new MainLineHandler());
+      Spark.get("/getOriginStart", new OriginStartsHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);
