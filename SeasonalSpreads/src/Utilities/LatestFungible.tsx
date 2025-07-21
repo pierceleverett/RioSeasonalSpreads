@@ -267,6 +267,7 @@ return (
             style={{
               width: "120px", // Narrower product list
               flexShrink: 0,
+              justifyContent: "center"
             }}
           >
             <h2
