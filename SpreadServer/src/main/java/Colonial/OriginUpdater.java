@@ -22,6 +22,7 @@ import org.jsoup.select.Elements;
 public class OriginUpdater {
   private static final String ORIGIN_CSV_PATH = "data/Colonial/Origin/HTNOrigin.csv";
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yy");
+  public static List<String> processedCycles = new ArrayList<>();
 
   public static void main(String[] args) {
     try {
@@ -29,8 +30,7 @@ public class OriginUpdater {
       String accessToken = getAccessToken();
 
       System.out.println("Updating origin data from most recent email...");
-      LocalDate bulletindate = updateFromMostRecentOriginEmail(accessToken);
-      System.out.println(bulletindate);
+      Map<String, List<String>> response = updateFromMostRecentOriginEmail(accessToken);
 
       System.out.println("=== Update completed ===");
     } catch (Exception e) {
@@ -39,7 +39,8 @@ public class OriginUpdater {
     }
   }
 
-  public static LocalDate updateFromMostRecentOriginEmail(String accessToken) throws IOException {
+  public static Map<String, List<String>> updateFromMostRecentOriginEmail(String accessToken) throws IOException {
+    processedCycles.clear();
     Message message = fetchMostRecentOriginEmail(accessToken, "automatedreports@rioenergy.com");
     if (message == null) {
       System.out.println("No origin starts email found in the last 30 days");
@@ -53,7 +54,12 @@ public class OriginUpdater {
 
     // Parse email content and update CSV
     processOriginStartsEmail(message.body.content);
-    return bulletinDate;
+    HashMap<String, List<String>> returnMap = new HashMap<>();
+    returnMap.put("Processed Cycles", processedCycles);
+    ArrayList<String> dateList = new ArrayList<>();
+    dateList.add(bulletinDate.toString());
+    returnMap.put("Bulletin Date", dateList);
+    return returnMap;
   }
 
   public static void processOriginStartsEmail(String htmlContent) throws IOException {
@@ -161,6 +167,8 @@ public class OriginUpdater {
         String location = cells.get(locationCol).text().trim();
         if ("HTN/PDA".equalsIgnoreCase(location)) {
           String cycle = cells.get(cycleCol).text().trim();
+          processedCycles.add(cycle);
+
           System.out.println("\nProcessing HTN/PDA row for cycle " + cycle);
 
           // Get dates for each fuel type

@@ -28,12 +28,13 @@ public class OriginStartsHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
         String accessToken = getAccessToken();
     System.out.println("updating data");
-        LocalDate bulletinDate = updateFromMostRecentOriginEmail(accessToken);
+        Map<String, List<String>> outputMap = updateFromMostRecentOriginEmail(accessToken);
+        String bulletinDate = outputMap.get("Bulletin Date").get(0);
+        List<String> currentCycles = outputMap.get("Processed Cycles");
     System.out.println("update done");
-        String date = bulletinDate.toString();
         Map<String, Map<String, String>> result = new LinkedHashMap<>();
         Map<String, String> dateMap = new HashMap<>();
-        dateMap.put("Date", date);
+        dateMap.put("Date", bulletinDate);
         result.put("Bulletin Date", dateMap);
         List<String> cycleNumbers = new ArrayList<>();
         Map<String, List<String>> productDates = new HashMap<>();
@@ -66,13 +67,54 @@ public class OriginStartsHandler implements Route {
         }
 
         // Determine the last 10 cycles (assuming cycles are numbered 1-72)
-        int lastCycle = productDates.get("62").size();
-        System.out.println("last cycle: " + lastCycle);
-        int startCycle = Math.max(1, lastCycle - 9);
+        String lastCycle = currentCycles.get(currentCycles.size() - 1);
+        int lastCyc = Integer.parseInt(lastCycle);
+        System.out.println("last cycle: " + lastCyc);
+        String startCycle = currentCycles.get(0);
+        int firstCyc = Integer.parseInt(startCycle);
+
+    if (lastCyc < firstCyc) {
+      // Handle the wrap-around case (start > end)
+
+      // First part: from firstCyc to 72
+      for (int i = firstCyc - 1; i < 72; i++) {
+        String cycle = cycleNumbers.get(i);
+        Map<String, String> productDateMap = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> entry : productDates.entrySet()) {
+          String product = entry.getKey();
+          List<String> dates = entry.getValue();
+          if (i < dates.size()) {
+            productDateMap.put(product, dates.get(i));
+          }
+        }
+
+        result.put(cycle, productDateMap);
+      }
+
+      // Second part: from 1 to lastCyc
+      for (int i = 0; i < lastCyc; i++) {
+        String cycle = cycleNumbers.get(i);
+        Map<String, String> productDateMap = new HashMap<>();
+
+        for (Map.Entry<String, List<String>> entry : productDates.entrySet()) {
+          String product = entry.getKey();
+          List<String> dates = entry.getValue();
+          if (i < dates.size()) {
+            productDateMap.put(product, dates.get(i));
+          }
+        }
+
+        result.put(cycle, productDateMap);
+      }
+    }
+
+    else {
+
 
 
         // Build the result map for last 10 cycles
-        for (int i = startCycle - 1; i < lastCycle; i++) {
+        for (int i = firstCyc - 1; i < lastCyc; i++) {
           String cycle = cycleNumbers.get(i);
           Map<String, String> productDateMap = new HashMap<>();
 
@@ -86,6 +128,7 @@ public class OriginStartsHandler implements Route {
 
           result.put(cycle, productDateMap);
         }
+    }
 
     Moshi moshi = new Moshi.Builder().build();
     Type innerMapType = Types.newParameterizedType(Map.class, String.class, String.class);

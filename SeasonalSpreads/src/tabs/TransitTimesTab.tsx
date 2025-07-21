@@ -86,8 +86,8 @@ const TransitTimesTab: React.FC = () => {
             padding: "10px 20px",
             margin: "0 5px",
             backgroundColor:
-              activeTab === "colonialFungible" ? "#1890ff" : "#f0f0f0",
-            color: activeTab === "colonialFungible" ? "white" : "#333",
+              activeTab === "colonialOrigin" ? "#1890ff" : "#f0f0f0",
+            color: activeTab === "colonialOrigin" ? "white" : "#333",
             border: "none",
             borderRadius: "4px 4px 0 0",
             cursor: "pointer",

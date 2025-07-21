@@ -446,7 +446,7 @@ public class MainLine {
 
     // First update the origin starts from emails
     String accessToken = getAccessToken();
-    LocalDate originBulletinDate = updateFromMostRecentOriginEmail(accessToken);
+    String originBulletinDate = updateFromMostRecentOriginEmail(accessToken).get("Bulletin Date").get(0);
 
     // Load origin data from CSV
     Map<String, Map<String, String>> originData = loadOriginData();
