@@ -174,9 +174,6 @@ const FuelDateTable: React.FC = () => {
             marginTop: "5px",
           }}
         >
-          {data.isNewerData
-            ? "✓ Newer data available"
-            : "⚠ Data may be outdated"}
         </div>
       </div>
     </div>
