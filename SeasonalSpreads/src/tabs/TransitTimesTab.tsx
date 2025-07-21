@@ -59,7 +59,7 @@ const TransitTimesTab: React.FC = () => {
           }}
           onClick={() => setActiveTab("colonial")}
         >
-          Colonial Pipeline
+          Colonial Transit Times
         </button>
         <button
           style={{
@@ -78,7 +78,7 @@ const TransitTimesTab: React.FC = () => {
           }}
           onClick={() => setActiveTab("colonialFungible")}
         >
-          Colonial Fungible
+          Colonial Bulletins
         </button>
       </div>
 
@@ -114,7 +114,7 @@ const TransitTimesTab: React.FC = () => {
                 color: "#333",
               }}
             >
-              Colonial Pipeline Transit Times
+              Colonial Transit Times
             </h2>
             <ColonialTransitChart />
           </div>
@@ -129,7 +129,7 @@ const TransitTimesTab: React.FC = () => {
                 color: "#333",
               }}
             >
-              Colonial Fungible Deliveries
+              Colonial Bulletins
             </h2>
             <FungibleDeliveriesTable />
           </div>
