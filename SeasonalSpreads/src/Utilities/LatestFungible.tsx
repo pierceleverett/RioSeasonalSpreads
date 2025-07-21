@@ -262,7 +262,7 @@ return (
       <>
         {renderCycleTabs()}
 
-        <div style={{ display: "flex", gap: "15px" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "15px" }}>
           <div
             style={{
               width: "120px", // Narrower product list
