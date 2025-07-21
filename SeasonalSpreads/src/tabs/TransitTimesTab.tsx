@@ -98,7 +98,7 @@ const TransitTimesTab: React.FC = () => {
           }}
           onClick={() => setActiveTab("colonialOrigin")}
         >
-          Colonial Latest Origins
+          Colonial Latest Origin
         </button>
       </div>
 
