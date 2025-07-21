@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import ExplorerTransitChart from "../Utilities/ExplorerTransitChart";
 import ColonialTransitChart from "../Utilities/ColonialTransitChart";
-import FungibleDeliveriesTable from "../Utilities/LatestFungible"; // Import your new component
+import FungibleDeliveriesTable from "../Utilities/LatestFungible";
+import OriginStartsTable from "../Utilities/LatestOrigin" // Import your new component
 
 const TransitTimesTab: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "explorer" | "colonial" | "colonialFungible"
+    "explorer" | "colonial" | "colonialFungible" | "colonialOrigin"
   >("explorer");
 
   return (
@@ -78,7 +79,26 @@ const TransitTimesTab: React.FC = () => {
           }}
           onClick={() => setActiveTab("colonialFungible")}
         >
-          Colonial Bulletins
+          Colonial Latest Fungible
+        </button>
+        <button
+          style={{
+            padding: "10px 20px",
+            margin: "0 5px",
+            backgroundColor:
+              activeTab === "colonialFungible" ? "#1890ff" : "#f0f0f0",
+            color: activeTab === "colonialFungible" ? "white" : "#333",
+            border: "none",
+            borderRadius: "4px 4px 0 0",
+            cursor: "pointer",
+            fontSize: "16px",
+            fontWeight: "bold",
+            transition: "all 0.3s ease",
+            minWidth: "180px",
+          }}
+          onClick={() => setActiveTab("colonialFungible")}
+        >
+          Colonial Latest Origins
         </button>
       </div>
 
@@ -132,6 +152,21 @@ const TransitTimesTab: React.FC = () => {
               Colonial Bulletins
             </h2>
             <FungibleDeliveriesTable />
+          </div>
+        )}
+
+        {activeTab === "colonialOrigin" && (
+          <div>
+            <h2
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                color: "#333",
+              }}
+            >
+              Colonial Bulletins
+            </h2>
+            <OriginStartsTable />
           </div>
         )}
       </div>
