@@ -17,22 +17,29 @@ interface StubNomData {
   Stub_32_Nomination: string | null;
 }
 
+interface StubApiResponse {
+  DateInfoReportDate: string;
+  FungibleReportDate: string;
+  data: {
+    [key: string]: StubNomData;
+  };
+}
+
 interface ApiData {
   [key: string]: NomData;
 }
 
-interface StubApiData {
-  [key: string]: StubNomData;
-}
-
 const NomsTab: React.FC = () => {
   const [data, setData] = useState<ApiData | null>(null);
-  const [stubData, setStubData] = useState<StubApiData | null>(null);
+  const [stubResponse, setStubResponse] = useState<StubApiResponse | null>(
+    null
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [bulletinDates, setBulletinDates] = useState<{
     origin: string;
     dateInfo: string;
+    fungible: string;
   } | null>(null);
 
   function isNomData(obj: any): obj is NomData {
@@ -63,14 +70,15 @@ const NomsTab: React.FC = () => {
         ]);
 
         setData(mainLineResult);
-        setStubData(stubResult);
+        setStubResponse(stubResult);
 
-        // Get bulletin dates from main line data
+        // Get bulletin dates
         const firstCycle = Object.values(mainLineResult)[0];
         if (firstCycle && isNomData(firstCycle)) {
           setBulletinDates({
             origin: firstCycle.Origin_Bulletin_Date,
             dateInfo: firstCycle.DateInfo_Bulletin_Date,
+            fungible: stubResult.FungibleReportDate,
           });
         }
       } catch (err) {
@@ -87,6 +95,26 @@ const NomsTab: React.FC = () => {
 
   const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
+    // Handle ISO format dates (YYYY-MM-DD)
+    if (dateStr.includes("-")) {
+      const [year, month, day] = dateStr.split("-").map(Number);
+      const monthNames = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      return `${day}-${monthNames[month - 1]}-${year.toString().slice(2)}`;
+    }
+    // Handle MM/DD format
     const [month, day] = dateStr.split("/").map(Number);
     const monthNames = [
       "Jan",
@@ -110,7 +138,7 @@ const NomsTab: React.FC = () => {
     return (
       <div style={{ textAlign: "center", color: "red" }}>Error: {error}</div>
     );
-  if (!data || !stubData)
+  if (!data || !stubResponse)
     return <div style={{ textAlign: "center" }}>No data available</div>;
 
   return (
@@ -256,7 +284,7 @@ const NomsTab: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {Object.entries(stubData).map(([cycle, cycleData]) => (
+              {Object.entries(stubResponse.data).map(([cycle, cycleData]) => (
                 <tr key={cycle}>
                   <td style={{ border: "1px solid #ddd", padding: "4px" }}>
                     {cycle}
@@ -277,10 +305,16 @@ const NomsTab: React.FC = () => {
       {bulletinDates && (
         <div style={{ textAlign: "center", margin: "20px 0" }}>
           <div>
-            <strong>Origin Bulletin Date:</strong> {bulletinDates.origin}
+            <strong>Origin Bulletin Date:</strong>{" "}
+            {formatDate(bulletinDates.origin)}
           </div>
           <div>
-            <strong>DateInfo Bulletin Date:</strong> {bulletinDates.dateInfo}
+            <strong>DateInfo Bulletin Date:</strong>{" "}
+            {formatDate(bulletinDates.dateInfo)}
+          </div>
+          <div>
+            <strong>Fungible Report Date:</strong>{" "}
+            {formatDate(bulletinDates.fungible)}
           </div>
         </div>
       )}
