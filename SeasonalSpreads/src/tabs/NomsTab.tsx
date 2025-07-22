@@ -37,7 +37,7 @@ interface Holiday {
 }
 
 const NomsTab: React.FC = () => {
-    const { getToken } = useAuth();
+  const { getToken } = useAuth();
   const { user, isLoaded } = useUser();
   const [data, setData] = useState<ApiData | null>(null);
   const [stubResponse, setStubResponse] = useState<StubApiResponse | null>(
@@ -45,6 +45,9 @@ const NomsTab: React.FC = () => {
   );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
   const [bulletinDates, setBulletinDates] = useState<{
     origin: string;
     dateInfo: string;
@@ -60,6 +63,30 @@ const NomsTab: React.FC = () => {
   function isNomData(obj: any): obj is NomData {
     return "Origin_Bulletin_Date" in obj && "DateInfo_Bulletin_Date" in obj;
   }
+
+  // Update the filteredHolidays calculation to properly handle date parsing
+  const filteredHolidays = holidays.filter((holiday) => {
+    try {
+      // Parse the date string (handling both YYYY-MM-DD and MM/DD/YYYY formats)
+      const dateParts = holiday.date.includes("-")
+        ? holiday.date.split("-")
+        : holiday.date.split("/");
+
+      let year;
+      if (holiday.date.includes("-")) {
+        // ISO format (YYYY-MM-DD)
+        year = parseInt(dateParts[0]);
+      } else {
+        // MM/DD/YYYY format
+        year = parseInt(dateParts[2]);
+      }
+
+      return year === selectedYear;
+    } catch (e) {
+      console.error("Error parsing holiday date:", holiday.date);
+      return false;
+    }
+  });
 
   // Fetch nomination data
   useEffect(() => {
@@ -437,9 +464,30 @@ const NomsTab: React.FC = () => {
         </div>
       ) : (
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
-          <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
-            Edit Holidays
-          </h1>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
+            <h1 style={{ textAlign: "center", marginBottom: "0" }}>
+              Edit Holidays
+            </h1>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <label htmlFor="year-select">Filter by Year:</label>
+              <select
+                id="year-select"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                style={{ padding: "8px", borderRadius: "4px" }}
+              >
+                <option value={new Date().getFullYear()}>Current Year</option>
+                <option value={new Date().getFullYear() + 1}>Next Year</option>
+              </select>
+            </div>
+          </div>
 
           <div style={{ marginBottom: "30px" }}>
             <h3 style={{ marginBottom: "10px" }}>Current Holidays</h3>
@@ -455,7 +503,7 @@ const NomsTab: React.FC = () => {
                   <th
                     style={{
                       border: "1px solid #ddd",
-                      padding: "8px",
+                      padding: "6px",
                       textAlign: "left",
                     }}
                   >
@@ -476,7 +524,7 @@ const NomsTab: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {holidays.map((holiday, index) => (
+                {filteredHolidays.map((holiday, index) => (
                   <tr key={index}>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                       <input
@@ -487,7 +535,7 @@ const NomsTab: React.FC = () => {
                           updated[index].date = e.target.value;
                           setHolidays(updated);
                         }}
-                        style={{ width: "100%", padding: "6px" }}
+                        style={{ width: "90%", padding: "6px" }}
                       />
                     </td>
                     <td style={{ border: "1px solid #ddd", padding: "8px" }}>
@@ -499,7 +547,7 @@ const NomsTab: React.FC = () => {
                           updated[index].name = e.target.value;
                           setHolidays(updated);
                         }}
-                        style={{ width: "100%", padding: "6px" }}
+                        style={{ width: "90%", padding: "6px" }}
                       />
                     </td>
                     <td
@@ -528,11 +576,11 @@ const NomsTab: React.FC = () => {
               </tbody>
             </table>
 
-            {holidays.length === 0 && (
+            {filteredHolidays.length === 0 && (
               <div
                 style={{ textAlign: "center", padding: "20px", color: "#666" }}
               >
-                No holidays added yet
+                No holidays for {selectedYear}
               </div>
             )}
           </div>
