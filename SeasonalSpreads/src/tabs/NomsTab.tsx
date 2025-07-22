@@ -260,7 +260,6 @@ const NomsTab: React.FC = () => {
           </table>
         </div>
 
-        {/* Stub Line Table */}
         <div style={{ flex: 1, minWidth: 300 }}>
           <h1 style={{ textAlign: "center" }}>Stub Line Noms Due</h1>
           <table
@@ -274,25 +273,63 @@ const NomsTab: React.FC = () => {
           >
             <thead>
               <tr>
-                <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                <th
+                  style={{
+                    border: "1px solid #ddd",
+                    padding: "8px",
+                    width: "25%",
+                  }}
+                >
                   Cycle
                 </th>
-                <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                <th
+                  style={{
+                    border: "1px solid #ddd",
+                    padding: "8px",
+                    width: "35%",
+                  }}
+                >
                   17,19,20,29
                 </th>
-                <th style={{ border: "1px solid #ddd", padding: "8px" }}>32</th>
+                <th
+                  style={{
+                    border: "1px solid #ddd",
+                    padding: "8px",
+                    width: "35%",
+                  }}
+                >
+                  32
+                </th>
               </tr>
             </thead>
             <tbody>
               {Object.entries(stubResponse.data).map(([cycle, cycleData]) => (
                 <tr key={cycle}>
-                  <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                  <td
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                      width: "25%",
+                    }}
+                  >
                     {cycle}
                   </td>
-                  <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                  <td
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                      width: "35%",
+                    }}
+                  >
                     {formatDate(cycleData.Stub_172029_Nomination)}
                   </td>
-                  <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                  <td
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                      width: "35%",
+                    }}
+                  >
                     {formatDate(cycleData.Stub_32_Nomination)}
                   </td>
                 </tr>
