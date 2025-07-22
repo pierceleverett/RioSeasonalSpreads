@@ -7,6 +7,10 @@ import com.microsoft.graph.requests.*;
 import com.microsoft.graph.authentication.IAuthenticationProvider;
 import Outlook.FusionCurveParser.SimpleAuthProvider;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -20,6 +24,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -31,6 +37,7 @@ public class MainLine {
   private static final String EMAIL_SUBJECT_FILTER = "Colonial - DATEINFO";
   private static final int MAX_DAYS_TO_SEARCH = 14;
   private static final String ORIGIN_CSV_PATH = "data/Colonial/Origin/HTNOrigin.csv";
+  public static Set<LocalDate> HOLIDAYS;
 
   public static class MainLineData {
     public LocalDate reportDate;
@@ -46,8 +53,55 @@ public class MainLine {
     }
   }
 
+  public static class ClerkHolidayService {
+    private static final String CLERK_API_BASE = "https://api.clerk.dev/v1";
+    private final String apiKey;
+    private final HttpClient httpClient;
+
+    public ClerkHolidayService(String apiKey) {
+      this.apiKey = apiKey;
+      this.httpClient = HttpClient.newHttpClient();
+    }
+
+    public Set<LocalDate> getUserHolidays(String userId) throws Exception {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(CLERK_API_BASE + "/users/" + userId))
+          .header("Authorization", "Bearer " + apiKey)
+          .header("Content-Type", "application/json")
+          .GET()
+          .build();
+
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      if (response.statusCode() != 200) {
+        throw new RuntimeException("Failed to fetch user data: " + response.body());
+      }
+
+      JSONObject userData = new JSONObject(response.body());
+      JSONObject unsafeMetadata = userData.optJSONObject("unsafe_metadata");
+
+      if (unsafeMetadata == null || !unsafeMetadata.has("holidays")) {
+        return new HashSet<>();
+      }
+
+      JSONArray holidaysArray = unsafeMetadata.getJSONArray("holidays");
+      Set<LocalDate> holidays = new HashSet<>();
+
+      for (int i = 0; i < holidaysArray.length(); i++) {
+        JSONObject holiday = holidaysArray.getJSONObject(i);
+        holidays.add(LocalDate.parse(holiday.getString("date")));
+      }
+
+      return holidays;
+    }
+  }
+
   public static void main(String[] args) {
     try {
+      ClerkHolidayService service = new ClerkHolidayService("sk_test_1qlrksRhhWCq5JoqgdF5oCOMdl3paX4vn6D4EAGhkf");
+      Set<LocalDate> holidays = service.getUserHolidays("user_2yN2W6lvSdZjV746FQ7NEexyhVu");
+      HOLIDAYS = holidays;
+      System.out.println(HOLIDAYS);
       MainLine.MainLineData mainLineData = MainLine.extractLatestMainLineData();
       Map<String, Map<String, String>> processedDates = processMainLineDates(mainLineData);
 
@@ -58,6 +112,8 @@ public class MainLine {
       });
     } catch (IOException e) {
       e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -323,93 +379,17 @@ public class MainLine {
     throw new RuntimeException("No valid date pattern found in email");
   }
 
-  private static final Set<LocalDate> FEDERAL_HOLIDAYS = Set.of(
-      LocalDate.of(2025, 1, 1),   // New Year's Day
-      LocalDate.of(2025, 1, 20),  // MLK Day (third monday of january)
-      LocalDate.of(2025, 2, 17),  // Presidents' Day (thirds monday of feb)
-      LocalDate.of(2025,4,18),    // Good Friday
-      LocalDate.of(2025, 5, 26),  // Memorial Day
-      LocalDate.of(2025, 6, 19),  // Juneteenth
-      LocalDate.of(2025, 7, 4),   // Independence Day
-      LocalDate.of(2025, 9, 1),   // Labor Day
-      LocalDate.of(2025, 11, 11), // Veterans Day
-      LocalDate.of(2025, 11, 27),// Thanksgiving
-      LocalDate.of(2025, 11, 28), //Day After Thanksgiving
-      LocalDate.of(2025, 12, 25), //Christmas
-      LocalDate.of(2025, 12, 26), //Day after Christmas
 
-      //Fill in rest
-
-
-      LocalDate.of(2026, 1, 1),   // New Year's Day (always the same)
-      LocalDate.of(2026, 1, 19),  // MLK Day (third monday of january)
-      LocalDate.of(2026, 2, 16),  // Presidents' Day (thirds monday of feb)
-      LocalDate.of(2026,4,3),    // Good Friday
-      LocalDate.of(2026, 5, 25),  // Memorial Day
-      LocalDate.of(2026, 6, 19),  // Juneteenth (always the same)
-      LocalDate.of(2026, 7, 4),   // Independence Day (always the same)
-      LocalDate.of(2026, 9, 7),   // Labor Day
-      LocalDate.of(2026, 11, 11), // Veterans Day ( always the same)
-      LocalDate.of(2026, 11, 26), // Thanksgiving
-      LocalDate.of(2026, 12, 25),
-
-      LocalDate.of(2027, 1, 1),   // New Year's Day (always the same)
-      LocalDate.of(2027, 1, 18),  // MLK Day (third monday of january)
-      LocalDate.of(2027, 2, 15),  // Presidents' Day (thirds monday of feb)
-      LocalDate.of(2027,3,26),    // Good Friday
-      LocalDate.of(2027, 5, 31),  // Memorial Day
-      LocalDate.of(2027, 6, 19),  // Juneteenth (always the same)
-      LocalDate.of(2027, 7, 4),   // Independence Day (always the same)
-      LocalDate.of(2027, 9, 6),   // Labor Day
-      LocalDate.of(2027, 11, 11), // Veterans Day ( always the same)
-      LocalDate.of(2027, 11, 25), // Thanksgiving
-      LocalDate.of(2027, 12, 25), // Christmas (always the same)
-
-      LocalDate.of(2028, 1, 1),   // New Year's Day (always the same)
-      LocalDate.of(2028, 1, 17),  // MLK Day (third monday of january)
-      LocalDate.of(2028, 2, 21),  // Presidents' Day (thirds monday of feb)
-      LocalDate.of(2028,4,14),    // Good Friday
-      LocalDate.of(2028, 5, 29),  // Memorial Day
-      LocalDate.of(2028, 6, 19),  // Juneteenth (always the same)
-      LocalDate.of(2028, 7, 4),   // Independence Day (always the same)
-      LocalDate.of(2028, 9, 4),   // Labor Day
-      LocalDate.of(2028, 11, 11), // Veterans Day ( always the same)
-      LocalDate.of(2028, 11, 23), // Thanksgiving
-      LocalDate.of(2028, 12, 25), // Christmas (always the same)
-
-      LocalDate.of(2029, 1, 1),   // New Year's Day (always the same)
-      LocalDate.of(2029, 1, 15),  // MLK Day (third monday of january)
-      LocalDate.of(2029, 2, 19),  // Presidents' Day (thirds monday of feb)
-      LocalDate.of(2029,3,30),    // Good Friday
-      LocalDate.of(2029, 5, 28),  // Memorial Day
-      LocalDate.of(2029, 6, 19),  // Juneteenth (always the same)
-      LocalDate.of(2029, 7, 4),   // Independence Day (always the same)
-      LocalDate.of(2029, 9, 3),   // Labor Day
-      LocalDate.of(2029, 11, 11), // Veterans Day ( always the same)
-      LocalDate.of(2029, 11, 23), // Thanksgiving
-      LocalDate.of(2029, 12, 25), // Christmas (always the same)
-
-      LocalDate.of(2030, 1, 1),   // New Year's Day (always the same)
-      LocalDate.of(2030, 1, 21),  // MLK Day (third monday of january)
-      LocalDate.of(2030, 2, 18),  // Presidents' Day (thirds monday of feb)
-      LocalDate.of(2030,4,19),    // Good Friday
-      LocalDate.of(2030, 5, 27),  // Memorial Day
-      LocalDate.of(2030, 6, 19),  // Juneteenth (always the same)
-      LocalDate.of(2030, 7, 4),   // Independence Day (always the same)
-      LocalDate.of(2030, 9, 2),   // Labor Day
-      LocalDate.of(2030, 11, 11), // Veterans Day ( always the same)
-      LocalDate.of(2030, 11, 28), // Thanksgiving
-      LocalDate.of(2030, 12, 25) // Christmas (always the same)
-  );
-
-  private static boolean isBusinessDay(LocalDate date) {
+  private static boolean isBusinessDay(LocalDate date) throws Exception {
     DayOfWeek dayOfWeek = date.getDayOfWeek();
+    System.out.println("Holiday contains date " + date + ": " + HOLIDAYS.contains(date));
     return dayOfWeek != DayOfWeek.SATURDAY
         && dayOfWeek != DayOfWeek.SUNDAY
-        && !FEDERAL_HOLIDAYS.contains(date);
+        && !HOLIDAYS.contains(date);
   }
 
-  private static LocalDate subtractBusinessDays(LocalDate date, int daysToSubtract) {
+  private static LocalDate subtractBusinessDays(LocalDate date, int daysToSubtract)
+      throws Exception {
     if (daysToSubtract <= 0) return date;
 
     LocalDate result = date;

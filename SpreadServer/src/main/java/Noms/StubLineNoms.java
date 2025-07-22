@@ -2,14 +2,21 @@ package Noms;
 
 import Colonial.MostRecentFungible;
 import Colonial.MostRecentFungible.FungibleData;
+import Noms.MainLine.ClerkHolidayService;
 import com.microsoft.graph.models.Message;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import static Outlook.ExplorerParser.getAccessToken;
 
@@ -24,9 +31,54 @@ public class StubLineNoms {
     Map<String, Map<String, String>> data;
 
   }
+  public static class ClerkHolidayService {
+    private static final String CLERK_API_BASE = "https://api.clerk.dev/v1";
+    private final String apiKey;
+    private final HttpClient httpClient;
+
+    public ClerkHolidayService(String apiKey) {
+      this.apiKey = apiKey;
+      this.httpClient = HttpClient.newHttpClient();
+    }
+
+    public Set<LocalDate> getUserHolidays(String userId) throws Exception {
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(CLERK_API_BASE + "/users/" + userId))
+          .header("Authorization", "Bearer " + apiKey)
+          .header("Content-Type", "application/json")
+          .GET()
+          .build();
+
+      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+      if (response.statusCode() != 200) {
+        throw new RuntimeException("Failed to fetch user data: " + response.body());
+      }
+
+      JSONObject userData = new JSONObject(response.body());
+      JSONObject unsafeMetadata = userData.optJSONObject("unsafe_metadata");
+
+      if (unsafeMetadata == null || !unsafeMetadata.has("holidays")) {
+        return new HashSet<>();
+      }
+
+      JSONArray holidaysArray = unsafeMetadata.getJSONArray("holidays");
+      Set<LocalDate> holidays = new HashSet<>();
+
+      for (int i = 0; i < holidaysArray.length(); i++) {
+        JSONObject holiday = holidaysArray.getJSONObject(i);
+        holidays.add(LocalDate.parse(holiday.getString("date")));
+      }
+
+      return holidays;
+    }
+  }
 
   public static void main(String[] args) {
     try {
+      MainLine.ClerkHolidayService service = new MainLine.ClerkHolidayService("sk_test_1qlrksRhhWCq5JoqgdF5oCOMdl3paX4vn6D4EAGhkf");
+      Set<LocalDate> holidays = service.getUserHolidays("user_2yN2W6lvSdZjV746FQ7NEexyhVu");
+      MainLine.HOLIDAYS = holidays;
       System.out.println("=== Starting Stub Noms Calculation ===");
       Map<String, Map<String, String>> stubNoms = calculateStubNoms();
       System.out.println("\n=== Final Stub Nomination Results ===");
@@ -39,6 +91,8 @@ public class StubLineNoms {
     } catch (IOException e) {
       System.err.println("Failed to calculate stub noms:");
       e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
