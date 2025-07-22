@@ -276,7 +276,7 @@ const NomsTab: React.FC = () => {
                 <th
                   style={{
                     border: "1px solid #ddd",
-                    padding: "8px",
+                    padding: "4px",
                     width: "25%",
                   }}
                 >
@@ -285,7 +285,7 @@ const NomsTab: React.FC = () => {
                 <th
                   style={{
                     border: "1px solid #ddd",
-                    padding: "8px",
+                    padding: "4px",
                     width: "35%",
                   }}
                 >
@@ -294,7 +294,7 @@ const NomsTab: React.FC = () => {
                 <th
                   style={{
                     border: "1px solid #ddd",
-                    padding: "8px",
+                    padding: "4px",
                     width: "35%",
                   }}
                 >
