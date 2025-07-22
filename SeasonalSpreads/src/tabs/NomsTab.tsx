@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useUser } from "@clerk/clerk-react"; 
+import { useAuth } from "@clerk/clerk-react";
 
 interface NomData {
   Distillate_Nomination: string | null;
@@ -29,7 +31,14 @@ interface ApiData {
   [key: string]: NomData;
 }
 
+interface Holiday {
+  date: string;
+  name: string;
+}
+
 const NomsTab: React.FC = () => {
+    const { getToken } = useAuth();
+  const { user, isLoaded } = useUser();
   const [data, setData] = useState<ApiData | null>(null);
   const [stubResponse, setStubResponse] = useState<StubApiResponse | null>(
     null
@@ -41,21 +50,40 @@ const NomsTab: React.FC = () => {
     dateInfo: string;
     fungible: string;
   } | null>(null);
+  const [activeTab, setActiveTab] = useState<"nominations" | "holidays">(
+    "nominations"
+  );
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [newHoliday, setNewHoliday] = useState<Holiday>({ date: "", name: "" });
+  const [isSaving, setIsSaving] = useState(false);
 
   function isNomData(obj: any): obj is NomData {
     return "Origin_Bulletin_Date" in obj && "DateInfo_Bulletin_Date" in obj;
   }
 
+  // Fetch nomination data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const token = await getToken(); // Get the session token
+
         const [mainLineResponse, stubResponse] = await Promise.all([
           fetch(
-            "https://rioseasonalspreads-production.up.railway.app/getMainLine"
+            `https://rioseasonalspreads-production.up.railway.app/getMainLine?userid=${user?.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`, // Pass token in Authorization header
+              },
+            }
           ),
           fetch(
-            "https://rioseasonalspreads-production.up.railway.app/getStubNoms"
+            `https://rioseasonalspreads-production.up.railway.app/getStubNoms?userid=${user?.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`, // Pass token in Authorization header
+              },
+            }
           ),
         ]);
 
@@ -72,7 +100,6 @@ const NomsTab: React.FC = () => {
         setData(mainLineResult);
         setStubResponse(stubResult);
 
-        // Get bulletin dates
         const firstCycle = Object.values(mainLineResult)[0];
         if (firstCycle && isNomData(firstCycle)) {
           setBulletinDates({
@@ -90,12 +117,21 @@ const NomsTab: React.FC = () => {
       }
     };
 
-    fetchData();
-  }, []);
+    if (user?.id) fetchData();
+  }, [user?.id]);
+
+  // Load holidays from user metadata
+  useEffect(() => {
+    if (isLoaded && user) {
+      const userHolidays = user.unsafeMetadata.holidays;
+      if (Array.isArray(userHolidays)) {
+        setHolidays(userHolidays);
+      }
+    }
+  }, [user, isLoaded]);
 
   const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
-    // Handle ISO format dates (YYYY-MM-DD)
     if (dateStr.includes("-")) {
       const [year, month, day] = dateStr.split("-").map(Number);
       const monthNames = [
@@ -114,7 +150,6 @@ const NomsTab: React.FC = () => {
       ];
       return `${day}-${monthNames[month - 1]}-${year.toString().slice(2)}`;
     }
-    // Handle MM/DD format
     const [month, day] = dateStr.split("/").map(Number);
     const monthNames = [
       "Jan",
@@ -133,213 +168,445 @@ const NomsTab: React.FC = () => {
     return `${day}-${monthNames[month - 1]}`;
   };
 
+  const handleAddHoliday = () => {
+    if (newHoliday.date && newHoliday.name) {
+      setHolidays([...holidays, newHoliday]);
+      setNewHoliday({ date: "", name: "" });
+    }
+  };
+
+  const handleDeleteHoliday = (index: number) => {
+    setHolidays(holidays.filter((_, i) => i !== index));
+  };
+
+  const saveHolidays = async () => {
+    if (!user) return;
+
+    try {
+      setIsSaving(true);
+      await user.update({
+        unsafeMetadata: {
+          holidays: holidays,
+        },
+      });
+      setActiveTab("nominations");
+    } catch (err) {
+      setError("Failed to save holidays. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (loading) return <div style={{ textAlign: "center" }}>Loading...</div>;
   if (error)
     return (
       <div style={{ textAlign: "center", color: "red" }}>Error: {error}</div>
     );
-  if (!data || !stubResponse)
-    return <div style={{ textAlign: "center" }}>No data available</div>;
 
   return (
     <div style={{ padding: "20px", maxWidth: 1400, margin: "0 auto" }}>
-      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-        {/* Main Line Table */}
-        <div style={{ flex: 1, minWidth: 600 }}>
-          <h1 style={{ textAlign: "center" }}>Main Line Noms Due</h1>
-          <table
-            style={{
-              borderCollapse: "collapse",
-              width: "100%",
-              margin: "20px auto",
-              border: "1px solid #ddd",
-              textAlign: "center",
-            }}
-          >
-            <thead>
-              <tr>
-                <th
-                  rowSpan={2}
-                  style={{ border: "1px solid #ddd", padding: "8px" }}
-                >
-                  Cycle
-                </th>
-                <th
-                  colSpan={3}
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "8px",
-                    textAlign: "center",
-                  }}
-                >
-                  Line 2
-                </th>
-                <th
-                  colSpan={3}
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "8px",
-                    textAlign: "center",
-                  }}
-                >
-                  Line 1
-                </th>
-              </tr>
-              <tr>
-                {/* Line 2 headers */}
-                <th style={{ border: "1px solid #ddd", padding: "4px" }}>62</th>
-                <th style={{ border: "1px solid #ddd", padding: "4px" }}>
-                  HTN lift
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                    backgroundColor: "#fffacd",
-                  }}
-                >
-                  51/54/62
-                </th>
-                {/* Line1 headers */}
-                <th style={{ border: "1px solid #ddd", padding: "4px" }}>A</th>
-                <th style={{ border: "1px solid #ddd", padding: "4px" }}>
-                  HTN lift
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                    backgroundColor: "#fffacd",
-                  }}
-                >
-                  Gas
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(data).map(([cycle, cycleData]) => (
-                <tr key={cycle}>
-                  <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    {cycle}
-                  </td>
-                  {/* Line2 data */}
-                  <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    {formatDate(cycleData["62_Scheduling_Date"])}
-                  </td>
-                  <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    {formatDate(cycleData["62_Origin_Date"])}
-                  </td>
-                  <td
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      backgroundColor: "#fffacd",
-                    }}
-                  >
-                    {formatDate(cycleData.Distillate_Nomination)}
-                  </td>
-                  {/* Line1 data */}
-                  <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    {formatDate(cycleData.A_Scheduling_Date)}
-                  </td>
-                  <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    {formatDate(cycleData.A_Origin_Date)}
-                  </td>
-                  <td
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      backgroundColor: "#fffacd",
-                    }}
-                  >
-                    {formatDate(cycleData.Gas_Nomination)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+        <button
+          onClick={() => setActiveTab("nominations")}
+          style={{
+            padding: "8px 16px",
+            background: activeTab === "nominations" ? "#4CAF50" : "#e0e0e0",
+            color: activeTab === "nominations" ? "white" : "black",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Nominations
+        </button>
+        <button
+          onClick={() => setActiveTab("holidays")}
+          style={{
+            padding: "8px 16px",
+            background: activeTab === "holidays" ? "#4CAF50" : "#e0e0e0",
+            color: activeTab === "holidays" ? "white" : "black",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Edit Holidays
+        </button>
+      </div>
 
-        <div style={{ flex: 1, minWidth: 300 }}>
-          <h1 style={{ textAlign: "center" }}>Stub Line Noms Due</h1>
-          <table
-            style={{
-              borderCollapse: "collapse",
-              width: "60%",
-              margin: "20px auto",
-              border: "1px solid #ddd",
-              textAlign: "center",
-            }}
-          >
-            <thead>
-              <tr>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                    width: "25%",
-                  }}
-                >
-                  Cycle
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                    width: "35%",
-                  }}
-                >
-                  17,19,20,29
-                </th>
-                <th
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "4px",
-                    width: "35%",
-                  }}
-                >
-                  32
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(stubResponse.data).map(([cycle, cycleData]) => (
-                <tr key={cycle}>
-                  <td
+      {activeTab === "nominations" ? (
+        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+          {/* Main Line Table */}
+          <div style={{ flex: 1, minWidth: 600 }}>
+            <h1 style={{ textAlign: "center" }}>Main Line Noms Due</h1>
+            <table
+              style={{
+                borderCollapse: "collapse",
+                width: "100%",
+                margin: "20px auto",
+                border: "1px solid #ddd",
+                textAlign: "center",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    rowSpan={2}
+                    style={{ border: "1px solid #ddd", padding: "8px" }}
+                  >
+                    Cycle
+                  </th>
+                  <th
+                    colSpan={3}
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      textAlign: "center",
+                    }}
+                  >
+                    Line 2
+                  </th>
+                  <th
+                    colSpan={3}
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      textAlign: "center",
+                    }}
+                  >
+                    Line 1
+                  </th>
+                </tr>
+                <tr>
+                  <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+                    62
+                  </th>
+                  <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+                    HTN lift
+                  </th>
+                  <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                      backgroundColor: "#fffacd",
+                    }}
+                  >
+                    51/54/62
+                  </th>
+                  <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+                    A
+                  </th>
+                  <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+                    HTN lift
+                  </th>
+                  <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                      backgroundColor: "#fffacd",
+                    }}
+                  >
+                    Gas
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data &&
+                  Object.entries(data).map(([cycle, cycleData]) => (
+                    <tr key={cycle}>
+                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        {cycle}
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        {formatDate(cycleData["62_Scheduling_Date"])}
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        {formatDate(cycleData["62_Origin_Date"])}
+                      </td>
+                      <td
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          backgroundColor: "#fffacd",
+                        }}
+                      >
+                        {formatDate(cycleData.Distillate_Nomination)}
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        {formatDate(cycleData.A_Scheduling_Date)}
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        {formatDate(cycleData.A_Origin_Date)}
+                      </td>
+                      <td
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          backgroundColor: "#fffacd",
+                        }}
+                      >
+                        {formatDate(cycleData.Gas_Nomination)}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Stub Line Table */}
+          <div style={{ flex: 1, minWidth: 300 }}>
+            <h1 style={{ textAlign: "center" }}>Stub Line Noms Due</h1>
+            <table
+              style={{
+                borderCollapse: "collapse",
+                width: "60%",
+                margin: "20px auto",
+                border: "1px solid #ddd",
+                textAlign: "center",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
                     style={{
                       border: "1px solid #ddd",
                       padding: "4px",
                       width: "25%",
                     }}
                   >
-                    {cycle}
-                  </td>
-                  <td
+                    Cycle
+                  </th>
+                  <th
                     style={{
                       border: "1px solid #ddd",
                       padding: "4px",
                       width: "35%",
                     }}
                   >
-                    {formatDate(cycleData.Stub_172029_Nomination)}
-                  </td>
-                  <td
+                    17,19,20,29
+                  </th>
+                  <th
                     style={{
                       border: "1px solid #ddd",
                       padding: "4px",
                       width: "35%",
                     }}
                   >
-                    {formatDate(cycleData.Stub_32_Nomination)}
-                  </td>
+                    32
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {stubResponse &&
+                  Object.entries(stubResponse.data).map(
+                    ([cycle, cycleData]) => (
+                      <tr key={cycle}>
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "4px",
+                            width: "25%",
+                          }}
+                        >
+                          {cycle}
+                        </td>
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "4px",
+                            width: "35%",
+                          }}
+                        >
+                          {formatDate(cycleData.Stub_172029_Nomination)}
+                        </td>
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "4px",
+                            width: "35%",
+                          }}
+                        >
+                          {formatDate(cycleData.Stub_32_Nomination)}
+                        </td>
+                      </tr>
+                    )
+                  )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+          <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
+            Edit Holidays
+          </h1>
 
-      {bulletinDates && (
+          <div style={{ marginBottom: "30px" }}>
+            <h3 style={{ marginBottom: "10px" }}>Current Holidays</h3>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                marginBottom: "20px",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      textAlign: "left",
+                    }}
+                  >
+                    Date
+                  </th>
+                  <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "8px",
+                      textAlign: "left",
+                    }}
+                  >
+                    Name
+                  </th>
+                  <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {holidays.map((holiday, index) => (
+                  <tr key={index}>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                      <input
+                        type="date"
+                        value={holiday.date}
+                        onChange={(e) => {
+                          const updated = [...holidays];
+                          updated[index].date = e.target.value;
+                          setHolidays(updated);
+                        }}
+                        style={{ width: "100%", padding: "6px" }}
+                      />
+                    </td>
+                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                      <input
+                        type="text"
+                        value={holiday.name}
+                        onChange={(e) => {
+                          const updated = [...holidays];
+                          updated[index].name = e.target.value;
+                          setHolidays(updated);
+                        }}
+                        style={{ width: "100%", padding: "6px" }}
+                      />
+                    </td>
+                    <td
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <button
+                        onClick={() => handleDeleteHoliday(index)}
+                        style={{
+                          padding: "4px 8px",
+                          background: "#ff4444",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {holidays.length === 0 && (
+              <div
+                style={{ textAlign: "center", padding: "20px", color: "#666" }}
+              >
+                No holidays added yet
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginBottom: "30px" }}>
+            <h3 style={{ marginBottom: "10px" }}>Add New Holiday</h3>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <input
+                type="date"
+                value={newHoliday.date}
+                onChange={(e) =>
+                  setNewHoliday({ ...newHoliday, date: e.target.value })
+                }
+                style={{ padding: "8px", flex: 1 }}
+              />
+              <input
+                type="text"
+                value={newHoliday.name}
+                onChange={(e) =>
+                  setNewHoliday({ ...newHoliday, name: e.target.value })
+                }
+                placeholder="Holiday name"
+                style={{ padding: "8px", flex: 2 }}
+              />
+              <button
+                onClick={handleAddHoliday}
+                style={{
+                  padding: "8px 16px",
+                  background: "#4CAF50",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Add Holiday
+              </button>
+            </div>
+          </div>
+
+          <div
+            style={{ display: "flex", justifyContent: "center", gap: "20px" }}
+          >
+            <button
+              onClick={saveHolidays}
+              disabled={isSaving}
+              style={{
+                padding: "10px 20px",
+                background: isSaving ? "#cccccc" : "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: isSaving ? "not-allowed" : "pointer",
+              }}
+            >
+              {isSaving ? "Saving..." : "Save All Changes"}
+            </button>
+            <button
+              onClick={() => setActiveTab("nominations")}
+              style={{
+                padding: "10px 20px",
+                background: "#e0e0e0",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {bulletinDates && activeTab === "nominations" && (
         <div style={{ textAlign: "center", margin: "20px 0" }}>
           <div>
             <strong>Origin Bulletin Date:</strong>{" "}
