@@ -18,6 +18,7 @@ import Handlers.OriginStartsHandler;
 import Handlers.RecentFungibleHandler;
 import Handlers.SpreadHandler;
 import Handlers.SpreadsUpdaterHandler;
+import Handlers.StubNomHandler;
 import javax.servlet.MultipartConfigElement;
 import spark.Spark;
 
@@ -94,6 +95,7 @@ public final class Server {
       Spark.post("/updateGC", new GCUpdateHandler());
       Spark.get("/getMainLine", new MainLineHandler());
       Spark.get("/getOriginStart", new OriginStartsHandler());
+      Spark.get("/getStubNoms", new StubNomHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);

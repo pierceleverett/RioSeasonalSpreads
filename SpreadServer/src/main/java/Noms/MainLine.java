@@ -2,11 +2,7 @@ package Noms;
 
 import static Colonial.OriginUpdater.updateFromMostRecentOriginEmail;
 import static Outlook.ExplorerParser.getAccessToken;
-
-import Colonial.ColonialOrigin;
-import Colonial.ColonialTransitUpdater;
 import com.microsoft.graph.models.*;
-import com.microsoft.graph.options.QueryOption;
 import com.microsoft.graph.requests.*;
 import com.microsoft.graph.authentication.IAuthenticationProvider;
 import Outlook.FusionCurveParser.SimpleAuthProvider;
@@ -23,6 +19,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -91,7 +88,7 @@ public class MainLine {
     }
   }
 
-  private static Message fetchMostRecentMainLineEmail(String accessToken, String userPrincipalName) throws IOException {
+  static Message fetchMostRecentMainLineEmail(String accessToken, String userPrincipalName) throws IOException {
     System.out.println("[MainLine] Starting fetchMostRecentMainLineEmail()");
     try {
       IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
@@ -142,7 +139,7 @@ public class MainLine {
     }
   }
 
-  private static MainLineData parseMainLineEmail(Message message) {
+  static MainLineData parseMainLineEmail(Message message) {
     System.out.println("[MainLine] Starting parseMainLineEmail()");
     MainLineData result = new MainLineData();
 
@@ -330,14 +327,19 @@ public class MainLine {
       LocalDate.of(2025, 1, 1),   // New Year's Day
       LocalDate.of(2025, 1, 20),  // MLK Day (third monday of january)
       LocalDate.of(2025, 2, 17),  // Presidents' Day (thirds monday of feb)
-      LocalDate.of(2025,4,19),    // Good Friday
+      LocalDate.of(2025,4,18),    // Good Friday
       LocalDate.of(2025, 5, 26),  // Memorial Day
       LocalDate.of(2025, 6, 19),  // Juneteenth
       LocalDate.of(2025, 7, 4),   // Independence Day
       LocalDate.of(2025, 9, 1),   // Labor Day
       LocalDate.of(2025, 11, 11), // Veterans Day
-      LocalDate.of(2025, 11, 27), // Thanksgiving
-      LocalDate.of(2025, 12, 25),
+      LocalDate.of(2025, 11, 27),// Thanksgiving
+      LocalDate.of(2025, 11, 28), //Day After Thanksgiving
+      LocalDate.of(2025, 12, 25), //Christmas
+      LocalDate.of(2025, 12, 26), //Day after Christmas
+
+      //Fill in rest
+
 
       LocalDate.of(2026, 1, 1),   // New Year's Day (always the same)
       LocalDate.of(2026, 1, 19),  // MLK Day (third monday of january)
@@ -423,7 +425,7 @@ public class MainLine {
     return result;
   }
 
-  private static Optional<String> adjustSchedulingDate(String dateStr, int daysToSubtract) {
+  static Optional<String> adjustSchedulingDate(String dateStr, int daysToSubtract) {
     if (dateStr == null || dateStr.isEmpty()) return Optional.empty();
 
     try {
@@ -472,37 +474,32 @@ public class MainLine {
 
       // Check if we have all three required grades (51, 54, and 62)
       boolean hasAllGrades = distillateGrades.stream()
-          .map(g -> g.split("-")[0]) // Extract the prefix (51, 54, or 62)
+          .map(g -> g.split("-")[0])
           .collect(Collectors.toSet())
           .containsAll(Set.of("51", "54", "62"));
 
       // Only include Distillate_Nomination if we have all three grades
       if (hasAllGrades) {
-        // Find earliest date among distillate grades
         Optional<String> earliestDistillateDate = distillateGrades.stream()
             .flatMap(g -> mainLineData.data.get(g).values().stream())
             .filter(Objects::nonNull)
             .min(Comparator.naturalOrder());
 
-        // Calculate adjusted date (subtract 5 business days)
         earliestDistillateDate.flatMap(d -> adjustSchedulingDate(d, 5))
             .ifPresent(date -> cycleData.put("Distillate_Nomination", date));
       }
 
-      // Process other fields regardless of distillate grades
-      // Get specific date for A grade
+      // Process main line fields
       Optional<String> aSchedulingDate = entry.getValue().stream()
           .filter(g -> g.startsWith("A"))
           .findFirst()
           .flatMap(g -> mainLineData.data.get(g).values().stream().findFirst());
 
-      // Get specific date for 62 grade
       Optional<String> distillate62SchedulingDate = entry.getValue().stream()
           .filter(g -> g.startsWith("62-"))
           .findFirst()
           .flatMap(g -> mainLineData.data.get(g).values().stream().findFirst());
 
-      // Calculate adjusted dates (subtract 5 business days)
       Optional<String> gasNomination = aSchedulingDate.flatMap(d -> adjustSchedulingDate(d, 5));
 
       // Convert cycle from two-digit string to number for CSV lookup
@@ -518,12 +515,15 @@ public class MainLine {
       Optional<String> aOriginDate = getOriginDateForCycle(originData, "A", String.valueOf(cycleNumber));
       Optional<String> distillate62OriginDate = getOriginDateForCycle(originData, "62", String.valueOf(cycleNumber));
 
-      // Put all other fields in cycle data
+      // Process stub line nominations using helper methods
+
+      // Put all fields in cycle data
       gasNomination.ifPresent(date -> cycleData.put("Gas_Nomination", date));
       aSchedulingDate.ifPresent(date -> cycleData.put("A_Scheduling_Date", date));
       distillate62SchedulingDate.ifPresent(date -> cycleData.put("62_Scheduling_Date", date));
       aOriginDate.ifPresent(date -> cycleData.put("A_Origin_Date", date));
       distillate62OriginDate.ifPresent(date -> cycleData.put("62_Origin_Date", date));
+
       if (mainLineData.reportDate != null) {
         cycleData.put("DateInfo_Bulletin_Date", mainLineData.reportDate.toString());
       }
@@ -586,4 +586,5 @@ public class MainLine {
 
     return originData;
   }
+
 }
