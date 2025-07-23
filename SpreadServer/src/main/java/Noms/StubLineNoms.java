@@ -3,7 +3,11 @@ package Noms;
 import Colonial.MostRecentFungible;
 import Colonial.MostRecentFungible.FungibleData;
 import Noms.MainLine.ClerkHolidayService;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.microsoft.graph.models.Message;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,12 +16,14 @@ import java.net.http.HttpResponse;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import static Noms.MainLine.subtractBusinessDays;
 import static Outlook.ExplorerParser.getAccessToken;
 
 public class StubLineNoms {
@@ -109,7 +115,7 @@ public class StubLineNoms {
     Map<String, Map<String, String>> result = new TreeMap<>();
     String accessToken = getAccessToken();
 
-    // 1. Process Main Line data for 17/19/20/29 nominations
+    // 1. Process DateInfo data for 17/19/20/29 nominations
     System.out.println("\n[1/2] Processing Main Line data for 17/19/20/29...");
     Message mainLineMessage = MainLine.fetchMostRecentMainLineEmail(accessToken, USER_PRINCIPAL_NAME);
     MainLine.MainLineData mainLineData = MainLine.parseMainLineEmail(mainLineMessage);
@@ -125,12 +131,13 @@ public class StubLineNoms {
     // 2. Process ALL Fungible data for 32 nominations in one operation
     System.out.println("\n[2/2] Processing ALL Fungible data for 32 nominations...");
     FungibleData fungibleData = MostRecentFungible.extractLatestFungibleData();
+    Set<String> cycles = fungibleData.data.keySet();
     System.out.println("Fungible report date: " + fungibleData.reportDate);
     FungibleReportDate = fungibleData.reportDate;
 
     if (fungibleData.data != null) {
       // Process all cycles at once
-      Map<String, String> all32Noms = calculateAll32Nominations(fungibleData.data);
+      Map<String, String> all32Noms = calculate32SelectedNominations(cycles);
 
       // Merge into results
       all32Noms.forEach((cycle, date) -> {
@@ -142,71 +149,59 @@ public class StubLineNoms {
     return result;
   }
 
-  private static Map<String, String> calculateAll32Nominations(
-      Map<String, Map<String, Map<String, String>>> fungibleData) {
+  private static Map<String, String> calculate32SelectedNominations(Set<String> selectedCycles) {
+    Map<String, String> adjustedNominations = new TreeMap<>();
 
-    Map<String, String> all32Nominations = new TreeMap<>();
+    try (BufferedReader reader = new BufferedReader(new FileReader("data/Colonial/Fungible/GBJall.csv"))) {
+      String headerLine = reader.readLine();
+      if (headerLine == null) return adjustedNominations;
 
-    fungibleData.forEach((cycle, productsMap) -> {
-      Map<String, LocalDate> gbjData = new HashMap<>();
-
-      for (String product : productsMap.keySet()) {
-        String gbjDate = productsMap.get(product).get("Greensboro");
-        if (gbjDate != null) {
-          String[] parts = gbjDate.split("/");
-          int month = Integer.parseInt(parts[0]);
-          int day = Integer.parseInt(parts[1]);
-          int year = LocalDate.now().getYear();
-
-          if (month == 1 && LocalDate.now().getMonthValue() == 12) {
-            year++;
-          }
-
-        LocalDate dateToAdd = LocalDate.of(year, month, day);
-          System.out.println(dateToAdd + ": " + dateToAdd.getDayOfWeek());
-          if (dateToAdd.getDayOfWeek() == DayOfWeek.SATURDAY) {
-            System.out.println("saturday detected, subtracting 1");
-            dateToAdd = dateToAdd.minusDays(1);
-          }
-
-          if (dateToAdd.getDayOfWeek() == DayOfWeek.SUNDAY) {
-            System.out.println("sunday detected, subtracting 2");
-            dateToAdd = dateToAdd.minusDays(2);
-          }
-
-        System.out.println("Adding date " + dateToAdd + " to gbjData for cycle " + cycle + ", product " + product);
-        gbjData.put(product, dateToAdd);
-        System.out.println("gbjData size for cycle " + cycle + ": " + gbjData.size());
-      }
+      String[] headers = headerLine.split(",");
+      Map<String, Integer> cycleIndexMap = new HashMap<>();
+      for (int i = 0; i < headers.length; i++) {
+        if (selectedCycles.contains(headers[i])) {
+          cycleIndexMap.put(headers[i], i);
+        }
       }
 
-      if (gbjData.size() > 1) {  // Changed from size() > 1 to handle single dates too
-        Optional<LocalDate> minDate = gbjData.values().stream()
-            .filter(Objects::nonNull)
-            .min(Comparator.naturalOrder());
-
-        System.out.println("Minimum date for " + cycle + ": " + minDate);
-
-        // Calculate and store nomination if found
-        minDate.ifPresent(d -> {
-          // Convert LocalDate to MM/dd format
-          String mmddDate = d.format(DateTimeFormatter.ofPattern("MM/dd"));
-          System.out.println("Converted to MM/dd: " + mmddDate);
-
-          // Calculate adjusted date
-          Optional<String> adjustedDate = MainLine.adjustSchedulingDate(mmddDate, 4);
-
-          adjustedDate.ifPresent(date -> {
-            all32Nominations.put(cycle, date);
-            System.out.println("  Cycle " + cycle + " - 32: " + date);
-          });
-        });
+      ListMultimap<String, LocalDate> cycleDates = ArrayListMultimap.create();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] values = line.split(",", -1);
+        for (Map.Entry<String, Integer> entry : cycleIndexMap.entrySet()) {
+          String cycle = entry.getKey();
+          int index = entry.getValue();
+          if (index < values.length && !values[index].isEmpty()) {
+            String[] dateStrings = values[index].split(";");
+            for (String dateStr : dateStrings) {
+              try {
+                LocalDate date = LocalDate.parse(dateStr.trim(), DateTimeFormatter.ofPattern("MM/dd"));
+                date = date.withYear(LocalDate.now().getYear());
+                cycleDates.put(cycle, date);
+              } catch (DateTimeParseException ignored) {}
+            }
+          }
+        }
       }
 
-    });
+      for (String cycle : selectedCycles) {
+        List<LocalDate> dates = cycleDates.get(cycle);
+        if (!dates.isEmpty()) {
+          LocalDate minDate = Collections.min(dates);
+          LocalDate adjustedDate = subtractBusinessDays(minDate, 4);
+          adjustedNominations.put(cycle, adjustedDate.format(DateTimeFormatter.ofPattern("MM/dd")));
+        }
+      }
 
-    return all32Nominations;
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+    return adjustedNominations;
   }
+
 
   private static Map<String, List<String>> groupGradesByCycle(Set<String> grades) {
     Map<String, List<String>> gradesByCycle = new TreeMap<>();

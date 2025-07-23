@@ -388,7 +388,7 @@ public class MainLine {
         && !HOLIDAYS.contains(date);
   }
 
-  private static LocalDate subtractBusinessDays(LocalDate date, int daysToSubtract)
+  static LocalDate subtractBusinessDays(LocalDate date, int daysToSubtract)
       throws Exception {
     if (daysToSubtract <= 0) return date;
 

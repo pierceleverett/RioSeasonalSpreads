@@ -2,6 +2,7 @@ package Handlers;
 
 import static Noms.MainLine.processMainLineDates;
 
+import Colonial.MinColonialUpdater;
 import Noms.MainLine;
 import Noms.MainLine.ClerkHolidayService;
 import Noms.StubLineNoms;
@@ -29,6 +30,12 @@ public class StubNomHandler implements Route {
     ClerkHolidayService service = new ClerkHolidayService("sk_test_1qlrksRhhWCq5JoqgdF5oCOMdl3paX4vn6D4EAGhkf");
     Set<LocalDate> holidays = service.getUserHolidays(userID);
     MainLine.HOLIDAYS = holidays;
+    LocalDate lastProcessedDate = MinColonialUpdater.getLastProcessedDate();
+    System.out.println("Last processed date: " +
+        (lastProcessedDate != null ? lastProcessedDate.format(MinColonialUpdater.DATE_FORMATTER) : "None"));
+
+    // Process new bulletins
+    MinColonialUpdater.processNewBulletins(lastProcessedDate);
     NomsData output = StubLineNoms.packageData();
 
     Moshi moshi = new Moshi.Builder()
