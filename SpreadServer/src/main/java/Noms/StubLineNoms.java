@@ -80,26 +80,20 @@ public class StubLineNoms {
     }
   }
 
-  public static void main(String[] args) {
-    try {
-      MainLine.ClerkHolidayService service = new MainLine.ClerkHolidayService("sk_test_1qlrksRhhWCq5JoqgdF5oCOMdl3paX4vn6D4EAGhkf");
-      Set<LocalDate> holidays = service.getUserHolidays("user_2yN2W6lvSdZjV746FQ7NEexyhVu");
-      MainLine.HOLIDAYS = holidays;
-      System.out.println("=== Starting Stub Noms Calculation ===");
-      Map<String, Map<String, String>> stubNoms = calculateStubNoms();
-      System.out.println("\n=== Final Stub Nomination Results ===");
-      stubNoms.forEach((cycle, data) -> {
-        System.out.println("Cycle " + cycle + ":");
-        data.forEach((type, date) -> {
-          System.out.printf("  %-20s: %s%n", type, date);
-        });
-      });
-    } catch (IOException e) {
-      System.err.println("Failed to calculate stub noms:");
-      e.printStackTrace();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  public static void main(String[] args) throws Exception {
+    MainLine.ClerkHolidayService service = new MainLine.ClerkHolidayService("sk_test_1qlrksRhhWCq5JoqgdF5oCOMdl3paX4vn6D4EAGhkf");
+    Set<LocalDate> holidays = service.getUserHolidays("user_2yN2W6lvSdZjV746FQ7NEexyhVu");
+    MainLine.HOLIDAYS = holidays;
+    Set<String> test = new HashSet<>();
+    ;
+    test.add("39");
+    test.add("40");
+    test.add("41");
+    test.add("42");
+    System.out.println(calculate32SelectedNominations(test));
+
+
+
   }
 
   public static NomsData packageData() throws IOException {
@@ -151,6 +145,9 @@ public class StubLineNoms {
 
   private static Map<String, String> calculate32SelectedNominations(Set<String> selectedCycles) {
     Map<String, String> adjustedNominations = new TreeMap<>();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+    int currentYear = LocalDate.now().getYear();
+    LocalDate today = LocalDate.now();
 
     try (BufferedReader reader = new BufferedReader(new FileReader("data/Colonial/Fungible/GBJall.csv"))) {
       String headerLine = reader.readLine();
@@ -161,12 +158,20 @@ public class StubLineNoms {
       for (int i = 0; i < headers.length; i++) {
         if (selectedCycles.contains(headers[i])) {
           cycleIndexMap.put(headers[i], i);
+          System.out.println("header: " + headers[i] + " index: " + i);
         }
       }
 
-      ListMultimap<String, LocalDate> cycleDates = ArrayListMultimap.create();
+      // Initialize date lists for each cycle
+      Map<String, List<LocalDate>> cycleDates = new HashMap<>();
+      for (String cycle : selectedCycles) {
+        cycleDates.put(cycle, new ArrayList<>());
+      }
+
       String line;
+      int lineNumber = 1;
       while ((line = reader.readLine()) != null) {
+        lineNumber++;
         String[] values = line.split(",", -1);
         for (Map.Entry<String, Integer> entry : cycleIndexMap.entrySet()) {
           String cycle = entry.getKey();
@@ -175,32 +180,58 @@ public class StubLineNoms {
             String[] dateStrings = values[index].split(";");
             for (String dateStr : dateStrings) {
               try {
-                LocalDate date = LocalDate.parse(dateStr.trim(), DateTimeFormatter.ofPattern("MM/dd"));
-                date = date.withYear(LocalDate.now().getYear());
-                cycleDates.put(cycle, date);
-              } catch (DateTimeParseException ignored) {}
+                String[] parts = dateStr.trim().split("/");
+                if (parts.length != 2) {
+                  System.err.println("Invalid date format '" + dateStr + "' for cycle " + cycle + " on line " + lineNumber);
+                  continue;
+                }
+
+                int month = Integer.parseInt(parts[0]);
+                int day = Integer.parseInt(parts[1]);
+                LocalDate date = LocalDate.of(currentYear, month, day);
+
+                // Adjust year if date is too far in the past
+                if (date.isBefore(today.minusDays(60))) {
+                  date = date.plusYears(1);
+                }
+
+                cycleDates.get(cycle).add(date);
+              } catch (Exception e) {
+                System.err.println("Failed to parse date '" + dateStr + "' for cycle " + cycle + " on line " + lineNumber);
+              }
             }
           }
         }
       }
 
-      for (String cycle : selectedCycles) {
-        List<LocalDate> dates = cycleDates.get(cycle);
+      // Find minimum date for each cycle separately
+      for (Map.Entry<String, List<LocalDate>> entry : cycleDates.entrySet()) {
+        String cycle = entry.getKey();
+        List<LocalDate> dates = entry.getValue();
+        System.out.println("Dates for cycle: " + cycle + ": " + dates);
+
         if (!dates.isEmpty()) {
           LocalDate minDate = Collections.min(dates);
-          LocalDate adjustedDate = subtractBusinessDays(minDate, 4);
-          adjustedNominations.put(cycle, adjustedDate.format(DateTimeFormatter.ofPattern("MM/dd")));
+          LocalDate adjustedDate = MainLine.subtractBusinessDays(minDate, 4);
+          adjustedNominations.put(cycle, adjustedDate.format(formatter));
+
+          // Debug output to verify dates
+          System.out.println("Cycle: " + cycle +
+              " | Min date: " + minDate.format(formatter) +
+              " | Adjusted date: " + adjustedDate.format(formatter));
         }
       }
 
-    } catch (IOException e) {
-      e.printStackTrace();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      e.printStackTrace();
+      throw new RuntimeException("Error reading file", e);
     }
 
     return adjustedNominations;
   }
+
+
+
 
 
   private static Map<String, List<String>> groupGradesByCycle(Set<String> grades) {

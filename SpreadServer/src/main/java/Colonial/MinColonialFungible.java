@@ -46,7 +46,7 @@ public class MinColonialFungible {
     List<Message> relevantMessages = new ArrayList<>();
     LinkedList<QueryOption> requestOptions = new LinkedList<>();
     requestOptions.add(new QueryOption("$select", "subject,receivedDateTime,body"));
-    requestOptions.add(new QueryOption("$top", "100")); // Increased to get more emails
+    requestOptions.add(new QueryOption("$top", "300")); // Increased to get more emails
 
     MessageCollectionPage messagesPage;
     MessageCollectionRequestBuilder nextPage = null;
@@ -147,25 +147,45 @@ public class MinColonialFungible {
 
   public static void parseFungibleBody(String htmlContent,
       Map<String, Map<String, List<String>>> gbjData) {
+    System.out.println("\n===== Starting to parse fungible body =====");
+
     Document doc = Jsoup.parse(htmlContent);
     String plainText = doc.text().replaceAll("\\s+", " ").trim();
+    System.out.println("Plain text preview: " + plainText.substring(0, Math.min(100, plainText.length())) + "...");
 
     LocalDate emailDate;
     try {
       emailDate = extractDateFromPlainText(plainText);
+      System.out.println("Extracted email date: " + emailDate);
     } catch (Exception e) {
       System.err.println("Failed to parse date: " + e.getMessage());
       return;
     }
 
+    String bulletinDate = emailDate.format(DateTimeFormatter.ofPattern("MM/dd"));
+    System.out.println("Formatted bulletin date: " + bulletinDate);
+
+    // Find the relevant table
+    System.out.println("\nSearching for Greensboro table...");
     Element table = null;
     Elements tables = doc.select("table");
-    for (Element t : tables) {
+    System.out.println("Found " + tables.size() + " tables in email");
+
+    for (int i = 0; i < tables.size(); i++) {
+      Element t = tables.get(i);
+      System.out.println("\nChecking table #" + (i+1));
+
       Elements headers = t.select("tr:first-child th, tr:first-child td");
-      for (Element header : headers) {
+      System.out.println("Table has " + headers.size() + " headers");
+
+      for (int j = 0; j < headers.size(); j++) {
+        Element header = headers.get(j);
         String text = header.text().toLowerCase();
+        System.out.println("  Header[" + j + "]: '" + text + "'");
+
         if (text.contains("greensboro")) {
           table = t;
+          System.out.println("  FOUND Greensboro in header[" + j + "]");
           break;
         }
       }
@@ -173,45 +193,103 @@ public class MinColonialFungible {
     }
 
     if (table == null) {
-      System.err.println("No relevant table found.");
+      System.err.println("ERROR: No relevant table found with Greensboro column.");
       return;
     }
 
-    Elements headers = table.select("tr:first-child th, tr:first-child td");
+    // Find Greensboro column index
+    System.out.println("\nDetermining Greensboro column index...");
+    Elements headerCells = table.select("tr:first-child th, tr:first-child td");
     int greensboroCol = -1;
-    for (int i = 0; i < headers.size(); i++) {
-      String header = headers.get(i).text().trim().toLowerCase();
-      if (header.contains("greensboro")) greensboroCol = i;
+
+    for (int i = 0; i < headerCells.size(); i++) {
+      String header = headerCells.get(i).text().trim().toLowerCase();
+      System.out.println("  Header[" + i + "]: '" + header + "'");
+
+      if (header.contains("greensboro")) {
+        greensboroCol = i;
+        System.out.println("  Greensboro column found at index: " + greensboroCol);
+        break;
+      }
     }
 
+    if (greensboroCol == -1) {
+      System.err.println("ERROR: Greensboro column not found in table headers.");
+      return;
+    }
+
+    // Process each data row
+    System.out.println("\nProcessing table rows...");
     Elements rows = table.select("tr:gt(0)");
-    for (Element row : rows) {
+    System.out.println("Found " + rows.size() + " data rows");
+
+    int processedRows = 0;
+    for (int rowNum = 0; rowNum < rows.size(); rowNum++) {
+      Element row = rows.get(rowNum);
       Elements cells = row.select("td");
-      if (cells.size() <= greensboroCol) continue;
 
-      String rawFuel = cells.get(0).text().trim();
-      String rawCycle = cells.get(1).text().trim();
-      if (rawFuel.isEmpty() || rawCycle.length() != 3) continue;
+      System.out.println("\nRow #" + (rowNum+1) + " has " + cells.size() + " cells");
 
-      String fuel;
-      if (rawFuel.startsWith("A") || rawFuel.startsWith("D") || rawFuel.startsWith("F") || rawFuel.startsWith("H") || rawFuel.startsWith("M") || rawFuel.startsWith("V")) {
-        fuel = rawFuel.substring(0, 1);
+      if (cells.size() <= greensboroCol) {
+        System.out.println("  SKIPPING - Not enough columns (" + cells.size() + ") for Greensboro col (" + greensboroCol + ")");
+        continue;
       }
-      else {
+
+      // Get fuel type (first column)
+      String rawFuel = cells.get(0).text().trim();
+      System.out.println("  Raw fuel: '" + rawFuel + "'");
+
+      if (rawFuel.isEmpty()) {
+        System.out.println("  SKIPPING - Empty fuel type");
+        continue;
+      }
+
+      // Standardize fuel type
+      String fuel;
+      if (rawFuel.startsWith("A") || rawFuel.startsWith("D") ||
+          rawFuel.startsWith("F") || rawFuel.startsWith("H") ||
+          rawFuel.startsWith("M") || rawFuel.startsWith("V")) {
+        fuel = rawFuel.substring(0, 1);
+        System.out.println("  Standardized fuel to: '" + fuel + "'");
+      } else {
         fuel = rawFuel;
+        System.out.println("  Using raw fuel as-is: '" + fuel + "'");
+      }
+
+      // Get cycle (second column)
+      String rawCycle = cells.get(1).text().trim();
+      System.out.println("  Raw cycle: '" + rawCycle + "'");
+
+      if (rawCycle.length() != 3) {
+        System.out.println("  SKIPPING - Invalid cycle length (expected 3, got " + rawCycle.length() + ")");
+        continue;
       }
 
       String cycle = rawCycle.substring(0, 2);
+      System.out.println("  Using cycle: '" + cycle + "'");
 
-      String bulletinDate = emailDate.format(DateTimeFormatter.ofPattern("MM/dd"));
+      // Get Greensboro date (greensboroCol column)
+      String greensboroDate = cells.get(greensboroCol).text().trim();
+      System.out.println("  Greensboro date: '" + greensboroDate + "'");
 
-      if (greensboroCol != -1) {
-
-          gbjData.computeIfAbsent(fuel, k -> new HashMap<>())
-              .computeIfAbsent(cycle, k -> new ArrayList<>())
-              .add(bulletinDate);
-        }
+      if (greensboroDate.isEmpty()) {
+        System.out.println("  SKIPPING - Empty Greensboro date");
+        continue;
       }
+
+      // Store the data
+      System.out.println("  STORING: Fuel=" + fuel + ", Cycle=" + cycle + ", Date=" + greensboroDate);
+
+      gbjData.computeIfAbsent(fuel, k -> new HashMap<>())
+          .computeIfAbsent(cycle, k -> new ArrayList<>())
+          .add(greensboroDate);
+
+      processedRows++;
+    }
+
+    System.out.println("\n===== Finished parsing =====");
+    System.out.println("Successfully processed " + processedRows + " rows");
+    System.out.println("Current GBJ data size: " + gbjData.size() + " fuel types");
   }
 
   public static LocalDate extractDateFromPlainText(String plainText) {
