@@ -84,30 +84,7 @@ public class StubLineNoms {
     MainLine.ClerkHolidayService service = new MainLine.ClerkHolidayService("sk_test_1qlrksRhhWCq5JoqgdF5oCOMdl3paX4vn6D4EAGhkf");
     Set<LocalDate> holidays = service.getUserHolidays("user_2yN2W6lvSdZjV746FQ7NEexyhVu");
     MainLine.HOLIDAYS = holidays;
-    Set<String> test = new HashSet<>();
-    test.add("11");
-    test.add("12");
-    test.add("26");
-    test.add("26");
-    test.add("27");
-    test.add("28");
-    test.add("29");
-    test.add("30");
-    test.add("31");
-    test.add("32");
-    test.add("33");
-    test.add("34");
-    test.add("35");
-    test.add("36");
-    test.add("37");
-    test.add("38");
-    test.add("39");
-    test.add("40");
-    test.add("41");
-    System.out.println(alternateCalculate32SelectedNominations(test));
-
-
-
+    System.out.println(calculateStubNoms());
   }
 
   public static NomsData packageData() throws IOException {
@@ -330,13 +307,10 @@ public class StubLineNoms {
         if (!dates.isEmpty()) {
           List<LocalDate> top3 = getLastThreeAfterDroppingEight(dates);
           LocalDate modeDate = findModeDate(top3);
-          LocalDate adjustedDate = MainLine.subtractBusinessDays(modeDate, 4);
-          adjustedNominations.put(cycle, adjustedDate.format(formatter));
-
-          // Debug output to verify dates
-          System.out.println("Cycle: " + cycle +
-              " | Mode date: " + modeDate.format(formatter) +
-              " | Adjusted date: " + adjustedDate.format(formatter));
+          if (modeDate != null ) {
+            LocalDate adjustedDate = MainLine.subtractBusinessDays(modeDate, 4);
+            adjustedNominations.put(cycle, adjustedDate.format(formatter));
+          }
         }
       }
 
@@ -417,7 +391,7 @@ public class StubLineNoms {
   }
 
   public static List<LocalDate> getLastThreeAfterDroppingEight(List<LocalDate> dates) {
-    if (dates == null || dates.size() <= 8) {
+    if (dates == null || dates.size() <= 3) {
       return Collections.emptyList();
     }
 
