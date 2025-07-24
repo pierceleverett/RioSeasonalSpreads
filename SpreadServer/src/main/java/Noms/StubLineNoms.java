@@ -85,12 +85,26 @@ public class StubLineNoms {
     Set<LocalDate> holidays = service.getUserHolidays("user_2yN2W6lvSdZjV746FQ7NEexyhVu");
     MainLine.HOLIDAYS = holidays;
     Set<String> test = new HashSet<>();
-    ;
+    test.add("11");
+    test.add("12");
+    test.add("26");
+    test.add("26");
+    test.add("27");
+    test.add("28");
+    test.add("29");
+    test.add("30");
+    test.add("31");
+    test.add("32");
+    test.add("33");
+    test.add("34");
+    test.add("35");
+    test.add("36");
+    test.add("37");
+    test.add("38");
     test.add("39");
     test.add("40");
     test.add("41");
-    test.add("42");
-    System.out.println(calculate32SelectedNominations(test));
+    System.out.println(alternateCalculate32SelectedNominations(test));
 
 
 
@@ -132,11 +146,17 @@ public class StubLineNoms {
     if (fungibleData.data != null) {
       // Process all cycles at once
       Map<String, String> all32Noms = calculate32SelectedNominations(cycles);
+      Map<String, String> my32Noms = alternateCalculate32SelectedNominations(cycles);
 
       // Merge into results
       all32Noms.forEach((cycle, date) -> {
         result.computeIfAbsent(cycle, k -> new HashMap<>())
-            .put("Stub_32_Nomination", date);
+            .put("Min_Stub_32_Nomination", date);
+      });
+
+      my32Noms.forEach((cycle, date) -> {
+        result.computeIfAbsent(cycle, k -> new HashMap<>())
+            .put("My_Stub_32_Nomination", date);
       });
     }
 
@@ -191,7 +211,7 @@ public class StubLineNoms {
                 LocalDate date = LocalDate.of(currentYear, month, day);
 
                 // Adjust year if date is too far in the past
-                if (date.isBefore(today.minusDays(60))) {
+                if (date.isBefore(today.minusDays(200))) {
                   date = date.plusYears(1);
                 }
 
@@ -212,12 +232,110 @@ public class StubLineNoms {
 
         if (!dates.isEmpty()) {
           LocalDate minDate = Collections.min(dates);
+          //List<LocalDate> top3 = getLastThreeAfterDroppingEight(dates);
+          //LocalDate modeDate = findModeDate(top3);
           LocalDate adjustedDate = MainLine.subtractBusinessDays(minDate, 4);
           adjustedNominations.put(cycle, adjustedDate.format(formatter));
 
           // Debug output to verify dates
           System.out.println("Cycle: " + cycle +
-              " | Min date: " + minDate.format(formatter) +
+              " | Mode date: " + minDate.format(formatter) +
+              " | Adjusted date: " + adjustedDate.format(formatter));
+        }
+      }
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Error reading file", e);
+    }
+
+    return adjustedNominations;
+  }
+
+  private static Map<String, String> alternateCalculate32SelectedNominations(Set<String> selectedCycles) {
+    Map<String, String> adjustedNominations = new TreeMap<>();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+    int currentYear = LocalDate.now().getYear();
+    LocalDate today = LocalDate.now();
+
+    try (BufferedReader reader = new BufferedReader(new FileReader("data/Colonial/Fungible/GBJall.csv"))) {
+      String headerLine = reader.readLine();
+      if (headerLine == null) return adjustedNominations;
+
+      String[] headers = headerLine.split(",");
+      Map<String, Integer> cycleIndexMap = new HashMap<>();
+      for (int i = 0; i < headers.length; i++) {
+        if (selectedCycles.contains(headers[i])) {
+          cycleIndexMap.put(headers[i], i);
+          System.out.println("header: " + headers[i] + " index: " + i);
+        }
+      }
+
+      // Initialize date lists for each cycle
+      Map<String, List<LocalDate>> cycleDates = new HashMap<>();
+      for (String cycle : selectedCycles) {
+        cycleDates.put(cycle, new ArrayList<>());
+      }
+
+      String line;
+      int lineNumber = 1;
+      while ((line = reader.readLine()) != null) {
+        lineNumber++;
+        if (lineNumber == 10) {
+          System.out.println(line);
+          String[] values = line.split(",", -1);
+          for (Map.Entry<String, Integer> entry : cycleIndexMap.entrySet()) {
+            String cycle = entry.getKey();
+            int index = entry.getValue();
+            if (index < values.length && !values[index].isEmpty()) {
+              String[] dateStrings = values[index].split(";");
+              for (String dateStr : dateStrings) {
+                try {
+                  String[] parts = dateStr.trim().split("/");
+                  if (parts.length != 2) {
+                    System.err.println(
+                        "Invalid date format '" + dateStr + "' for cycle " + cycle + " on line "
+                            + lineNumber);
+                    continue;
+                  }
+
+                  int month = Integer.parseInt(parts[0]);
+                  int day = Integer.parseInt(parts[1]);
+                  LocalDate date = LocalDate.of(currentYear, month, day);
+
+                  // Adjust year if date is too far in the past
+                  if (date.isBefore(today.minusDays(200))) {
+                    date = date.plusYears(1);
+                  }
+
+                  cycleDates.get(cycle).add(date);
+                } catch (Exception e) {
+                  System.err.println(
+                      "Failed to parse date '" + dateStr + "' for cycle " + cycle + " on line "
+                          + lineNumber);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Find minimum date for each cycle separately
+      for (Map.Entry<String, List<LocalDate>> entry : cycleDates.entrySet()) {
+        String cycle = entry.getKey();
+        List<LocalDate> dates = entry.getValue();
+        System.out.println("Dates for cycle: " + cycle + ": " + dates);
+        System.out.println(cycle + " has " + dates.size() + " dates");
+
+        if (!dates.isEmpty()) {
+          List<LocalDate> top3 = getLastThreeAfterDroppingEight(dates);
+          LocalDate modeDate = findModeDate(top3);
+          LocalDate adjustedDate = MainLine.subtractBusinessDays(modeDate, 4);
+          adjustedNominations.put(cycle, adjustedDate.format(formatter));
+
+          // Debug output to verify dates
+          System.out.println("Cycle: " + cycle +
+              " | Mode date: " + modeDate.format(formatter) +
               " | Adjusted date: " + adjustedDate.format(formatter));
         }
       }
@@ -273,4 +391,55 @@ public class StubLineNoms {
     return minDate.flatMap(d -> MainLine.adjustSchedulingDate(d, 3));
   }
 
+  private static LocalDate findModeDate(List<LocalDate> dates) {
+    if (dates == null || dates.isEmpty()) {
+      return null;
+    }
+
+    // Count frequency of each date
+    Map<LocalDate, Integer> frequencyMap = new HashMap<>();
+    for (LocalDate date : dates) {
+      frequencyMap.put(date, frequencyMap.getOrDefault(date, 0) + 1);
+    }
+
+    // Find date with highest frequency
+    LocalDate modeDate = null;
+    int maxFrequency = 0;
+
+    for (Map.Entry<LocalDate, Integer> entry : frequencyMap.entrySet()) {
+      if (entry.getValue() > maxFrequency) {
+        maxFrequency = entry.getValue();
+        modeDate = entry.getKey();
+      }
+    }
+
+    return modeDate;
+  }
+
+  public static List<LocalDate> getLastThreeAfterDroppingEight(List<LocalDate> dates) {
+    if (dates == null || dates.size() <= 8) {
+      return Collections.emptyList();
+    }
+
+
+
+    // Create a new list to avoid modifying the original
+    List<LocalDate> result = new ArrayList<>(dates);
+
+    if (dates.size() >= 24) {
+      result = result.subList(23, 25);
+    }
+
+    else {
+      result = result.subList(dates.size() - 3, dates.size() - 1);
+    }
+
+    // Drop the last 8 entries
+    //int newSize = result.size() - 7;
+
+    // Get the last 3 from the remaining list
+    int startIndex = Math.max(0, result.size() - 3);
+    return new ArrayList<>(result.subList(startIndex, result.size()));
+  }
 }
+

@@ -382,7 +382,7 @@ public class MainLine {
 
   private static boolean isBusinessDay(LocalDate date) throws Exception {
     DayOfWeek dayOfWeek = date.getDayOfWeek();
-    System.out.println("Holiday contains date " + date + ": " + HOLIDAYS.contains(date));
+    //System.out.println("Holiday contains date " + date + ": " + HOLIDAYS.contains(date));
     return dayOfWeek != DayOfWeek.SATURDAY
         && dayOfWeek != DayOfWeek.SUNDAY
         && !HOLIDAYS.contains(date);
