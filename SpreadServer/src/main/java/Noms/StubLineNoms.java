@@ -401,7 +401,7 @@ public class StubLineNoms {
     List<LocalDate> result = new ArrayList<>(dates);
 
     if (dates.size() >= 24) {
-      result = result.subList(23, 25);
+      result = result.subList(21, 23);
     }
 
     else {
