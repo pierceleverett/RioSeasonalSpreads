@@ -16,7 +16,8 @@ interface NomData {
 
 interface StubNomData {
   Stub_172029_Nomination: string | null;
-  Stub_32_Nomination: string | null;
+  Min_Stub_32_Nomination: string | null; // For "32 Earliest"
+  My_Stub_32_Nomination: string | null; // For "32 Prediction"
 }
 
 interface StubApiResponse {
@@ -386,7 +387,7 @@ const NomsTab: React.FC = () => {
             <table
               style={{
                 borderCollapse: "collapse",
-                width: "60%",
+                width: "80%",
                 margin: "20px auto",
                 border: "1px solid #ddd",
                 textAlign: "center",
@@ -419,7 +420,16 @@ const NomsTab: React.FC = () => {
                       width: "35%",
                     }}
                   >
-                    32
+                    32 Earliest
+                  </th>
+                  <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                      width: "35%",
+                    }}
+                  >
+                    32 Prediction
                   </th>
                 </tr>
               </thead>
@@ -453,7 +463,16 @@ const NomsTab: React.FC = () => {
                             width: "35%",
                           }}
                         >
-                          {formatDate(cycleData.Stub_32_Nomination)}
+                          {formatDate(cycleData.Min_Stub_32_Nomination)}
+                        </td>
+                        <td
+                          style={{
+                            border: "1px solid #ddd",
+                            padding: "4px",
+                            width: "35%",
+                          }}
+                        >
+                          {formatDate(cycleData.My_Stub_32_Nomination)}
                         </td>
                       </tr>
                     )
