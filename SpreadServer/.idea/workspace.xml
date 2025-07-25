@@ -5,12 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/data/Explorer/explorer_transit_times2026.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/Explorer/explorer_transit_times2027.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/Explorer/explorer_transit_times2028.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/Explorer/explorer_transit_times2029.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/Explorer/explorer_transit_times2030.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SeasonalSpreads/src/tabs/NomsTab.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../SeasonalSpreads/src/tabs/NomsTab.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/Colonial/Fungible/GBJall.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Fungible/GBJall.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Fungible/all_processed_dates.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Fungible/all_processed_dates.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/explorer_transit_times.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Explorer/explorer_transit_times2025.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/ExplorerHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/ExplorerHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Noms/StubLineNoms.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Noms/StubLineNoms.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Outlook/ExplorerParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Outlook/ExplorerParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ExplorerHandler$4.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Noms/StubLineNoms$ClerkHolidayService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Noms/StubLineNoms$ClerkHolidayService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Noms/StubLineNoms$NomsData.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Noms/StubLineNoms$NomsData.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Noms/StubLineNoms.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Noms/StubLineNoms.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/ExplorerParser$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Outlook/ExplorerParser$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Outlook/ExplorerParser.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Outlook/ExplorerParser.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,6 +103,7 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/data/Explorer" />
       <recent name="$PROJECT_DIR$/data/pdfToAdd" />
       <recent name="$PROJECT_DIR$/data/pdf" />
       <recent name="$PROJECT_DIR$/data/spreads" />
@@ -172,7 +190,7 @@
       <updated>1750257510543</updated>
       <workItem from="1750257511704" duration="206928000" />
       <workItem from="1752704804511" duration="18000" />
-      <workItem from="1752757281876" duration="93308000" />
+      <workItem from="1752757281876" duration="104177000" />
     </task>
     <servers />
   </component>

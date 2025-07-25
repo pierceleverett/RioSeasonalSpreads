@@ -1,6 +1,7 @@
 package Outlook;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
+import java.time.Year;
 import java.util.Comparator;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -160,11 +161,12 @@ public class ExplorerParser {
       };
 
       // Prepare CSV file
-      File csvFile = new File("data/explorer_transit_times.csv");
+      String currYear = java.time.Year.now().toString();
+      File csvFile = new File("data/Explorer/explorer_transit_times" + currYear + ".csv");
       boolean fileExists = csvFile.exists();
       System.out.println("[DEBUG] CSV file exists: " + fileExists);
 
-      File tempFile = new File("data/explorer_transit_times_temp.csv");
+      File tempFile = new File("data/Explorer/explorer_transit_times" + currYear + "_temp.csv");
 
       Map<String, String> dataLines = new TreeMap<>(new Comparator<String>() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");

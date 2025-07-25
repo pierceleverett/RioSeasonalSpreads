@@ -2,12 +2,18 @@ package Noms;
 
 import Colonial.MostRecentFungible;
 import Colonial.MostRecentFungible.FungibleData;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import Noms.MainLine.ClerkHolidayService;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.microsoft.graph.models.Message;
+import com.opencsv.exceptions.CsvValidationException;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -117,6 +123,7 @@ public class StubLineNoms {
     System.out.println("\n[2/2] Processing ALL Fungible data for 32 nominations...");
     FungibleData fungibleData = MostRecentFungible.extractLatestFungibleData();
     Set<String> cycles = fungibleData.data.keySet();
+    clearOldData(cycles, "data/Colonial/Fungible/GBJall.csv");
     System.out.println("Fungible report date: " + fungibleData.reportDate);
     FungibleReportDate = fungibleData.reportDate;
 
@@ -415,5 +422,55 @@ public class StubLineNoms {
     int startIndex = Math.max(0, result.size() - 3);
     return new ArrayList<>(result.subList(startIndex, result.size()));
   }
-}
+
+
+  public static void clearOldData(Set<String> headersToKeep, String csvFilePath) throws IOException {
+    File inputFile = new File(csvFilePath);
+    File tempFile = new File("temp_" + inputFile.getName());
+
+    try (
+        CSVReader reader = new CSVReader(new FileReader(inputFile));
+        CSVWriter writer = new CSVWriter(
+            new FileWriter(tempFile),
+            CSVWriter.DEFAULT_SEPARATOR,
+            CSVWriter.NO_QUOTE_CHARACTER, // disables automatic quoting
+            CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+            CSVWriter.DEFAULT_LINE_END
+        );
+    ) {
+      String[] header = reader.readNext();
+      if (header == null) return;
+
+      // Determine which indices to keep or clear
+      List<Integer> indicesToClear = new ArrayList<>();
+      for (int i = 1; i < header.length; i++) {
+        if (!headersToKeep.contains(header[i])) {
+          indicesToClear.add(i);
+        }
+      }
+
+      // Write header as-is
+      writer.writeNext(header);
+
+      String[] row;
+      while ((row = reader.readNext()) != null) {
+        for (int index : indicesToClear) {
+          if (index < row.length) {
+            row[index] = null;  // clear the column data
+          }
+        }
+        writer.writeNext(row);
+      }
+    } catch (CsvValidationException e) {
+      throw new RuntimeException(e);
+    }
+
+    // Replace original file with the temp file
+    if (!inputFile.delete() || !tempFile.renameTo(inputFile)) {
+      throw new IOException("Could not replace original file with updated data.");
+    }
+  }
+  }
+
+
 
