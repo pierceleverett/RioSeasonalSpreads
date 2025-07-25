@@ -155,7 +155,7 @@ const ExplorerTransitChart: React.FC = () => {
           ? "rgb(241, 165, 2)"
           : YEAR_COLORS[colorIndex],
         backgroundColor: "rgba(0, 0, 0, 0)",
-        borderWidth: isLatestYear ? 2 : 1, // Thinner lines for all years
+        borderWidth: isLatestYear ? 4 : 1, // Thinner lines for all years
         borderDash: isLatestYear ? [] : [3, 3], // Smaller dashes for older years
         tension: 0.1,
         pointRadius: 2, // Smaller points for all years
