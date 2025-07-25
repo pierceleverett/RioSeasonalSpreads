@@ -54,7 +54,7 @@ const YEAR_COLORS = [
   "rgba(54, 162, 235, 0.8)", // blue
   "rgba(75, 192, 192, 0.8)", // green
   "rgba(153, 102, 255, 0.8)", // purple
-  "rgba(255, 159, 64, 0.8)", // orange
+  "rgb(241, 165, 2)", // orange
   "rgba(199, 199, 199, 0.8)", // gray
 ];
 
@@ -152,10 +152,10 @@ const ExplorerTransitChart: React.FC = () => {
             : null;
         }),
         borderColor: isLatestYear
-          ? "rgba(255, 99, 71, 1)"
+          ? "rgb(241, 165, 2)"
           : YEAR_COLORS[colorIndex],
         backgroundColor: "rgba(0, 0, 0, 0)",
-        borderWidth: 1, // Thinner lines for all years
+        borderWidth: isLatestYear ? 2 : 1, // Thinner lines for all years
         borderDash: isLatestYear ? [] : [3, 3], // Smaller dashes for older years
         tension: 0.1,
         pointRadius: 2, // Smaller points for all years
