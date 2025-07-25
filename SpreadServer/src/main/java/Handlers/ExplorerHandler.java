@@ -116,7 +116,6 @@ public class ExplorerHandler implements Route {
           allRouteData.put(year.toString(), routeData);
         }
       } catch (Exception e) {
-        response.status(500);
         System.out.println("Failed to open file: " + csvPath);;
       }
     }
