@@ -47,20 +47,20 @@ public class ExplorerHandler implements Route {
     }
 
     // 3. Update the data (call your existing method)
-//    try {
-//      String token = getAccessToken();
-//      explorerTransit(token);
-//    } catch (Exception e) {
-//      response.status(500);
-//      return new HashMap<String, String>() {{
-//        put("error", "Failed to update data");
-//        put("details", e.getMessage());
-//      }};
-//    }
+    try {
+      String token = getAccessToken();
+      explorerTransit(token);
+    } catch (Exception e) {
+      response.status(500);
+      return new HashMap<String, String>() {{
+        put("error", "Failed to update data");
+        put("details", e.getMessage());
+      }};
+    }
 
     // 4. Read the CSV file and extract data for the requested route
     LinkedList<Year> yearList = new LinkedList<>();
-    Year currYear = java.time.Year.now().plusYears(1);
+    Year currYear = java.time.Year.now();
     System.out.println("current year: " + currYear);
     Year prev1Year = currYear.minusYears(1);
     Year prev2Year = currYear.minusYears(2);
