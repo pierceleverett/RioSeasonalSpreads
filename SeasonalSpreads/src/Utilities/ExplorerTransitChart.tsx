@@ -29,7 +29,7 @@ ChartJS.register(
 
 interface YearlyTransitData {
   [year: string]: {
-    [date: string]: number;
+    [date: string]: string;
   };
 }
 
@@ -147,21 +147,24 @@ const ExplorerTransitChart: React.FC = () => {
               return `${month}-${day}` === label;
             }
           );
-          return fullDateKey ? transitData[year][fullDateKey] : null;
+          return fullDateKey
+            ? parseFloat(transitData[year][fullDateKey])
+            : null;
         }),
         borderColor: isLatestYear
           ? "rgba(255, 99, 71, 1)"
-          : YEAR_COLORS[colorIndex], // orange for latest
-        backgroundColor: "rgba(0, 0, 0, 0)", // transparent fill
-        borderWidth: isLatestYear ? 3 : 2,
-        borderDash: isLatestYear ? [] : [5, 5],
+          : YEAR_COLORS[colorIndex],
+        backgroundColor: "rgba(0, 0, 0, 0)",
+        borderWidth: 1, // Thinner lines for all years
+        borderDash: isLatestYear ? [] : [3, 3], // Smaller dashes for older years
         tension: 0.1,
-        pointRadius: isLatestYear ? 4 : 3,
-        pointHoverRadius: isLatestYear ? 6 : 5,
+        pointRadius: 2, // Smaller points for all years
+        pointHoverRadius: 4, // Slightly larger on hover
         pointBackgroundColor: isLatestYear
           ? "rgba(255, 99, 71, 1)"
           : YEAR_COLORS[colorIndex],
         fill: false,
+        spanGaps: true, // Connect lines across gaps in data
       };
     });
 
@@ -196,6 +199,7 @@ const ExplorerTransitChart: React.FC = () => {
             family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
           },
           usePointStyle: true,
+          padding: 20,
         },
       },
       title: {
@@ -211,9 +215,16 @@ const ExplorerTransitChart: React.FC = () => {
         callbacks: {
           label: (context: any) => {
             return `${context.dataset.label}: ${
-              context.parsed.y !== null ? context.parsed.y + " days" : "no data"
+              context.parsed.y !== null
+                ? context.parsed.y.toFixed(1) + " days"
+                : "no data"
             }`;
           },
+        },
+        displayColors: true,
+        usePointStyle: true,
+        bodyFont: {
+          size: 12,
         },
       },
     },
@@ -227,6 +238,9 @@ const ExplorerTransitChart: React.FC = () => {
             weight: "bold",
           },
         },
+        grid: {
+          display: false,
+        },
       },
       y: {
         title: {
@@ -238,6 +252,18 @@ const ExplorerTransitChart: React.FC = () => {
           },
         },
         min: 0,
+        grid: {
+          color: "rgba(0, 0, 0, 0.1)",
+        },
+      },
+    },
+    elements: {
+      line: {
+        tension: 0.2, // Slightly smoother curves
+      },
+      point: {
+        radius: 2, // Consistent small point size
+        hoverRadius: 4, // Slightly larger on hover
       },
     },
   };
