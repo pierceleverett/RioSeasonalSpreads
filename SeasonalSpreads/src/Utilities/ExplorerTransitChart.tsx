@@ -27,8 +27,10 @@ ChartJS.register(
   zoomPlugin
 );
 
-interface TransitData {
-  [date: string]: number;
+interface YearlyTransitData {
+  [year: string]: {
+    [date: string]: number;
+  };
 }
 
 const ROUTE_OPTIONS = [
@@ -47,8 +49,17 @@ const ROUTE_OPTIONS = [
   "DAYS",
 ];
 
+// Colors for different years (excluding the latest year which will be orange)
+const YEAR_COLORS = [
+  "rgba(54, 162, 235, 0.8)", // blue
+  "rgba(75, 192, 192, 0.8)", // green
+  "rgba(153, 102, 255, 0.8)", // purple
+  "rgba(255, 159, 64, 0.8)", // orange
+  "rgba(199, 199, 199, 0.8)", // gray
+];
+
 const ExplorerTransitChart: React.FC = () => {
-  const [transitData, setTransitData] = useState<TransitData>({});
+  const [transitData, setTransitData] = useState<YearlyTransitData>({});
   const [selectedRoute, setSelectedRoute] = useState<string>(ROUTE_OPTIONS[10]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,24 +107,71 @@ const ExplorerTransitChart: React.FC = () => {
   };
 
   // Prepare chart data
-  const chartData = {
-    labels: Object.keys(transitData).sort(),
-    datasets: [
-      {
-        label: `${selectedRoute} Transit Time (days)`,
-        data: Object.keys(transitData)
-          .sort()
-          .map((date) => transitData[date]),
-        borderColor: "rgba(75, 192, 192, 1)",
-        backgroundColor: "rgba(75, 192, 192, 0.2)",
-        borderWidth: 2,
+  const prepareChartData = () => {
+    if (Object.keys(transitData).length === 0)
+      return { labels: [], datasets: [] };
+
+    // Get sorted years (newest first)
+    const years = Object.keys(transitData).sort(
+      (a, b) => parseInt(b) - parseInt(a)
+    );
+    const latestYear = years[0];
+
+    // Get all unique month-day combinations across all years
+    const allDates = new Set<string>();
+    years.forEach((year) => {
+      Object.keys(transitData[year]).forEach((fullDate) => {
+        const [, month, day] = fullDate.split("-");
+        allDates.add(`${month}-${day}`);
+      });
+    });
+
+    const sortedLabels = Array.from(allDates).sort((a, b) => {
+      const [aMonth, aDay] = a.split("-").map(Number);
+      const [bMonth, bDay] = b.split("-").map(Number);
+      return aMonth - bMonth || aDay - bDay;
+    });
+
+    // Create datasets for each year
+    const datasets = years.map((year, index) => {
+      const isLatestYear = year === latestYear;
+      const colorIndex = index >= 1 ? (index - 1) % YEAR_COLORS.length : 0;
+
+      return {
+        label: year,
+        data: sortedLabels.map((label) => {
+          // Find the corresponding full date in this year's data
+          const fullDateKey = Object.keys(transitData[year]).find(
+            (fullDate) => {
+              const [, month, day] = fullDate.split("-");
+              return `${month}-${day}` === label;
+            }
+          );
+          return fullDateKey ? transitData[year][fullDateKey] : null;
+        }),
+        borderColor: isLatestYear
+          ? "rgba(255, 99, 71, 1)"
+          : YEAR_COLORS[colorIndex], // orange for latest
+        backgroundColor: "rgba(0, 0, 0, 0)", // transparent fill
+        borderWidth: isLatestYear ? 3 : 2,
+        borderDash: isLatestYear ? [] : [5, 5],
         tension: 0.1,
-        fill: true,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      },
-    ],
+        pointRadius: isLatestYear ? 4 : 3,
+        pointHoverRadius: isLatestYear ? 6 : 5,
+        pointBackgroundColor: isLatestYear
+          ? "rgba(255, 99, 71, 1)"
+          : YEAR_COLORS[colorIndex],
+        fill: false,
+      };
+    });
+
+    return {
+      labels: sortedLabels,
+      datasets,
+    };
   };
+
+  const chartData = prepareChartData();
 
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
@@ -137,6 +195,7 @@ const ExplorerTransitChart: React.FC = () => {
             size: 14,
             family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
           },
+          usePointStyle: true,
         },
       },
       title: {
@@ -151,7 +210,9 @@ const ExplorerTransitChart: React.FC = () => {
       tooltip: {
         callbacks: {
           label: (context: any) => {
-            return `${context.dataset.label}: ${context.parsed.y} days`;
+            return `${context.dataset.label}: ${
+              context.parsed.y !== null ? context.parsed.y + " days" : "no data"
+            }`;
           },
         },
       },
@@ -160,7 +221,7 @@ const ExplorerTransitChart: React.FC = () => {
       x: {
         title: {
           display: true,
-          text: "Date",
+          text: "Date (Month-Day)",
           font: {
             size: 14,
             weight: "bold",
