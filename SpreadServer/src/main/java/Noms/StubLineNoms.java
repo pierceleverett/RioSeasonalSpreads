@@ -123,7 +123,8 @@ public class StubLineNoms {
     System.out.println("\n[2/2] Processing ALL Fungible data for 32 nominations...");
     FungibleData fungibleData = MostRecentFungible.extractLatestFungibleData();
     Set<String> cycles = fungibleData.data.keySet();
-    clearOldData(cycles, "data/Colonial/Fungible/GBJall.csv");
+    String currYear = java.time.Year.now().toString();
+    clearOldData(cycles, "data/Colonial/Fungible/GBJall" + currYear + ".csv");
     System.out.println("Fungible report date: " + fungibleData.reportDate);
     FungibleReportDate = fungibleData.reportDate;
 
@@ -151,9 +152,10 @@ public class StubLineNoms {
     Map<String, String> adjustedNominations = new TreeMap<>();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
     int currentYear = LocalDate.now().getYear();
+    String currYear = java.time.Year.now().toString();
     LocalDate today = LocalDate.now();
 
-    try (BufferedReader reader = new BufferedReader(new FileReader("data/Colonial/Fungible/GBJall.csv"))) {
+    try (BufferedReader reader = new BufferedReader(new FileReader("data/Colonial/Fungible/GBJall" + currYear + ".csv"))) {
       String headerLine = reader.readLine();
       if (headerLine == null) return adjustedNominations;
 
@@ -242,7 +244,7 @@ public class StubLineNoms {
     int currentYear = LocalDate.now().getYear();
     LocalDate today = LocalDate.now();
 
-    try (BufferedReader reader = new BufferedReader(new FileReader("data/Colonial/Fungible/GBJall.csv"))) {
+    try (BufferedReader reader = new BufferedReader(new FileReader("data/Colonial/Fungible/GBJall" + currentYear + ".csv"))) {
       String headerLine = reader.readLine();
       if (headerLine == null) return adjustedNominations;
 

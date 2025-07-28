@@ -164,7 +164,7 @@ public class ColonialFungible {
     System.out.println("Saved " + dateList.size() + " processed dates to " + PROCESSED_DATES_PATH);
   }
 
-  private static boolean isTransitionPeriod(LocalDate date) {
+  static boolean isTransitionPeriod(LocalDate date) {
     int month = date.getMonthValue();
     return month >= 11 || month <= 2;
   }

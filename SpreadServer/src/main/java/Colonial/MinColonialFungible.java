@@ -1,5 +1,6 @@
 package Colonial;
 
+import static Colonial.ColonialFungible.isTransitionPeriod;
 import static Outlook.ExplorerParser.getAccessToken;
 import com.microsoft.graph.models.*;
 import com.microsoft.graph.options.QueryOption;
@@ -22,7 +23,7 @@ import java.time.format.DateTimeParseException;
 import java.util.*;
 
 public class MinColonialFungible {
-  private static final String GBJ_CSV_PATH = "data/Colonial/Fungible/GBJall.csv";
+  private static final String GBJ_CSV_BASE = "data/Colonial/Fungible/GBJall";
   private static final String PROCESSED_DATES_PATH = "data/Colonial/Fungible/all_processed_dates.txt";
   private static final String USER_PRINCIPAL_NAME = "automatedreports@rioenergy.com";
   private static final String EMAIL_SUBJECT_FILTER = "colonial - fungible deliveries";
@@ -72,43 +73,53 @@ public class MinColonialFungible {
   }
 
   public static void processAllMessages(List<Message> messages) throws IOException {
-    // Read existing data
-    Map<String, Map<String, List<String>>> existingGbjData = readExistingCsv(GBJ_CSV_PATH);
     Set<String> processedDates = readProcessedDates();
-
-    // Sort messages chronologically
     messages.sort(Comparator.comparing(m -> m.receivedDateTime));
 
-    // Process all messages
     for (Message message : messages) {
       try {
         if (message.body == null || message.body.content == null) continue;
 
-        // Extract and store the bulletin date
         Document doc = Jsoup.parse(message.body.content);
         String plainText = doc.text().replaceAll("\\s+", " ").trim();
         LocalDate emailDate = extractDateFromPlainText(plainText);
         String formattedDate = emailDate.format(DateTimeFormatter.ofPattern("MM/dd/yy"));
 
-        // Skip if already processed
         if (processedDates.contains(formattedDate)) {
           continue;
         }
 
-        // Parse and merge with existing data
-        parseFungibleBody(message.body.content, existingGbjData);
-        processedDates.add(formattedDate);
+        // Initialize data structures for current and adjacent years
+        int currentYear = emailDate.getYear();
+        Map<String, Map<String, List<String>>> gbjCurrent = readExistingCsv(GBJ_CSV_BASE,
+            String.valueOf(currentYear));
 
+        Map<String, Map<String, List<String>>> gbjAdjacent = null;
+
+        // Only load adjacent year if we're in transition period
+        if (isTransitionPeriod(emailDate)) {
+          int adjacentYear = emailDate.getMonthValue() >= 11 ? currentYear + 1 : currentYear - 1;
+          gbjAdjacent = readExistingCsv(GBJ_CSV_BASE, String.valueOf(adjacentYear));
+        }
+
+        // Parse the message body
+        parseFungibleBody(message.body.content, emailDate, gbjCurrent, gbjAdjacent);
+
+        // Write all affected files
+        writeCompleteCsv(GBJ_CSV_BASE, currentYear, gbjCurrent);
+
+        if (gbjAdjacent != null) {
+          int adjacentYear = emailDate.getMonthValue() >= 11 ? currentYear + 1 : currentYear - 1;
+          writeCompleteCsv(GBJ_CSV_BASE, adjacentYear, gbjAdjacent);
+        }
+
+        processedDates.add(formattedDate);
       } catch (Exception e) {
         System.err.println("Failed to process message with subject: " + message.subject);
         e.printStackTrace();
       }
     }
 
-    // Write the merged data to CSVs
-    writeCompleteCsv(GBJ_CSV_PATH, existingGbjData);
-
-    // Save processed dates
     saveProcessedDates(processedDates);
   }
 
@@ -145,22 +156,14 @@ public class MinColonialFungible {
     System.out.println("Saved " + dateList.size() + " processed dates to " + PROCESSED_DATES_PATH);
   }
 
-  public static void parseFungibleBody(String htmlContent,
-      Map<String, Map<String, List<String>>> gbjData) {
+  public static void parseFungibleBody(String htmlContent, LocalDate emailDate,
+      Map<String, Map<String, List<String>>> gbjCurrent,
+      Map<String, Map<String, List<String>>> gbjAdjacent) {
     System.out.println("\n===== Starting to parse fungible body =====");
 
     Document doc = Jsoup.parse(htmlContent);
     String plainText = doc.text().replaceAll("\\s+", " ").trim();
     System.out.println("Plain text preview: " + plainText.substring(0, Math.min(100, plainText.length())) + "...");
-
-    LocalDate emailDate;
-    try {
-      emailDate = extractDateFromPlainText(plainText);
-      System.out.println("Extracted email date: " + emailDate);
-    } catch (Exception e) {
-      System.err.println("Failed to parse date: " + e.getMessage());
-      return;
-    }
 
     String bulletinDate = emailDate.format(DateTimeFormatter.ofPattern("MM/dd"));
     System.out.println("Formatted bulletin date: " + bulletinDate);
@@ -277,19 +280,40 @@ public class MinColonialFungible {
         continue;
       }
 
-      // Store the data
-      System.out.println("  STORING: Fuel=" + fuel + ", Cycle=" + cycle + ", Date=" + greensboroDate);
+      // Determine which map to use based on transition period logic
+      boolean useAdjacent = shouldUseAdjacentYear(emailDate, Integer.parseInt(cycle));
+      Map<String, Map<String, List<String>>> targetMap = useAdjacent ? gbjAdjacent : gbjCurrent;
 
-      gbjData.computeIfAbsent(fuel, k -> new HashMap<>())
-          .computeIfAbsent(cycle, k -> new ArrayList<>())
-          .add(greensboroDate);
+      if (targetMap != null) {
+        // Store the data (always store, not just when date matches today)
+        System.out.println("  STORING: Fuel=" + fuel + ", Cycle=" + cycle + ", Date=" + greensboroDate +
+            ", Year=" + (useAdjacent ? "adjacent" : "current"));
 
-      processedRows++;
+        targetMap.computeIfAbsent(fuel, k -> new HashMap<>())
+            .computeIfAbsent(cycle, k -> new ArrayList<>())
+            .add(greensboroDate);
+
+        processedRows++;
+      }
     }
 
     System.out.println("\n===== Finished parsing =====");
     System.out.println("Successfully processed " + processedRows + " rows");
-    System.out.println("Current GBJ data size: " + gbjData.size() + " fuel types");
+    System.out.println("Current GBJ data size: " + gbjCurrent.size() + " fuel types");
+  }
+
+  private static boolean shouldUseAdjacentYear(LocalDate date, int cycleNum) {
+    int month = date.getMonthValue();
+    if (month >= 11 && cycleNum < 20) {
+      System.out.println("Cycle " + cycleNum + " in Nov/Dec - using next year");
+      return true;
+    }
+    if (month <= 2 && cycleNum > 60) {
+      System.out.println("Cycle " + cycleNum + " in Jan/Feb - using previous year");
+      return true;
+    }
+    System.out.println("Cycle " + cycleNum + " - using current year");
+    return false;
   }
 
   public static LocalDate extractDateFromPlainText(String plainText) {
@@ -317,8 +341,9 @@ public class MinColonialFungible {
     throw new RuntimeException("No valid date pattern found");
   }
 
-  private static void writeCompleteCsv(String csvPath, Map<String, Map<String, List<String>>> deliveryData) throws IOException {
-    // Determine all possible cycles (01-72)
+  private static void writeCompleteCsv(String basePath, int year,
+      Map<String, Map<String, List<String>>> deliveryData) throws IOException {
+    String csvPath = basePath + year + ".csv";
     Set<String> allCycles = new TreeSet<>();
     for (int i = 1; i <= 72; i++) {
       allCycles.add(String.format("%02d", i));
@@ -354,14 +379,20 @@ public class MinColonialFungible {
     }
 
     // Write to file
-    Files.write(Paths.get(csvPath), lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-    System.out.println("Updated " + csvPath + " with " + (fuelTypes.size() + 3) + " fuel types (including aggregates)");
+    Path path = Paths.get(csvPath);
+    Path parentDir = path.getParent();
+    if (!Files.exists(parentDir)) {
+      Files.createDirectories(parentDir);
+    }
+
+    Files.write(path, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    System.out.println("Updated " + csvPath + " with " + fuelTypes.size() + " fuel types");
   }
 
-  private static Map<String, Map<String, List<String>>> readExistingCsv(String csvPath) throws IOException {
+  private static Map<String, Map<String, List<String>>> readExistingCsv(String csvPath, String currentYear) throws IOException {
     Map<String, Map<String, List<String>>> existingData = new HashMap<>();
-
-    if (!Files.exists(Paths.get(csvPath))) {
+    String currentPath = GBJ_CSV_BASE + currentYear + ".csv";
+    if (!Files.exists(Paths.get(currentPath))) {
       return existingData;
     }
 
