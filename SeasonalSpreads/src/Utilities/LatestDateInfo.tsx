@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-interface DateData {
-  [cycle: string]: {
-    [product: string]: {
-      [location: string]: string;
-    };
-  };
-}
 
 interface ApiResponse {
   "Recent Data": {
