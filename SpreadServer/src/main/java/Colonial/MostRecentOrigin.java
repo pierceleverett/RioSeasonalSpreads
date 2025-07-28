@@ -240,7 +240,7 @@ public class MostRecentOrigin {
     }
   }
 
-  private static Message fetchMostRecentOriginEmail(String accessToken, String userPrincipalName) throws IOException {
+  public static Message fetchMostRecentOriginEmail(String accessToken, String userPrincipalName) throws IOException {
     try {
       IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
       GraphServiceClient<?> graphClient = GraphServiceClient.builder()
@@ -278,7 +278,7 @@ public class MostRecentOrigin {
     }
   }
 
-  private static OriginData parseOriginEmail(Message message) {
+  public static OriginData parseOriginEmail(Message message) {
     OriginData result = new OriginData();
 
     try {

@@ -1,7 +1,11 @@
 package Noms;
 
+import static Colonial.MostRecentOrigin.fetchMostRecentOriginEmail;
+import static Colonial.MostRecentOrigin.parseOriginEmail;
 import static Colonial.OriginUpdater.updateFromMostRecentOriginEmail;
 import static Outlook.ExplorerParser.getAccessToken;
+
+import Colonial.MostRecentOrigin.OriginData;
 import com.microsoft.graph.models.*;
 import com.microsoft.graph.requests.*;
 import com.microsoft.graph.authentication.IAuthenticationProvider;
@@ -428,10 +432,10 @@ public class MainLine {
 
     // First update the origin starts from emails
     String accessToken = getAccessToken();
-    String originBulletinDate = updateFromMostRecentOriginEmail(accessToken).get("Bulletin Date").get(0);
-
-    // Load origin data from CSV
-    Map<String, Map<String, String>> originData = loadOriginData();
+    Message mostRecentOrigin = fetchMostRecentOriginEmail(accessToken, "automatedreports@rioenergy.com");
+    OriginData parsedOrigin = parseOriginEmail(mostRecentOrigin);
+    String originBulletinDate = parsedOrigin.reportDate.toString();
+    Map<String, Map<String, String>> originData = parsedOrigin.data;
 
     // Group grades by cycle (last 2 digits of grade)
     Map<String, List<String>> gradesByCycle = new TreeMap<>();
@@ -535,36 +539,5 @@ public class MainLine {
     return Optional.empty();
   }
 
-  private static Map<String, Map<String, String>> loadOriginData() throws IOException {
-    Map<String, Map<String, String>> originData = new HashMap<>();
-    List<String> lines = Files.readAllLines(Paths.get(ORIGIN_CSV_PATH));
-
-    if (lines.isEmpty()) {
-      return originData;
-    }
-
-    // First line contains cycle numbers (1-72)
-    String[] cycles = lines.get(0).split(",");
-    int cycleCount = cycles.length - 1; // Subtract 1 for "Type" column
-
-    // Process each type (A, D, F, 62)
-    for (int i = 1; i < lines.size(); i++) {
-      String[] parts = lines.get(i).split(",");
-      if (parts.length < 2) continue;
-
-      String type = parts[0];
-      Map<String, String> typeDates = new HashMap<>();
-
-      for (int j = 1; j <= cycleCount && j < parts.length; j++) {
-        if (!parts[j].isEmpty()) {
-          typeDates.put(String.valueOf(j), parts[j]);
-        }
-      }
-
-      originData.put(type, typeDates);
-    }
-
-    return originData;
-  }
 
 }
