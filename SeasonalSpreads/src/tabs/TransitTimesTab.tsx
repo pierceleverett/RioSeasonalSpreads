@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import ExplorerTransitChart from "../Utilities/ExplorerTransitChart";
 import ColonialTransitChart from "../Utilities/ColonialTransitChart";
 import FungibleDeliveriesTable from "../Utilities/LatestFungible";
+import DateInfoTable from "../Utilities/LatestDateInfo";
 import OriginStartsTable from "../Utilities/LatestOrigin" // Import your new component
 
 const TransitTimesTab: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "explorer" | "colonial" | "colonialFungible" | "colonialOrigin"
+    "explorer" | "colonial" | "colonialFungible" | "colonialOrigin" | "colonialDateInfo"
   >("explorer");
 
   return (
@@ -79,7 +80,7 @@ const TransitTimesTab: React.FC = () => {
           }}
           onClick={() => setActiveTab("colonialFungible")}
         >
-          Colonial Latest Fungible
+          Colonial Latest Fungible Deliveries
         </button>
         <button
           style={{
@@ -98,7 +99,26 @@ const TransitTimesTab: React.FC = () => {
           }}
           onClick={() => setActiveTab("colonialOrigin")}
         >
-          Colonial Latest Origin
+          Colonial Latest Origin Starts
+        </button>
+        <button
+          style={{
+            padding: "10px 20px",
+            margin: "0 5px",
+            backgroundColor:
+              activeTab === "colonialDateInfo" ? "#1890ff" : "#f0f0f0",
+            color: activeTab === "colonialDateInfo" ? "white" : "#333",
+            border: "none",
+            borderRadius: "4px 4px 0 0",
+            cursor: "pointer",
+            fontSize: "16px",
+            fontWeight: "bold",
+            transition: "all 0.3s ease",
+            minWidth: "180px",
+          }}
+          onClick={() => setActiveTab("colonialDateInfo")}
+        >
+          Colonial Latest DateInfo
         </button>
       </div>
 
@@ -167,6 +187,21 @@ const TransitTimesTab: React.FC = () => {
               Colonial Bulletins
             </h2>
             <OriginStartsTable />
+          </div>
+        )}
+
+        {activeTab === "colonialDateInfo" && (
+          <div>
+            <h2
+              style={{
+                textAlign: "center",
+                marginBottom: "20px",
+                color: "#333",
+              }}
+            >
+              Colonial Bulletins
+            </h2>
+            <DateInfoTable />
           </div>
         )}
       </div>

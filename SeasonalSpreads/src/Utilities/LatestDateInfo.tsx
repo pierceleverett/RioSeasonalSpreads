@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-interface FungibleData {
+interface DateInfoData {
   data: {
     [cycle: string]: {
       [product: string]: {
@@ -11,14 +11,14 @@ interface FungibleData {
 }
 
 interface ApiResponse {
-  currentData: FungibleData;
-  previousData: FungibleData;
+  currentData: DateInfoData;
+  previousData: DateInfoData;
   currentReportDate: string;
   isNewerData: boolean;
   previousReportDate: string;
 }
 
-const FungibleDeliveriesTable: React.FC = () => {
+const DateInfoTable: React.FC = () => {
   const [apiData, setApiData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +32,7 @@ const FungibleDeliveriesTable: React.FC = () => {
     const cycleData = apiData.currentData.data[selectedCycle];
     if (!cycleData) return;
 
+    // Auto-select products starting with A, D, or exactly "62"
     const autoSelectedProducts = Object.keys(cycleData).filter(
       (product) =>
         product.startsWith("A") || product.startsWith("D") || product === "62"
@@ -45,7 +46,7 @@ const FungibleDeliveriesTable: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await fetch(
-        "https://rioseasonalspreads-production.up.railway.app/getRecentFungible"
+        "https://rioseasonalspreads-production.up.railway.app/getDateInfo"
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -75,7 +76,7 @@ const FungibleDeliveriesTable: React.FC = () => {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to fetch fungible data"
+        err instanceof Error ? err.message : "Failed to fetch date info data"
       );
       console.error(err);
     } finally {
@@ -389,7 +390,7 @@ const FungibleDeliveriesTable: React.FC = () => {
                 fontSize: "12px",
               }}
             >
-              Select products to display the delivery table
+              Select products to display the date info table
             </div>
           )}
         </div>
@@ -410,4 +411,4 @@ const FungibleDeliveriesTable: React.FC = () => {
   );
 };
 
-export default FungibleDeliveriesTable;
+export default DateInfoTable;
