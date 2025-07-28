@@ -37,6 +37,20 @@ interface Holiday {
   name: string;
 }
 
+interface FungibleData {
+  currentData: {
+    data: {
+      [cycle: string]: {
+        [fuelType: string]: {
+          [location: string]: string;
+        };
+      };
+    };
+    reportDate: string;
+  };
+  // ... other fields from the response if needed
+}
+
 const NomsTab: React.FC = () => {
   const { getToken } = useAuth();
   const { user, isLoaded } = useUser();
@@ -60,6 +74,7 @@ const NomsTab: React.FC = () => {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [newHoliday, setNewHoliday] = useState<Holiday>({ date: "", name: "" });
   const [isSaving, setIsSaving] = useState(false);
+  const [fungibleData, setFungibleData] = useState<FungibleData | null>(null);
 
   function isNomData(obj: any): obj is NomData {
     return "Origin_Bulletin_Date" in obj && "DateInfo_Bulletin_Date" in obj;
@@ -88,6 +103,38 @@ const NomsTab: React.FC = () => {
       return false;
     }
   });
+
+  const fetchFungibleData = async () => {
+    try {
+      const token = await getToken();
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/getRecentFungible",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch fungible data"
+      );
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (user?.id) {
+        const data = await fetchFungibleData();
+        if (data) setFungibleData(data);
+      }
+    };
+    loadData();
+  }, [user?.id]);
 
   // Fetch nomination data
   useEffect(() => {
@@ -158,6 +205,31 @@ const NomsTab: React.FC = () => {
     }
   }, [user, isLoaded]);
 
+  const subtractBusinessDays = (dateStr: string, days: number): string => {
+    if (!dateStr) return "";
+
+    const [month, day] = dateStr.split("/").map(Number);
+    const currentYear = new Date().getFullYear();
+    const date = new Date(currentYear, month - 1, day);
+
+    let count = 0;
+    while (count < days) {
+      date.setDate(date.getDate() - 1);
+
+      if (date.getDay() === 0 || date.getDay() === 6) continue;
+
+      const dateString = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      const isHoliday = holidays.some((holiday) => holiday.date === dateString);
+      if (isHoliday) continue;
+
+      count++;
+    }
+
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+
   const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
     if (dateStr.includes("-")) {
@@ -178,6 +250,7 @@ const NomsTab: React.FC = () => {
       ];
       return `${day}-${monthNames[month - 1]}-${year.toString().slice(2)}`;
     }
+
     const [month, day] = dateStr.split("/").map(Number);
     const monthNames = [
       "Jan",
@@ -195,6 +268,7 @@ const NomsTab: React.FC = () => {
     ];
     return `${day}-${monthNames[month - 1]}`;
   };
+  
 
   const handleAddHoliday = () => {
     if (newHoliday.date && newHoliday.name) {
@@ -231,491 +305,757 @@ const NomsTab: React.FC = () => {
       <div style={{ textAlign: "center", color: "red" }}>Error: {error}</div>
     );
 
-  return (
-    <div style={{ padding: "20px", maxWidth: 1400, margin: "0 auto" }}>
-      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-        <button
-          onClick={() => setActiveTab("nominations")}
-          style={{
-            padding: "8px 16px",
-            background: activeTab === "nominations" ? "#4CAF50" : "#e0e0e0",
-            color: activeTab === "nominations" ? "white" : "black",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Nominations
-        </button>
-        <button
-          onClick={() => setActiveTab("holidays")}
-          style={{
-            padding: "8px 16px",
-            background: activeTab === "holidays" ? "#4CAF50" : "#e0e0e0",
-            color: activeTab === "holidays" ? "white" : "black",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Edit Holidays
-        </button>
-      </div>
 
-      {activeTab === "nominations" ? (
-        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          {/* Main Line Table */}
-          <div style={{ flex: 1, minWidth: 600 }}>
-            <h1 style={{ textAlign: "center" }}>Main Line Noms Due</h1>
-            <table
-              style={{
-                borderCollapse: "collapse",
-                width: "100%",
-                margin: "20px auto",
-                border: "1px solid #ddd",
-                textAlign: "center",
-              }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    rowSpan={2}
-                    style={{ border: "1px solid #ddd", padding: "8px" }}
-                  >
-                    Cycle
-                  </th>
-                  <th
-                    colSpan={3}
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "8px",
-                      textAlign: "center",
-                    }}
-                  >
-                    Line 2
-                  </th>
-                  <th
-                    colSpan={3}
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "8px",
-                      textAlign: "center",
-                    }}
-                  >
-                    Line 1
-                  </th>
-                </tr>
-                <tr>
-                  <th style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    62 - Sched
-                  </th>
-                  <th style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    HTN lift
-                  </th>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      backgroundColor: "#fffacd",
-                    }}
-                  >
-                    51/54/62
-                  </th>
-                  <th style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    A - Sched
-                  </th>
-                  <th style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    HTN lift
-                  </th>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      backgroundColor: "#fffacd",
-                    }}
-                  >
-                    Gas
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data &&
-                  Object.entries(data).map(([cycle, cycleData]) => (
-                    <tr key={cycle}>
-                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                        {cycle}
-                      </td>
-                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                        {formatDate(cycleData["62_Scheduling_Date"])}
-                      </td>
-                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                        {formatDate(cycleData["62_Origin_Date"])}
-                      </td>
-                      <td
-                        style={{
-                          border: "1px solid #ddd",
-                          padding: "4px",
-                          backgroundColor: "#fffacd",
-                        }}
-                      >
-                        {formatDate(cycleData.Distillate_Nomination)}
-                      </td>
-                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                        {formatDate(cycleData.A_Scheduling_Date)}
-                      </td>
-                      <td style={{ border: "1px solid #ddd", padding: "4px" }}>
-                        {formatDate(cycleData.A_Origin_Date)}
-                      </td>
-                      <td
-                        style={{
-                          border: "1px solid #ddd",
-                          padding: "4px",
-                          backgroundColor: "#fffacd",
-                        }}
-                      >
-                        {formatDate(cycleData.Gas_Nomination)}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Stub Line Table */}
-          <div style={{ flex: 1, minWidth: 300 }}>
-            <h1 style={{ textAlign: "center" }}>Stub Line Noms Due</h1>
-            <table
-              style={{
-                borderCollapse: "collapse",
-                width: "75%",
-                margin: "10px auto",
-                border: "1px solid #ddd",
-                textAlign: "center",
-              }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      width: "25%",
-                    }}
-                  >
-                    Cycle
-                  </th>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      width: "35%",
-                    }}
-                  >
-                    Stubs Upstream of GBJ
-                  </th>
-                  <th
-                    colSpan={2}
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                    }}
-                  >
-                    Stubs Downstream of GBJ
-                  </th>
-                </tr>
-                <tr>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      width: "25%",
-                    }}
-                  ></th>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      width: "35%",
-                    }}
-                  ></th>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      width: "17.5%",
-                    }}
-                  >
-                    Earliest
-                  </th>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "4px",
-                      width: "17.5%",
-                    }}
-                  >
-                    Prediction
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {stubResponse &&
-                  Object.entries(stubResponse.data).map(
-                    ([cycle, cycleData]) => (
-                      <tr key={cycle}>
-                        <td
-                          style={{
-                            border: "1px solid #ddd",
-                            padding: "4px",
-                            width: "25%",
-                          }}
-                        >
-                          {cycle}
-                        </td>
-                        <td
-                          style={{
-                            border: "1px solid #ddd",
-                            padding: "4px",
-                            width: "35%",
-                          }}
-                        >
-                          {formatDate(cycleData.Stub_172029_Nomination)}
-                        </td>
-                        <td
-                          style={{
-                            border: "1px solid #ddd",
-                            padding: "4px",
-                            width: "17.5%",
-                          }}
-                        >
-                          {formatDate(cycleData.Min_Stub_32_Nomination)}
-                        </td>
-                        <td
-                          style={{
-                            border: "1px solid #ddd",
-                            padding: "4px",
-                            width: "17.5%",
-                          }}
-                        >
-                          {formatDate(cycleData.My_Stub_32_Nomination)}
-                        </td>
-                      </tr>
-                    )
-                  )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div style={{ maxWidth: 800, margin: "0 auto" }}>
-          <div
+    return (
+      <div style={{ padding: "20px", maxWidth: 1400, margin: "0 auto" }}>
+        <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+          <button
+            onClick={() => setActiveTab("nominations")}
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "20px",
+              padding: "8px 16px",
+              background: activeTab === "nominations" ? "#4CAF50" : "#e0e0e0",
+              color: activeTab === "nominations" ? "white" : "black",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
             }}
           >
-            <h1 style={{ textAlign: "center", marginBottom: "0" }}>
-              Edit Holidays
-            </h1>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <label htmlFor="year-select">Filter by Year:</label>
-              <select
-                id="year-select"
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                style={{ padding: "8px", borderRadius: "4px" }}
-              >
-                <option value={new Date().getFullYear()}>Current Year</option>
-                <option value={new Date().getFullYear() + 1}>Next Year</option>
-              </select>
-            </div>
-          </div>
+            Nominations
+          </button>
+          <button
+            onClick={() => setActiveTab("holidays")}
+            style={{
+              padding: "8px 16px",
+              background: activeTab === "holidays" ? "#4CAF50" : "#e0e0e0",
+              color: activeTab === "holidays" ? "white" : "black",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            Edit Holidays
+          </button>
+        </div>
 
-          <div style={{ marginBottom: "30px" }}>
-            <h3 style={{ marginBottom: "10px" }}>Current Holidays</h3>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                marginBottom: "20px",
-              }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "6px",
-                      textAlign: "left",
-                    }}
-                  >
-                    Date
-                  </th>
-                  <th
-                    style={{
-                      border: "1px solid #ddd",
-                      padding: "8px",
-                      textAlign: "left",
-                    }}
-                  >
-                    Name
-                  </th>
-                  <th style={{ border: "1px solid #ddd", padding: "8px" }}>
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredHolidays.map((holiday, index) => (
-                  <tr key={index}>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                      <input
-                        type="date"
-                        value={holiday.date}
-                        onChange={(e) => {
-                          const updated = [...holidays];
-                          updated[index].date = e.target.value;
-                          setHolidays(updated);
+        {activeTab === "nominations" ? (
+          <>
+            <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+              {/* Main Line Table */}
+              <div style={{ flex: 1, minWidth: 600 }}>
+                <h1 style={{ textAlign: "center" }}>Main Line Noms Due</h1>
+                <table
+                  style={{
+                    borderCollapse: "collapse",
+                    width: "100%",
+                    margin: "20px auto",
+                    border: "1px solid #ddd",
+                    textAlign: "center",
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        rowSpan={2}
+                        style={{ border: "1px solid #ddd", padding: "8px" }}
+                      >
+                        Cycle
+                      </th>
+                      <th
+                        colSpan={3}
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "center",
                         }}
-                        style={{ width: "90%", padding: "6px" }}
-                      />
-                    </td>
-                    <td style={{ border: "1px solid #ddd", padding: "8px" }}>
-                      <input
-                        type="text"
-                        value={holiday.name}
-                        onChange={(e) => {
-                          const updated = [...holidays];
-                          updated[index].name = e.target.value;
-                          setHolidays(updated);
+                      >
+                        Line 2
+                      </th>
+                      <th
+                        colSpan={3}
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "center",
                         }}
-                        style={{ width: "90%", padding: "6px" }}
-                      />
-                    </td>
-                    <td
+                      >
+                        Line 1
+                      </th>
+                    </tr>
+                    <tr>
+                      <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        62 - Sched
+                      </th>
+                      <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        HTN lift
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          backgroundColor: "#fffacd",
+                        }}
+                      >
+                        51/54/62
+                      </th>
+                      <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        A - Sched
+                      </th>
+                      <th style={{ border: "1px solid #ddd", padding: "4px" }}>
+                        HTN lift
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          backgroundColor: "#fffacd",
+                        }}
+                      >
+                        Gas
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data &&
+                      Object.entries(data).map(([cycle, cycleData]) => (
+                        <tr key={cycle}>
+                          <td
+                            style={{ border: "1px solid #ddd", padding: "4px" }}
+                          >
+                            {cycle}
+                          </td>
+                          <td
+                            style={{ border: "1px solid #ddd", padding: "4px" }}
+                          >
+                            {formatDate(cycleData["62_Scheduling_Date"])}
+                          </td>
+                          <td
+                            style={{ border: "1px solid #ddd", padding: "4px" }}
+                          >
+                            {formatDate(cycleData["62_Origin_Date"])}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid #ddd",
+                              padding: "4px",
+                              backgroundColor: "#fffacd",
+                            }}
+                          >
+                            {formatDate(cycleData.Distillate_Nomination)}
+                          </td>
+                          <td
+                            style={{ border: "1px solid #ddd", padding: "4px" }}
+                          >
+                            {formatDate(cycleData.A_Scheduling_Date)}
+                          </td>
+                          <td
+                            style={{ border: "1px solid #ddd", padding: "4px" }}
+                          >
+                            {formatDate(cycleData.A_Origin_Date)}
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid #ddd",
+                              padding: "4px",
+                              backgroundColor: "#fffacd",
+                            }}
+                          >
+                            {formatDate(cycleData.Gas_Nomination)}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Stub Line Table */}
+              <div style={{ flex: 1, minWidth: 300 }}>
+                <h1 style={{ textAlign: "center" }}>Stub Line Noms Due</h1>
+                <table
+                  style={{
+                    borderCollapse: "collapse",
+                    width: "75%",
+                    margin: "10px auto",
+                    border: "1px solid #ddd",
+                    textAlign: "center",
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          width: "25%",
+                        }}
+                      >
+                        Cycle
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          width: "35%",
+                        }}
+                      >
+                        Stubs Upstream of GBJ
+                      </th>
+                      <th
+                        colSpan={2}
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                        }}
+                      >
+                        Stubs Downstream of GBJ
+                      </th>
+                    </tr>
+                    <tr>
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          width: "25%",
+                        }}
+                      ></th>
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          width: "35%",
+                        }}
+                      ></th>
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          width: "17.5%",
+                        }}
+                      >
+                        Earliest
+                      </th>
+                      <th
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "4px",
+                          width: "17.5%",
+                        }}
+                      >
+                        Prediction
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stubResponse &&
+                      Object.entries(stubResponse.data).map(
+                        ([cycle, cycleData]) => (
+                          <tr key={cycle}>
+                            <td
+                              style={{
+                                border: "1px solid #ddd",
+                                padding: "4px",
+                                width: "25%",
+                              }}
+                            >
+                              {cycle}
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid #ddd",
+                                padding: "4px",
+                                width: "35%",
+                              }}
+                            >
+                              {formatDate(cycleData.Stub_172029_Nomination)}
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid #ddd",
+                                padding: "4px",
+                                width: "17.5%",
+                              }}
+                            >
+                              {formatDate(cycleData.Min_Stub_32_Nomination)}
+                            </td>
+                            <td
+                              style={{
+                                border: "1px solid #ddd",
+                                padding: "4px",
+                                width: "17.5%",
+                              }}
+                            >
+                              {formatDate(cycleData.My_Stub_32_Nomination)}
+                            </td>
+                          </tr>
+                        )
+                      )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {bulletinDates && (
+              <div style={{ textAlign: "center", margin: "20px 0" }}>
+                <div>
+                  <strong>Origin Bulletin Date:</strong>{" "}
+                  {formatDate(bulletinDates.origin)}
+                </div>
+                <div>
+                  <strong>DateInfo Bulletin Date:</strong>{" "}
+                  {formatDate(bulletinDates.dateInfo)}
+                </div>
+                <div>
+                  <strong>Fungible Report Date:</strong>{" "}
+                  {formatDate(bulletinDates.fungible)}
+                </div>
+              </div>
+            )}
+
+            {/* New Stub Line Scheduling Tables */}
+            {fungibleData && (
+              <div style={{ marginTop: "40px" }}>
+                <h1 style={{ textAlign: "center", marginBottom: "30px" }}>
+                  Stub Line Scheduling
+                </h1>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "20px",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                  }}
+                >
+                  {/* Table 1: Line 20 - ATJ (Atlanta) */}
+                  <div style={{ flex: 1, minWidth: 300 }}>
+                    <h2 style={{ textAlign: "center" }}>Line 17/20 - ATJ</h2>
+                    <table
                       style={{
+                        borderCollapse: "collapse",
+                        width: "100%",
+                        margin: "0 auto",
                         border: "1px solid #ddd",
-                        padding: "8px",
                         textAlign: "center",
                       }}
                     >
-                      <button
-                        onClick={() => handleDeleteHoliday(index)}
-                        style={{
-                          padding: "4px 8px",
-                          background: "#ff4444",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <thead>
+                        <tr>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            Cycle
+                          </th>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            62
+                          </th>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            54
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(fungibleData.currentData.data).map(
+                          ([cycle, cycleData]) => {
+                            const atlanta62 = cycleData["62"]?.["Atlanta"];
+                            const atlanta54 = cycleData["54"]?.["Atlanta"];
 
-            {filteredHolidays.length === 0 && (
-              <div
-                style={{ textAlign: "center", padding: "20px", color: "#666" }}
-              >
-                No holidays for {selectedYear}
+                            return (
+                              <tr key={cycle}>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {cycle}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {atlanta62
+                                    ? subtractBusinessDays(atlanta62, 3)
+                                    : "-"}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {atlanta54
+                                    ? subtractBusinessDays(atlanta54, 3)
+                                    : "-"}
+                                </td>
+                              </tr>
+                            );
+                          }
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Table 2: Belton */}
+                  <div style={{ flex: 1, minWidth: 300 }}>
+                    <h2 style={{ textAlign: "center" }}>Line 29 - BLJ</h2>
+                    <table
+                      style={{
+                        borderCollapse: "collapse",
+                        width: "100%",
+                        margin: "0 auto",
+                        border: "1px solid #ddd",
+                        textAlign: "center",
+                      }}
+                    >
+                      <thead>
+                        <tr>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            Cycle
+                          </th>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            62
+                          </th>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            A
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(fungibleData.currentData.data).map(
+                          ([cycle, cycleData]) => {
+                            const belton62 = cycleData["62"]?.["Belton"];
+                            const beltonA = cycleData["A2"]?.["Belton"];
+
+                            return (
+                              <tr key={cycle}>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {cycle}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {belton62
+                                    ? subtractBusinessDays(belton62, 3)
+                                    : "-"}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {beltonA
+                                    ? subtractBusinessDays(beltonA, 3)
+                                    : "-"}
+                                </td>
+                              </tr>
+                            );
+                          }
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Table 3: Dorsey */}
+                  <div style={{ flex: 1, minWidth: 300 }}>
+                    <h2 style={{ textAlign: "center" }}>Line 32 - DYJ</h2>
+                    <table
+                      style={{
+                        borderCollapse: "collapse",
+                        width: "100%",
+                        margin: "0 auto",
+                        border: "1px solid #ddd",
+                        textAlign: "center",
+                      }}
+                    >
+                      <thead>
+                        <tr>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            Cycle
+                          </th>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            62
+                          </th>
+                          <th
+                            style={{ border: "1px solid #ddd", padding: "8px" }}
+                          >
+                            F
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(fungibleData.currentData.data).map(
+                          ([cycle, cycleData]) => {
+                            const dorsey62 = cycleData["62"]?.["Dorsey"];
+                            const dorseyF = cycleData["F1"]?.["Dorsey"];
+
+                            return (
+                              <tr key={cycle}>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {cycle}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {dorsey62
+                                    ? subtractBusinessDays(dorsey62, 3)
+                                    : "-"}
+                                </td>
+                                <td
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {dorseyF
+                                    ? subtractBusinessDays(dorseyF, 3)
+                                    : "-"}
+                                </td>
+                              </tr>
+                            );
+                          }
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
+          </>
+        ) : (
+          <div style={{ maxWidth: 800, margin: "0 auto" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+              }}
+            >
+              <h1 style={{ textAlign: "center", marginBottom: "0" }}>
+                Edit Holidays
+              </h1>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+              >
+                <label htmlFor="year-select">Filter by Year:</label>
+                <select
+                  id="year-select"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  style={{ padding: "8px", borderRadius: "4px" }}
+                >
+                  <option value={new Date().getFullYear()}>Current Year</option>
+                  <option value={new Date().getFullYear() + 1}>
+                    Next Year
+                  </option>
+                </select>
+              </div>
+            </div>
 
-          <div style={{ marginBottom: "30px" }}>
-            <h3 style={{ marginBottom: "10px" }}>Add New Holiday</h3>
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <input
-                type="date"
-                value={newHoliday.date}
-                onChange={(e) =>
-                  setNewHoliday({ ...newHoliday, date: e.target.value })
-                }
-                style={{ padding: "8px", flex: 1 }}
-              />
-              <input
-                type="text"
-                value={newHoliday.name}
-                onChange={(e) =>
-                  setNewHoliday({ ...newHoliday, name: e.target.value })
-                }
-                placeholder="Holiday name"
-                style={{ padding: "8px", flex: 2 }}
-              />
-              <button
-                onClick={handleAddHoliday}
+            <div style={{ marginBottom: "30px" }}>
+              <h3 style={{ marginBottom: "10px" }}>Current Holidays</h3>
+              <table
                 style={{
-                  padding: "8px 16px",
-                  background: "#4CAF50",
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  marginBottom: "20px",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "6px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Date
+                    </th>
+                    <th
+                      style={{
+                        border: "1px solid #ddd",
+                        padding: "8px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Name
+                    </th>
+                    <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredHolidays.map((holiday, index) => (
+                    <tr key={index}>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                        <input
+                          type="date"
+                          value={holiday.date}
+                          onChange={(e) => {
+                            const updated = [...holidays];
+                            updated[index].date = e.target.value;
+                            setHolidays(updated);
+                          }}
+                          style={{ width: "90%", padding: "6px" }}
+                        />
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                        <input
+                          type="text"
+                          value={holiday.name}
+                          onChange={(e) => {
+                            const updated = [...holidays];
+                            updated[index].name = e.target.value;
+                            setHolidays(updated);
+                          }}
+                          style={{ width: "90%", padding: "6px" }}
+                        />
+                      </td>
+                      <td
+                        style={{
+                          border: "1px solid #ddd",
+                          padding: "8px",
+                          textAlign: "center",
+                        }}
+                      >
+                        <button
+                          onClick={() => handleDeleteHoliday(index)}
+                          style={{
+                            padding: "4px 8px",
+                            background: "#ff4444",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {filteredHolidays.length === 0 && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "20px",
+                    color: "#666",
+                  }}
+                >
+                  No holidays for {selectedYear}
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginBottom: "30px" }}>
+              <h3 style={{ marginBottom: "10px" }}>Add New Holiday</h3>
+              <div
+                style={{ display: "flex", gap: "10px", alignItems: "center" }}
+              >
+                <input
+                  type="date"
+                  value={newHoliday.date}
+                  onChange={(e) =>
+                    setNewHoliday({ ...newHoliday, date: e.target.value })
+                  }
+                  style={{ padding: "8px", flex: 1 }}
+                />
+                <input
+                  type="text"
+                  value={newHoliday.name}
+                  onChange={(e) =>
+                    setNewHoliday({ ...newHoliday, name: e.target.value })
+                  }
+                  placeholder="Holiday name"
+                  style={{ padding: "8px", flex: 2 }}
+                />
+                <button
+                  onClick={handleAddHoliday}
+                  style={{
+                    padding: "8px 16px",
+                    background: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Add Holiday
+                </button>
+              </div>
+            </div>
+
+            <div
+              style={{ display: "flex", justifyContent: "center", gap: "20px" }}
+            >
+              <button
+                onClick={saveHolidays}
+                disabled={isSaving}
+                style={{
+                  padding: "10px 20px",
+                  background: isSaving ? "#cccccc" : "#4CAF50",
                   color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: isSaving ? "not-allowed" : "pointer",
+                }}
+              >
+                {isSaving ? "Saving..." : "Save All Changes"}
+              </button>
+              <button
+                onClick={() => setActiveTab("nominations")}
+                style={{
+                  padding: "10px 20px",
+                  background: "#e0e0e0",
                   border: "none",
                   borderRadius: "4px",
                   cursor: "pointer",
                 }}
               >
-                Add Holiday
+                Cancel
               </button>
             </div>
           </div>
-
-          <div
-            style={{ display: "flex", justifyContent: "center", gap: "20px" }}
-          >
-            <button
-              onClick={saveHolidays}
-              disabled={isSaving}
-              style={{
-                padding: "10px 20px",
-                background: isSaving ? "#cccccc" : "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: isSaving ? "not-allowed" : "pointer",
-              }}
-            >
-              {isSaving ? "Saving..." : "Save All Changes"}
-            </button>
-            <button
-              onClick={() => setActiveTab("nominations")}
-              style={{
-                padding: "10px 20px",
-                background: "#e0e0e0",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {bulletinDates && activeTab === "nominations" && (
-        <div style={{ textAlign: "center", margin: "20px 0" }}>
-          <div>
-            <strong>Origin Bulletin Date:</strong>{" "}
-            {formatDate(bulletinDates.origin)}
-          </div>
-          <div>
-            <strong>DateInfo Bulletin Date:</strong>{" "}
-            {formatDate(bulletinDates.dateInfo)}
-          </div>
-          <div>
-            <strong>Fungible Report Date:</strong>{" "}
-            {formatDate(bulletinDates.fungible)}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    );
 };
 
 export default NomsTab;
