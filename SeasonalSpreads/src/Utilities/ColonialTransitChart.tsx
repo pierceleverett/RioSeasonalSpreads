@@ -87,9 +87,10 @@ const ColonialTransitChart: React.FC = () => {
     { value: "GBJLNJ", label: "GBJ to LNJ" },
   ];
 
+  const currentYear = new Date().getFullYear();
   const yearOptions = Array.from(
-    { length: new Date().getFullYear() + 2 - 2024 },
-    (_, i) => 2024 + i
+    { length: currentYear - 2025 + 1 },
+    (_, i) => 2025 + i
   );
 
   const getRouteParam = () => {
