@@ -1,19 +1,33 @@
 import React, { useState, useEffect } from "react";
 
 interface DateData {
-  [product: string]: {
-    [location: string]: string;
+  [cycle: string]: {
+    [product: string]: {
+      [location: string]: string;
+    };
   };
 }
 
 interface ApiResponse {
-  currentData: {
+  "Recent Data": {
     reportDate: string;
-    data: DateData;
+    [cycle: string]:
+      | {
+          [product: string]: {
+            [location: string]: string;
+          };
+        }
+      | string;
   };
-  oldData: {
+  "Old Data": {
     reportDate: string;
-    data: DateData;
+    [cycle: string]:
+      | {
+          [product: string]: {
+            [location: string]: string;
+          };
+        }
+      | string;
   };
 }
 
@@ -21,20 +35,27 @@ const DateInfoTable: React.FC = () => {
   const [apiData, setApiData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCycle, setSelectedCycle] = useState<string>("");
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!apiData) return;
+    if (!apiData || !selectedCycle) return;
 
-    const currentData = apiData.currentData.data;
-    const autoSelectedProducts = Object.keys(currentData).filter(
-      (product) =>
-        product.startsWith("A") || product.startsWith("D") || product === "62"
-    );
-
-    setSelectedProducts(autoSelectedProducts);
-  }, [apiData]);
+    const recentData = apiData["Recent Data"];
+    if (typeof recentData === "object" && recentData[selectedCycle]) {
+      const cycleData = recentData[selectedCycle];
+      if (typeof cycleData === "object") {
+        const autoSelectedProducts = Object.keys(cycleData).filter(
+          (product) =>
+            product.startsWith("A") ||
+            product.startsWith("D") ||
+            product === "62"
+        );
+        setSelectedProducts(autoSelectedProducts);
+      }
+    }
+  }, [selectedCycle, apiData]);
 
   const fetchData = async () => {
     try {
@@ -50,16 +71,31 @@ const DateInfoTable: React.FC = () => {
       setApiData(jsonData);
 
       const allLocations = new Set<string>();
-      const currentData = jsonData.currentData.data;
+      const recentData = jsonData["Recent Data"];
 
-      Object.values(currentData).forEach((productData) => {
-        if (productData && typeof productData === "object") {
-          Object.keys(productData).forEach((location) => {
-            allLocations.add(location);
-          });
-        }
-      });
+      if (typeof recentData === "object") {
+        Object.values(recentData).forEach((cycleData) => {
+          if (cycleData && typeof cycleData === "object") {
+            Object.values(cycleData).forEach((productData) => {
+              if (productData && typeof productData === "object") {
+                Object.keys(productData).forEach((location) => {
+                  allLocations.add(location);
+                });
+              }
+            });
+          }
+        });
+      }
       setLocations(Array.from(allLocations).sort());
+
+      if (typeof recentData === "object") {
+        const cycles = Object.keys(recentData).filter(
+          (key) => key !== "reportDate"
+        );
+        if (cycles.length > 0 && !selectedCycle) {
+          setSelectedCycle(cycles[0]);
+        }
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to fetch date info data"
@@ -86,11 +122,13 @@ const DateInfoTable: React.FC = () => {
     );
   };
 
-  const getProducts = (): string[] => {
-    if (!apiData) return [];
-    const currentData = apiData.currentData.data;
-    if (!currentData || typeof currentData !== "object") return [];
-    return Object.keys(currentData).sort();
+  const getProductsForCycle = (): string[] => {
+    if (!apiData || !selectedCycle) return [];
+    const recentData = apiData["Recent Data"];
+    if (typeof recentData !== "object") return [];
+    const cycleData = recentData[selectedCycle];
+    if (!cycleData || typeof cycleData !== "object") return [];
+    return Object.keys(cycleData).sort();
   };
 
   const calculateDateDifference = (
@@ -117,14 +155,16 @@ const DateInfoTable: React.FC = () => {
   };
 
   const renderDateWithChange = (product: string, location: string) => {
-    if (!apiData) return null;
+    if (!apiData || !selectedCycle) return null;
 
-    const currentData = apiData.currentData.data;
-    const oldData = apiData.oldData.data;
+    const recentData = apiData["Recent Data"];
+    const oldData = apiData["Old Data"];
 
-    if (!currentData || typeof currentData !== "object") return null;
+    if (typeof recentData !== "object") return null;
+    const cycleData = recentData[selectedCycle];
+    if (!cycleData || typeof cycleData !== "object") return null;
 
-    const productData = currentData[product];
+    const productData = cycleData[product];
     if (!productData || typeof productData !== "object") return null;
 
     const currentDate = productData[location];
@@ -132,11 +172,14 @@ const DateInfoTable: React.FC = () => {
 
     let diffDays: number | null = null;
 
-    if (oldData && typeof oldData === "object") {
-      const oldProductData = oldData[product];
-      if (oldProductData && typeof oldProductData === "object") {
-        const oldDate = oldProductData[location];
-        diffDays = calculateDateDifference(currentDate, oldDate);
+    if (typeof oldData === "object") {
+      const oldCycleData = oldData[selectedCycle];
+      if (oldCycleData && typeof oldCycleData === "object") {
+        const oldProductData = oldCycleData[product];
+        if (oldProductData && typeof oldProductData === "object") {
+          const oldDate = oldProductData[location];
+          diffDays = calculateDateDifference(currentDate, oldDate);
+        }
       }
     }
 
@@ -180,30 +223,78 @@ const DateInfoTable: React.FC = () => {
         fontSize: "13px",
       }}
     >
-      {/* Header with refresh button */}
+      {/* Centered header with refresh button and cycle tabs */}
       <div
         style={{
           display: "flex",
-          justifyContent: "flex-start",
+          justifyContent: "center",
           marginBottom: "15px",
           width: "100%",
         }}
       >
-        <button
-          onClick={handleRefresh}
+        <div
           style={{
-            backgroundColor: "#1890ff",
-            color: "white",
-            border: "none",
-            padding: "6px 12px",
-            borderRadius: "3px",
-            cursor: "pointer",
-            fontWeight: "600",
-            fontSize: "12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+            maxWidth: "100%",
+            overflowX: "auto",
+            padding: "8px 0",
           }}
         >
-          Refresh Data
-        </button>
+          <button
+            onClick={handleRefresh}
+            style={{
+              backgroundColor: "#1890ff",
+              color: "white",
+              border: "none",
+              padding: "6px 12px",
+              borderRadius: "3px",
+              cursor: "pointer",
+              fontWeight: "600",
+              fontSize: "12px",
+              flexShrink: 0,
+            }}
+          >
+            Refresh Data
+          </button>
+
+          {apiData && (
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                flexShrink: 0,
+                paddingRight: "15px",
+              }}
+            >
+              {Object.keys(apiData["Recent Data"])
+                .filter((key) => key !== "reportDate")
+                .sort()
+                .map((cycle) => (
+                  <button
+                    key={cycle}
+                    onClick={() => setSelectedCycle(cycle)}
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor:
+                        selectedCycle === cycle ? "#1890ff" : "#f5f5f5",
+                      color: selectedCycle === cycle ? "white" : "#333",
+                      border: "1px solid #d9d9d9",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      fontWeight: "600",
+                      fontSize: "14px",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {cycle}
+                  </button>
+                ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main content area */}
@@ -220,7 +311,7 @@ const DateInfoTable: React.FC = () => {
             Products
           </h2>
           <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-            {getProducts().map((product) => (
+            {getProductsForCycle().map((product) => (
               <div key={product} style={{ marginBottom: "6px" }}>
                 <label style={{ display: "flex", alignItems: "center" }}>
                   <input
@@ -271,6 +362,17 @@ const DateInfoTable: React.FC = () => {
                     >
                       Product
                     </th>
+                    <th
+                      style={{
+                        padding: "8px",
+                        textAlign: "left",
+                        borderBottom: "1px solid #e0e0e0",
+                        fontWeight: "600",
+                        minWidth: "50px",
+                      }}
+                    >
+                      Cycle
+                    </th>
                     {locations.map((location) => (
                       <th
                         key={location}
@@ -294,6 +396,7 @@ const DateInfoTable: React.FC = () => {
                       style={{ borderBottom: "1px solid #e0e0e0" }}
                     >
                       <td style={{ padding: "8px" }}>{product}</td>
+                      <td style={{ padding: "8px" }}>{selectedCycle}</td>
                       {locations.map((location) => (
                         <td
                           key={`${product}-${location}`}
@@ -317,7 +420,7 @@ const DateInfoTable: React.FC = () => {
                 fontSize: "12px",
               }}
             >
-              Select products to display the date info table
+              Select products to display the date table
             </div>
           )}
         </div>
@@ -333,9 +436,17 @@ const DateInfoTable: React.FC = () => {
         }}
       >
         <div>
-          Current Report Date: {apiData?.currentData.reportDate || "N/A"}
+          Current Report Date:{" "}
+          {apiData && typeof apiData["Recent Data"] === "object"
+            ? apiData["Recent Data"].reportDate
+            : "N/A"}
         </div>
-        <div>Previous Report Date: {apiData?.oldData.reportDate || "N/A"}</div>
+        <div>
+          Previous Report Date:{" "}
+          {apiData && typeof apiData["Old Data"] === "object"
+            ? apiData["Old Data"].reportDate
+            : "N/A"}
+        </div>
       </div>
     </div>
   );
