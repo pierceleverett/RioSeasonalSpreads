@@ -17,7 +17,8 @@ import spark.Route;
 public class ColonialTransitHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
     String route = request.queryParams("route");
-    String filepath = "data/Colonial/Transit/" + route + ".csv";
+    String year = request.queryParams("year");
+    String filepath = "data/Colonial/Transit/" + route + year + ".csv";
     try {
       Map<String, Map<String,Float>> map = createSortedTransitTimeMap(filepath);
       Moshi moshi = new Moshi.Builder().build();

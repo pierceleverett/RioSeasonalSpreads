@@ -293,8 +293,9 @@ public class ColonialTransitTime {
         System.out.println("  Gas: " + entry.gasTime + " | Distillate: " + entry.distillateTime);
 
         // Update HTN-GBJ CSVs using updateTransitCsv
-        updateTransitCsv("data/Colonial/Transit/HTNGBJ-GAS.csv", entry.date, entry.cycle, entry.gasTime);
-        updateTransitCsv("data/Colonial/Transit/HTNGBJ-DISTILLATES.csv", entry.date, entry.cycle, entry.distillateTime);
+
+        updateTransitCsv("data/Colonial/Transit/HTNGBJ-GAS" + entry.date.getYear() + ".csv", entry.date, entry.cycle, entry.gasTime);
+        updateTransitCsv("data/Colonial/Transit/HTNGBJ-DISTILLATES" + entry.date.getYear() + ".csv", entry.date, entry.cycle, entry.distillateTime);
       }
       else if (entry.origin.equals("GBJ") && entry.destination.equals("LNJ")) {
         gbjLnjCount++;
@@ -302,8 +303,8 @@ public class ColonialTransitTime {
         System.out.println("  Gas: " + entry.gasTime + " | Distillate: " + entry.distillateTime);
 
         // Update GBJ-LNJ CSVs using updateTransitCsv
-        updateTransitCsv("data/Colonial/Transit/GBJLNJ-GAS.csv", entry.date, entry.cycle, entry.gasTime);
-        updateTransitCsv("data/Colonial/Transit/GBJLNJ-DISTILLATES.csv", entry.date, entry.cycle, entry.distillateTime);
+        updateTransitCsv("data/Colonial/Transit/GBJLNJ-GAS" + entry.date.getYear() + ".csv", entry.date, entry.cycle, entry.gasTime);
+        updateTransitCsv("data/Colonial/Transit/GBJLNJ-DISTILLATES" + entry.date.getYear() + ".csv", entry.date, entry.cycle, entry.distillateTime);
       }
       else {
         otherCount++;

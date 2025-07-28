@@ -9,8 +9,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ActualTransitHandler implements Route {
-  private static final String GBJ_FILE = "data/Colonial/Actual/GBJactual.csv";
-  private static final String LNJ_FILE = "data/Colonial/Actual/LNJactual.csv";
 
   private final Moshi moshi;
   private final JsonAdapter<Map<Integer, List<Integer>>> jsonAdapter;
@@ -45,15 +43,19 @@ public class ActualTransitHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
     String fuel = request.queryParams("fuel");
     String route = request.queryParams("route");
+    String year = request.queryParams("year");
+    if (year == null) {
+      year = java.time.Year.now().toString();
+    }
 
 
     try {
       Map<Integer, List<Integer>> result;
 
       if ("GBJLNJ".equals(route)) {
-        result = calculateTransitDifferences(fuel);
+        result = calculateTransitDifferences(fuel, year);
       } else {
-        result = getHtnToGbjTimes(fuel);
+        result = getHtnToGbjTimes(fuel, year);
       }
 
       response.type("application/json");
@@ -66,9 +68,9 @@ public class ActualTransitHandler implements Route {
     }
   }
 
-  private Map<Integer, List<Integer>> getHtnToGbjTimes(String fuelGrade) throws IOException {
+  private Map<Integer, List<Integer>> getHtnToGbjTimes(String fuelGrade, String year) throws IOException {
     Map<Integer, List<Integer>> result = new LinkedHashMap<>();
-    Map<String, List<List<Integer>>> fileData = readTransitFile(GBJ_FILE);
+    Map<String, List<List<Integer>>> fileData = readTransitFile("data/Colonial/Actual/GBJactual" + year + ".csv");
 
     List<List<Integer>> fuelTimes = fileData.get(fuelGrade);
     if (fuelTimes == null) {
@@ -85,11 +87,11 @@ public class ActualTransitHandler implements Route {
     return result;
   }
 
-  private Map<Integer, List<Integer>> calculateTransitDifferences(String fuelGrade) throws IOException {
+  private Map<Integer, List<Integer>> calculateTransitDifferences(String fuelGrade, String year) throws IOException {
     Map<Integer, List<Integer>> result = new LinkedHashMap<>();
 
-    Map<String, List<List<Integer>>> gbjData = readTransitFile(GBJ_FILE);
-    Map<String, List<List<Integer>>> lnjData = readTransitFile(LNJ_FILE);
+    Map<String, List<List<Integer>>> gbjData = readTransitFile("data/Colonial/Actual/GBJactual" + year + ".csv");
+    Map<String, List<List<Integer>>> lnjData = readTransitFile("data/Colonial/Actual/LNJactual" + year + ".csv");
 
     List<List<Integer>> gbjTimes = gbjData.get(fuelGrade);
     List<List<Integer>> lnjTimes = lnjData.get(fuelGrade);

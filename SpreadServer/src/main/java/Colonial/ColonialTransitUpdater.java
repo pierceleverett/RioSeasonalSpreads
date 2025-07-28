@@ -12,11 +12,12 @@ import static Colonial.ColonialTransitTime.*;
 
 public class ColonialTransitUpdater {
 
-  private static final String[] CSV_PATHS = {
-      "data/Colonial/Transit/HTNGBJ-GAS.csv",
-      "data/Colonial/Transit/HTNGBJ-DISTILLATES.csv",
-      "data/Colonial/Transit/GBJLNJ-GAS.csv",
-      "data/Colonial/Transit/GBJLNJ-DISTILLATES.csv"
+  public static String currYear = java.time.Year.now().toString();
+  public static String lastYear = java.time.Year.now().minusYears(1).toString();
+
+  private static String[] CSV_PATHS = {
+      "data/Colonial/Transit/HTNGBJ-GAS" + currYear + ".csv",
+      "data/Colonial/Transit/HTNGBJ-GAS" + lastYear + ".csv",
   };
 
   public static void updateMissingTransitData() {
@@ -56,6 +57,9 @@ public class ColonialTransitUpdater {
     for (String path : CSV_PATHS) {
       try {
         List<String> lines = Files.readAllLines(Paths.get(path));
+        if (lines.size() <= 1) {
+          continue;
+        }
         for (int i = 1; i < lines.size(); i++) {
           String[] row = lines.get(i).split(",", -1);
           try {

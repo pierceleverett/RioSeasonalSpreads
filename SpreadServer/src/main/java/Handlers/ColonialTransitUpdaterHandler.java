@@ -15,11 +15,12 @@ public class ColonialTransitUpdaterHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
     response.type("application/json");
     String accessToken = getAccessToken();
-    String originFile = "data/Colonial/Origin/HTNOrigin.csv";
-    String gbjDeliveryFile = "data/Colonial/Fungible/GBJ.csv";
-    String lnjDeliveryFile = "data/Colonial/Fungible/LNJ.csv";
-    String gbjOutputFile = "data/Colonial/Actual/GBJactual.csv";
-    String lnjOutputFile = "data/Colonial/Actual/LNJactual.csv";
+    String curentYear = java.time.Year.now().toString();
+    String originFile = "data/Colonial/Origin/HTNOrigin" + curentYear+ ".csv";
+    String gbjDeliveryFile = "data/Colonial/Fungible/GBJ" + curentYear + ".csv";
+    String lnjDeliveryFile = "data/Colonial/Fungible/LNJ" + curentYear + ".csv";
+    String gbjOutputFile = "data/Colonial/Actual/GBJactual" + curentYear + ".csv";
+    String lnjOutputFile = "data/Colonial/Actual/LNJactual" + curentYear + ".csv";
 
     //Update the estimated transit data
     System.out.println("Starting to update missing transit data");
@@ -34,7 +35,7 @@ public class ColonialTransitUpdaterHandler implements Route {
     System.out.println("done processing, now moving to origin starts");
 
     //Update the origin starts if needed
-    ColonialOrigin.processNewOriginStartsEmails(accessToken, "automatedreports@rioenergy.com");
+    //ColonialOrigin.processNewOriginStartsEmails(accessToken, "automatedreports@rioenergy.com");
 
     //Update the actual transit times
     System.out.println("recalculating actual transit times");

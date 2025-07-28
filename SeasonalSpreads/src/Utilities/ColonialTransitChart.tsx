@@ -73,6 +73,9 @@ const ColonialTransitChart: React.FC = () => {
   const [startCycle, setStartCycle] = useState<number | null>(1);
   const [endCycle, setEndCycle] = useState<number | null>(72);
   const [selectedCategory, setSelectedCategory] = useState<string>("A");
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
   const [selectedSubType, setSelectedSubType] = useState<string>("");
   const [showSubTypes, setShowSubTypes] = useState<boolean>(false);
   const selectedFuel = showSubTypes && selectedSubType ? selectedSubType : selectedCategory;
@@ -84,76 +87,77 @@ const ColonialTransitChart: React.FC = () => {
     { value: "GBJLNJ", label: "GBJ to LNJ" },
   ];
 
+  const yearOptions = Array.from(
+    { length: new Date().getFullYear() + 2 - 2024 },
+    (_, i) => 2024 + i
+  );
+
   const getRouteParam = () => {
     const product = selectedFuel === "62" ? "DISTILLATES" : "GAS";
     return `${selectedRoute}-${product}`;
   };
 
-const handleRefresh = async () => {
-  try {
-    setIsRefreshing(true);
-    setError(null);
-
-    // Show loading state immediately
-    setLoading(true);
-
-    const response = await fetch(
-      "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message ||
-          `Server error: ${response.status} ${response.statusText}`
-      );
-    }
-
-    // Add delay before reloading to ensure backend completes processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Reload the data
-    const [transitData, realData] = await Promise.all([
-      fetchTransitData(),
-      fetchRealTransitData(),
-    ]);
-
-    setTransitData(transitData);
-    setRealTransitData(realData);
-  } catch (err) {
-    console.error("Refresh failed:", err);
-    setError(
-      err instanceof Error
-        ? `Refresh failed: ${err.message}`
-        : "An unknown error occurred during refresh"
-    );
-
-    // Attempt to reload data anyway in case partial update succeeded
+  const handleRefresh = async () => {
     try {
+      setIsRefreshing(true);
+      setError(null);
+      setLoading(true);
+
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/updateColonialTransit",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ year: selectedYear }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Server error: ${response.status} ${response.statusText}`
+        );
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       const [transitData, realData] = await Promise.all([
         fetchTransitData(),
         fetchRealTransitData(),
       ]);
+
       setTransitData(transitData);
       setRealTransitData(realData);
-    } catch (reloadErr) {
-      console.error("Data reload failed:", reloadErr);
+    } catch (err) {
+      console.error("Refresh failed:", err);
+      setError(
+        err instanceof Error
+          ? `Refresh failed: ${err.message}`
+          : "An unknown error occurred during refresh"
+      );
+
+      try {
+        const [transitData, realData] = await Promise.all([
+          fetchTransitData(),
+          fetchRealTransitData(),
+        ]);
+        setTransitData(transitData);
+        setRealTransitData(realData);
+      } catch (reloadErr) {
+        console.error("Data reload failed:", reloadErr);
+      }
+    } finally {
+      setIsRefreshing(false);
+      setLoading(false);
     }
-  } finally {
-    setIsRefreshing(false);
-    setLoading(false);
-  }
-};
+  };
 
   const fetchTransitData = async () => {
     const response = await fetch(
-      `https://rioseasonalspreads-production.up.railway.app/getColonialTransit?route=${getRouteParam()}`
+      `https://rioseasonalspreads-production.up.railway.app/getColonialTransit?route=${getRouteParam()}&year=${selectedYear}`
     );
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return await response.json();
@@ -161,7 +165,7 @@ const handleRefresh = async () => {
 
   const fetchRealTransitData = async () => {
     const response = await fetch(
-      `https://rioseasonalspreads-production.up.railway.app/getRealTransit?fuel=${selectedFuel}&route=${selectedRoute}`
+      `https://rioseasonalspreads-production.up.railway.app/getRealTransit?fuel=${selectedFuel}&route=${selectedRoute}&year=${selectedYear}`
     );
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return await response.json();
@@ -187,7 +191,7 @@ const handleRefresh = async () => {
       }
     };
     loadData();
-  }, [selectedFuel, selectedRoute]);
+  }, [selectedFuel, selectedRoute, selectedYear]);
 
   useEffect(() => {
     return () => {
@@ -425,6 +429,21 @@ return (
         gap: "10px",
       }}
     >
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <label htmlFor="year-select">Year: </label>
+        <select
+          id="year-select"
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+          style={{ textAlign: "center" }}
+        >
+          {yearOptions.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <label htmlFor="category-select">Fuel Category: </label>
         <select

@@ -23,10 +23,11 @@ import java.util.regex.*;
 
 public class ColonialOrigin {
 
-  private static final String ORIGIN_CSV_PATH = "data/Colonial/Origin/HTNOrigin.csv";
+  private static final String ORIGIN_CSV_BASE = "data/Colonial/Origin/HTNOrigin";
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd");
   private static final DateTimeFormatter BULLETIN_DATE_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yy");
   private static final Map<String, LocalDate> latestBulletinDates = new HashMap<>();
+
   public static void main(String[] args) throws IOException {
     String accessToken = getAccessToken();
     String userPrincipalName = "automatedreports@rioenergy.com";
@@ -50,7 +51,7 @@ public class ColonialOrigin {
     List<Message> relevantMessages = new ArrayList<>();
     LinkedList<QueryOption> requestOptions = new LinkedList<>();
     requestOptions.add(new QueryOption("$select", "subject,receivedDateTime,body"));
-    requestOptions.add(new QueryOption("$top", "50"));
+    requestOptions.add(new QueryOption("$top", "500"));
 
     MessageCollectionPage messagesPage;
     MessageCollectionRequestBuilder nextPage = null;
@@ -107,21 +108,30 @@ public class ColonialOrigin {
     return null;
   }
 
-  public static void processOriginStartsEmail(String htmlContent, LocalDate bulletinDate) throws IOException {
-    Path csvPath = Paths.get(ORIGIN_CSV_PATH);
 
-    // 1. Read existing CSV or initialize if empty
-    List<String> lines = Files.exists(csvPath) ?
-        Files.readAllLines(csvPath, StandardCharsets.UTF_8) :
-        List.of("Fuel," + String.join(",", Collections.nCopies(72, "")));
+  public static void processOriginStartsForYear(String htmlContent, LocalDate bulletinDate,
+      String csvPath, int targetYear) throws IOException {
+    Path path = Paths.get(csvPath);
+
+    // 1. Read existing CSV or initialize with header if empty
+    List<String> lines;
+    if (Files.exists(path)) {
+      lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+      if (lines.isEmpty()) {
+        lines = List.of("Fuel," + String.join(",", Collections.nCopies(72, "")));
+      }
+    } else {
+      lines = List.of("Fuel," + String.join(",", Collections.nCopies(72, "")));
+    }
 
     // 2. Parse CSV structure with bulletin date tracking
     String[] headers = lines.get(0).split(",");
     Map<String, Map<String, FuelDateEntry>> csvData = new LinkedHashMap<>();
 
-
     for (int i = 1; i < lines.size(); i++) {
       String[] parts = lines.get(i).split(",", -1);
+      if (parts.length == 0) continue;
+
       String fuelCode = parts[0];
       Map<String, FuelDateEntry> fuelData = new HashMap<>();
 
@@ -139,33 +149,58 @@ public class ColonialOrigin {
 
     // First pass: Determine the most recent bulletin date for each cycle
     for (Element table : tables) {
-      for (Element row : table.select("tr")) {
+      Elements rows = table.select("tr");
+      if (rows.isEmpty()) continue;
+
+      for (Element row : rows) {
         Elements cells = row.select("td");
-        if (cells.size() >= 8 && cells.get(0).text().equals("HTN/PDA")) {
-          String cycle = cells.get(1).text().trim();
-          LocalDate currentLatest = latestBulletinDates.get(cycle);
-          if (currentLatest == null || bulletinDate.isAfter(currentLatest)) {
-            latestBulletinDates.put(cycle, bulletinDate);
+        if (cells.size() < 8) continue;
+
+        try {
+          if (cells.get(0).text().equals("HTN/PDA")) {
+            String cycle = cells.get(1).text().trim();
+            LocalDate currentLatest = latestBulletinDates.get(cycle);
+            if (currentLatest == null || bulletinDate.isAfter(currentLatest)) {
+              latestBulletinDates.put(cycle, bulletinDate);
+            }
           }
+        } catch (Exception e) {
+          System.err.println("Error processing row for latest bulletin date: " + e.getMessage());
+          continue;
         }
       }
     }
 
     // Second pass: Process updates only from the most recent bulletins
     for (Element table : tables) {
-      for (Element row : table.select("tr")) {
-        Elements cells = row.select("td");
-        if (cells.size() >= 8 && cells.get(0).text().equals("HTN/PDA")) {
-          String cycle = cells.get(1).text().trim();
+      Elements rows = table.select("tr");
+      if (rows.isEmpty()) continue;
 
-          // Only process if this email has the most recent bulletin for this cycle
-          if (bulletinDate.equals(latestBulletinDates.get(cycle))) {
-            System.out.println("new bulleting, updating all fuels");
-            updateFuelDate(csvData, "A", cycle, cleanDate(cells.get(2).text()), bulletinDate);
-            updateFuelDate(csvData, "D", cycle, cleanDate(cells.get(4).text()), bulletinDate);
-            updateFuelDate(csvData, "F", cycle, cleanDate(cells.get(5).text()), bulletinDate);
-            updateFuelDate(csvData, "62", cycle, cleanDate(cells.get(7).text()), bulletinDate);
+      for (Element row : rows) {
+        Elements cells = row.select("td");
+        if (cells.size() < 8) continue;
+
+        try {
+          if (cells.get(0).text().equals("HTN/PDA")) {
+            String cycle = cells.get(1).text().trim();
+            int cycleNum = Integer.parseInt(cycle);
+
+            // Only process cycles that belong to this target year
+            if (shouldProcessCycleForYear(bulletinDate, cycleNum, targetYear) &&
+                bulletinDate.equals(latestBulletinDates.get(cycle))) {
+
+              System.out.printf("Updating %d data for cycle %s%n", targetYear, cycle);
+
+              // Safely update each fuel type with bounds checking
+              updateFuelDateSafely(csvData, cells, "A", 2, cycle, bulletinDate);
+              updateFuelDateSafely(csvData, cells, "D", 4, cycle, bulletinDate);
+              updateFuelDateSafely(csvData, cells, "F", 5, cycle, bulletinDate);
+              updateFuelDateSafely(csvData, cells, "62", 7, cycle, bulletinDate);
+            }
           }
+        } catch (Exception e) {
+          System.err.println("Error processing row: " + e.getMessage());
+          continue;
         }
       }
     }
@@ -193,9 +228,68 @@ public class ColonialOrigin {
     }
 
     // 7. Write to file
-    Files.createDirectories(csvPath.getParent());
-    Files.write(csvPath, updatedLines, StandardCharsets.UTF_8,
+    Files.createDirectories(path.getParent());
+    Files.write(path, updatedLines, StandardCharsets.UTF_8,
         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+  }
+
+  private static boolean isTransitionPeriod(LocalDate date) {
+    int month = date.getMonthValue();
+    return month >= 11 || month <= 2;
+  }
+
+  private static boolean shouldProcessCycleForYear(LocalDate bulletinDate, int cycleNum, int targetYear) {
+    int currentYear = bulletinDate.getYear();
+    int month = bulletinDate.getMonthValue();
+
+    // February through October - only current year data
+    if (month >= 2 && month <= 10) {
+      return targetYear == currentYear;
+    }
+
+    // January handling
+    if (month == 1) {
+      if (targetYear == currentYear - 1) {
+        // Previous year gets only cycles 71-72
+        return cycleNum >= 71;
+      } else if (targetYear == currentYear) {
+        // Current year gets cycles 1-70
+        return cycleNum <= 70;
+      }
+    }
+
+    // November-December handling
+    if (month >= 11) {
+      if (targetYear == currentYear) {
+        // Current year gets cycles 11-72
+        return cycleNum >= 11;
+      } else if (targetYear == currentYear + 1) {
+        // Next year gets cycles 1-10
+        return cycleNum <= 10;
+      }
+    }
+
+    return false;
+  }
+
+  public static void processOriginStartsEmail(String htmlContent, LocalDate bulletinDate) throws IOException {
+    int currentYear = bulletinDate.getYear();
+    int month = bulletinDate.getMonthValue();
+
+    // Always process current year
+    processOriginStartsForYear(htmlContent, bulletinDate,
+        ORIGIN_CSV_BASE + currentYear + ".csv", currentYear);
+
+    // January - also process previous year for cycles 71-72
+    if (month == 1) {
+      processOriginStartsForYear(htmlContent, bulletinDate,
+          ORIGIN_CSV_BASE + (currentYear - 1) + ".csv", currentYear - 1);
+    }
+    // November-December - also process next year for cycles 1-10
+    else if (month >= 11) {
+      processOriginStartsForYear(htmlContent, bulletinDate,
+          ORIGIN_CSV_BASE + (currentYear + 1) + ".csv", currentYear + 1);
+    }
   }
 
   private static class FuelDateEntry {
@@ -218,141 +312,40 @@ public class ColonialOrigin {
     Map<String, FuelDateEntry> fuelData = csvData.computeIfAbsent(fuelCode, k -> new HashMap<>());
     FuelDateEntry existingEntry = fuelData.get(cycle);
 
-    // Special logging for A cycle 10
-    if (fuelCode.equals("A") && cycle.equals("10")) {
-      System.out.println("\n=== DEBUG: A Cycle 10 Comparison ===");
-      System.out.println("Existing date: " + (existingEntry != null ? existingEntry.date : "<empty>"));
-      System.out.println("Existing bulletin date: " +
-          (existingEntry != null && existingEntry.bulletinDate != null ?
-              existingEntry.bulletinDate : "null/unknown"));
-      System.out.println("New date: " + newDate);
-      System.out.println("New bulletin date: " + bulletinDate);
-    }
-
     boolean shouldUpdate;
     if (existingEntry == null) {
       shouldUpdate = true;
     } else if (existingEntry.bulletinDate == null) {
       shouldUpdate = true;
     } else {
-      // Only compare dates if both are non-null
       shouldUpdate = bulletinDate.isAfter(existingEntry.bulletinDate);
     }
 
     if (shouldUpdate) {
       fuelData.put(cycle, new FuelDateEntry(newDate, bulletinDate));
-
-      if (fuelCode.equals("A") && cycle.equals("10")) {
-        System.out.println("UPDATE DECISION:");
-        System.out.println(" - No existing entry: " + (existingEntry == null));
-        System.out.println(" - Existing bulletin null: " + (existingEntry != null && existingEntry.bulletinDate == null));
-        if (existingEntry != null && existingEntry.bulletinDate != null) {
-          System.out.println(" - New bulletin is newer: " + bulletinDate.isAfter(existingEntry.bulletinDate));
-        }
-        System.out.println("UPDATE APPLIED to A cycle 10: " +
-            (existingEntry != null ? existingEntry.date : "<empty>") +
-            " -> " + newDate + " (Bulletin: " + bulletinDate + ")");
-      }
-
       System.out.printf("%s cycle %s: %s -> %s [Bulletin: %s]%n",
           fuelCode, cycle,
           existingEntry != null ? existingEntry.date : "<empty>",
           newDate,
           bulletinDate);
-    } else if (fuelCode.equals("A") && cycle.equals("10")) {
-      System.out.println("NO UPDATE to A cycle 10 - Reason:");
-      if (existingEntry != null) {
-        System.out.println(" - Existing bulletin date: " + existingEntry.bulletinDate);
-        System.out.println(" - New bulletin date: " + bulletinDate);
-        if (existingEntry.bulletinDate != null) {
-          System.out.println(" - New bulletin is older or equal: " +
-              !bulletinDate.isAfter(existingEntry.bulletinDate));
-        }
-      }
     }
   }
-
-  public static void processNewOriginStartsEmails(String accessToken, String userPrincipalName) throws IOException {
-    // File to track processed email IDs
-    Path processedIdsPath = Paths.get("data/Colonial/Origin/processed_email_ids.txt");
-    Set<String> processedEmailIds = new HashSet<>();
-
-    // Load already processed email IDs
-    if (Files.exists(processedIdsPath)) {
-      processedEmailIds.addAll(Files.readAllLines(processedIdsPath, StandardCharsets.UTF_8));
-    }
-
-    IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
-    GraphServiceClient<?> graphClient = GraphServiceClient.builder()
-        .authenticationProvider(authProvider)
-        .buildClient();
-
-    List<Message> newMessages = new ArrayList<>();
-    LinkedList<QueryOption> requestOptions = new LinkedList<>();
-    requestOptions.add(new QueryOption("$select", "id,subject,receivedDateTime,body"));
-    requestOptions.add(new QueryOption("$top", "50"));
-
-    MessageCollectionPage messagesPage;
-    MessageCollectionRequestBuilder nextPage = null;
-    boolean foundNewMessages = false;
-
-    do {
-      messagesPage = (nextPage == null)
-          ? graphClient.users(userPrincipalName).messages()
-          .buildRequest(requestOptions)
-          .orderBy("receivedDateTime desc")
-          .get()
-          : nextPage.buildRequest().get();
-
-      for (Message message : messagesPage.getCurrentPage()) {
-        // Skip if already processed
-        if (processedEmailIds.contains(message.id)) {
-          continue;
-        }
-
-        if (message.subject != null && message.subject.toLowerCase().contains("colonial - origin")) {
-          // Get full message content if needed
-          if (message.body == null || message.body.content == null) {
-            Message fullMessage = graphClient.users(userPrincipalName)
-                .messages(message.id)
-                .buildRequest()
-                .select("body")
-                .get();
-            message.body = fullMessage.body;
-          }
-
-          LocalDate bulletinDate = extractBulletinDate(message.body.content);
-          if (bulletinDate != null) {
-            System.out.println("Processing new email with ID: " + message.id + " from: " + bulletinDate);
-            processOriginStartsEmail(message.body.content, bulletinDate);
-            newMessages.add(message);
-            return;
-          }
-        }
-      }
-
-      nextPage = messagesPage.getNextPage();
-    } while (nextPage != null && newMessages.size() < 10); // Limit to 10 new messages per run
-
-    // Update processed email IDs file if we found new messages
-    if (foundNewMessages) {
-      List<String> allProcessedIds = new ArrayList<>(processedEmailIds);
-      for (Message message : newMessages) {
-        allProcessedIds.add(message.id);
-      }
-
-      Files.createDirectories(processedIdsPath.getParent());
-      Files.write(processedIdsPath, allProcessedIds, StandardCharsets.UTF_8,
-          StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-
-      System.out.println("Processed " + newMessages.size() + " new emails");
-    } else {
-      System.out.println("No new emails to process");
-    }
-  }
-
 
   private static String cleanDate(String dateStr) {
     return dateStr.replace("*", "").trim();
+  }
+
+  private static void updateFuelDateSafely(Map<String, Map<String, FuelDateEntry>> csvData,
+      Elements cells, String fuelCode, int cellIndex,
+      String cycle, LocalDate bulletinDate) {
+    try {
+      if (cellIndex < cells.size()) {
+        String dateStr = cleanDate(cells.get(cellIndex).text());
+        updateFuelDate(csvData, fuelCode, cycle, dateStr, bulletinDate);
+      }
+    } catch (Exception e) {
+      System.err.printf("Error updating %s cycle %s: %s%n",
+          fuelCode, cycle, e.getMessage());
+    }
   }
 }

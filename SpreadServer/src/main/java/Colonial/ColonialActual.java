@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ColonialActual {
   private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy");
-  private static final int CURRENT_YEAR = 2025;
+  private static final int CURRENT_YEAR = Integer.parseInt(java.time.Year.now().toString());
   private static final int MAX_CYCLES = 72;
   // All fuel types present in your GBJ.csv
   private static final String[] ALL_FUEL_TYPES = {
@@ -18,11 +18,11 @@ public class ColonialActual {
   };
 
   public static void main(String[] args) {
-    String originFile = "data/Colonial/Origin/HTNOrigin.csv";
+    String originFile = "data/Colonial/Origin/HTNOrigin2025.csv";
     String gbjDeliveryFile = "data/Colonial/Fungible/GBJ.csv";
     String lnjDeliveryFile = "data/Colonial/Fungible/LNJ.csv";
-    String gbjOutputFile = "data/Colonial/Actual/GBJactual.csv";
-    String lnjOutputFile = "data/Colonial/Actual/LNJactual.csv";
+    String gbjOutputFile = "data/Colonial/Actual/GBJactual2025.csv";
+    String lnjOutputFile = "data/Colonial/Actual/LNJactual2025.csv";
 
     calculateTransitTimes(originFile, gbjDeliveryFile, lnjDeliveryFile, gbjOutputFile, lnjOutputFile);
   }

@@ -8,11 +8,12 @@ public class TransitDifferenceCalculator {
   // Cache the data to avoid reading files multiple times
   private static Map<String, List<List<Integer>>> gbjDataCache;
   private static Map<String, List<List<Integer>>> lnjDataCache;
+  private static String CURRENT_YEAR = java.time.Year.now().toString();
 
   static {
     try {
-      gbjDataCache = readTransitFile("data/Colonial/Actual/GBJactual.csv");
-      lnjDataCache = readTransitFile("data/Colonial/Actual/LNJactual.csv");
+      gbjDataCache = readTransitFile("data/Colonial/Actual/GBJactual" + CURRENT_YEAR + ".csv");
+      lnjDataCache = readTransitFile("data/Colonial/Actual/LNJactual2025.csv");
     } catch (IOException e) {
       e.printStackTrace();
       gbjDataCache = new HashMap<>();
