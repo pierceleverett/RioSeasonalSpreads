@@ -199,6 +199,92 @@ public class MainLine {
     }
   }
 
+  public static Message fetchSecondMostRecentDateInfoEmail(String accessToken, String userPrincipalName) throws IOException {
+    final String METHOD_NAME = "fetchSecondMostRecentDateInfoEmail";
+    System.out.printf("[%s] Starting with user: %s%n", METHOD_NAME, userPrincipalName);
+
+    try {
+      // Initialize Graph client
+      IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+      GraphServiceClient<?> graphClient = GraphServiceClient.builder()
+          .authenticationProvider(authProvider)
+          .buildClient();
+
+      // Create date filter for last MAX_DAYS_TO_SEARCH days
+      OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(MAX_DAYS_TO_SEARCH);
+      String dateFilter = String.format("receivedDateTime ge %s",
+          searchStartDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+
+      System.out.printf("[%s] Searching messages from last %d days (since %s)%n",
+          METHOD_NAME, MAX_DAYS_TO_SEARCH, searchStartDate);
+
+      // Query messages with pagination support
+      MessageCollectionRequest messageRequest = graphClient.users(userPrincipalName)
+          .messages()
+          .buildRequest()
+          .filter(dateFilter)
+          .select("subject,receivedDateTime,body")
+          .top(100)
+          .orderBy("receivedDateTime desc");
+
+      MessageCollectionPage messagesPage = messageRequest.get();
+      int totalMessages = messagesPage.getCurrentPage().size();
+      System.out.printf("[%s] Found %d messages in date range%n", METHOD_NAME, totalMessages);
+
+      // Track matching emails
+      Message firstMatch = null;
+      Message secondMatch = null;
+
+      // Process messages
+      for (Message message : messagesPage.getCurrentPage()) {
+        if (message.subject == null || !message.subject.contains(EMAIL_SUBJECT_FILTER)) {
+          continue;
+        }
+
+        System.out.printf("[%s] Found matching email: %s (Received: %s)%n",
+            METHOD_NAME, message.subject, message.receivedDateTime);
+
+        // Ensure we have message body content
+        if (message.body == null || message.body.content == null) {
+          System.out.printf("[%s] Fetching full content for message ID: %s%n",
+              METHOD_NAME, message.id);
+          message = graphClient.users(userPrincipalName)
+              .messages(message.id)
+              .buildRequest()
+              .select("body,subject,receivedDateTime")
+              .get();
+        }
+
+        // Track first and second matches
+        if (firstMatch == null) {
+          firstMatch = message;
+        } else if (secondMatch == null) {
+          secondMatch = message;
+          break; // We found our second match, no need to continue
+        }
+      }
+
+      if (secondMatch != null) {
+        System.out.printf("[%s] Returning second most recent email received at: %s%n",
+            METHOD_NAME, secondMatch.receivedDateTime);
+        return secondMatch;
+      } else if (firstMatch != null) {
+        System.out.printf("[%s] Only found one matching email, returning null%n", METHOD_NAME);
+        return null;
+      } else {
+        System.out.printf("[%s] No matching emails found in last %d days%n",
+            METHOD_NAME, MAX_DAYS_TO_SEARCH);
+        return null;
+      }
+
+    } catch (Exception e) {
+      String errorMsg = String.format("[%s ERROR] Failed to fetch email: %s",
+          METHOD_NAME, e.getMessage());
+      System.err.println(errorMsg);
+      throw new IOException(errorMsg, e);
+    }
+  }
+
   public static MainLineData parseMainLineEmail(Message message) {
     System.out.println("[MainLine] Starting parseMainLineEmail()");
     MainLineData result = new MainLineData();

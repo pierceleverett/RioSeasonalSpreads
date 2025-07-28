@@ -15,38 +15,64 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class MainLineDataJsonAdapter extends JsonAdapter<MainLineData> {
+public class MainLineDataJsonAdapter extends JsonAdapter<Map<String, MainLineData>> {
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM/dd");
-  private final JsonAdapter<Map<String, Map<String, String>>> mapAdapter;
+  private final JsonAdapter<Map<String, Map<String, Map<String, String>>>> nestedMapAdapter;
+  private final JsonAdapter<String> stringAdapter;
 
   public MainLineDataJsonAdapter(Moshi moshi) {
-    Type mapType = Types.newParameterizedType(
+    Type nestedMapType = Types.newParameterizedType(
         Map.class,
         String.class,
-        Types.newParameterizedType(Map.class, String.class, String.class)
+        Types.newParameterizedType(
+            Map.class,
+            String.class,
+            Types.newParameterizedType(Map.class, String.class, String.class)
+        )
     );
-    this.mapAdapter = moshi.adapter(mapType);
+    this.nestedMapAdapter = moshi.adapter(nestedMapType);
+    this.stringAdapter = moshi.adapter(String.class);
   }
 
   @Override
-  public MainLineData fromJson(JsonReader reader) throws IOException {
-    // Not needed for your use case since you're only serializing to JSON
+  public Map<String, MainLineData> fromJson(JsonReader reader) throws IOException {
     throw new UnsupportedOperationException("Deserialization not implemented");
   }
 
   @Override
-  public void toJson(JsonWriter writer, MainLineData value) throws IOException {
+  public void toJson(JsonWriter writer, Map<String, MainLineData> value) throws IOException {
     if (value == null) {
       writer.nullValue();
       return;
     }
 
-    // Transform the data structure
-    Map<String, Map<String, Map<String, String>>> transformedData = transformDataStructure(value.data);
+    writer.beginObject();
+
+    for (Map.Entry<String, MainLineData> entry : value.entrySet()) {
+      writer.name(entry.getKey());
+      writeMainLineData(writer, entry.getValue());
+    }
+
+    writer.endObject();
+  }
+
+  private void writeMainLineData(JsonWriter writer, MainLineData value) throws IOException {
+    if (value == null) {
+      writer.nullValue();
+      return;
+    }
 
     writer.beginObject();
 
-    // Write the transformed data structure
+    // Write report date
+    if (value.reportDate != null) {
+      writer.name("reportDate");
+      stringAdapter.toJson(writer, DATE_FORMATTER.format(value.reportDate));
+    }
+
+    // Transform and write the data structure
+    Map<String, Map<String, Map<String, String>>> transformedData = transformDataStructure(value.data);
+
     for (Map.Entry<String, Map<String, Map<String, String>>> cycleEntry : transformedData.entrySet()) {
       writer.name(cycleEntry.getKey());
       writer.beginObject();
@@ -96,7 +122,8 @@ public class MainLineDataJsonAdapter extends JsonAdapter<MainLineData> {
   public static class Factory implements JsonAdapter.Factory {
     @Override
     public JsonAdapter<?> create(Type type, Set<? extends Annotation> annotations, Moshi moshi) {
-      if (type.getTypeName().equals(MainLineData.class.getName())) {
+      if (type.getTypeName().equals(Types.newParameterizedType(
+          Map.class, String.class, MainLineData.class).getTypeName())) {
         return new MainLineDataJsonAdapter(moshi);
       }
       return null;
