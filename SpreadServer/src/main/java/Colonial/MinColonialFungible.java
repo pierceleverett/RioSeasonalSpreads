@@ -392,11 +392,12 @@ public class MinColonialFungible {
   private static Map<String, Map<String, List<String>>> readExistingCsv(String csvPath, String currentYear) throws IOException {
     Map<String, Map<String, List<String>>> existingData = new HashMap<>();
     String currentPath = GBJ_CSV_BASE + currentYear + ".csv";
+    System.out.println(currentPath);
     if (!Files.exists(Paths.get(currentPath))) {
       return existingData;
     }
 
-    List<String> lines = Files.readAllLines(Paths.get(csvPath));
+    List<String> lines = Files.readAllLines(Paths.get(currentPath));
     if (lines.isEmpty()) return existingData;
 
     // Skip header
