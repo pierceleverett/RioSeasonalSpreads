@@ -148,7 +148,7 @@ public class MainLine {
     }
   }
 
-  static Message fetchMostRecentMainLineEmail(String accessToken, String userPrincipalName) throws IOException {
+  public static Message fetchMostRecentMainLineEmail(String accessToken, String userPrincipalName) throws IOException {
     System.out.println("[MainLine] Starting fetchMostRecentMainLineEmail()");
     try {
       IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
@@ -199,7 +199,7 @@ public class MainLine {
     }
   }
 
-  static MainLineData parseMainLineEmail(Message message) {
+  public static MainLineData parseMainLineEmail(Message message) {
     System.out.println("[MainLine] Starting parseMainLineEmail()");
     MainLineData result = new MainLineData();
 
