@@ -307,7 +307,7 @@ const NomsTab: React.FC = () => {
                 </tr>
                 <tr>
                   <th style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    62
+                    62 - Sched
                   </th>
                   <th style={{ border: "1px solid #ddd", padding: "4px" }}>
                     HTN lift
@@ -322,7 +322,7 @@ const NomsTab: React.FC = () => {
                     51/54/62
                   </th>
                   <th style={{ border: "1px solid #ddd", padding: "4px" }}>
-                    A
+                    A - Sched
                   </th>
                   <th style={{ border: "1px solid #ddd", padding: "4px" }}>
                     HTN lift
@@ -411,25 +411,50 @@ const NomsTab: React.FC = () => {
                       width: "35%",
                     }}
                   >
-                    17,19,20,29
+                    Stubs Upstream of GBJ
                   </th>
+                  <th
+                    colSpan={2}
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                    }}
+                  >
+                    Stubs Downstream of GBJ
+                  </th>
+                </tr>
+                <tr>
+                  <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                      width: "25%",
+                    }}
+                  ></th>
                   <th
                     style={{
                       border: "1px solid #ddd",
                       padding: "4px",
                       width: "35%",
                     }}
+                  ></th>
+                  <th
+                    style={{
+                      border: "1px solid #ddd",
+                      padding: "4px",
+                      width: "17.5%",
+                    }}
                   >
-                    32 Earliest
+                    Earliest
                   </th>
                   <th
                     style={{
                       border: "1px solid #ddd",
                       padding: "4px",
-                      width: "35%",
+                      width: "17.5%",
                     }}
                   >
-                    32 Prediction
+                    Prediction
                   </th>
                 </tr>
               </thead>
@@ -460,7 +485,7 @@ const NomsTab: React.FC = () => {
                           style={{
                             border: "1px solid #ddd",
                             padding: "4px",
-                            width: "35%",
+                            width: "17.5%",
                           }}
                         >
                           {formatDate(cycleData.Min_Stub_32_Nomination)}
@@ -469,7 +494,7 @@ const NomsTab: React.FC = () => {
                           style={{
                             border: "1px solid #ddd",
                             padding: "4px",
-                            width: "35%",
+                            width: "17.5%",
                           }}
                         >
                           {formatDate(cycleData.My_Stub_32_Nomination)}
