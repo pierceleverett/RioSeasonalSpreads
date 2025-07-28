@@ -432,8 +432,10 @@ public class MainLine {
 
     // First update the origin starts from emails
     String accessToken = getAccessToken();
+    System.out.println("Fetching most recent origin email");
     Message mostRecentOrigin = fetchMostRecentOriginEmail(accessToken, "automatedreports@rioenergy.com");
     OriginData parsedOrigin = parseOriginEmail(mostRecentOrigin);
+    System.out.println(parsedOrigin);
     String originBulletinDate = parsedOrigin.reportDate.toString();
     Map<String, Map<String, String>> originData = parsedOrigin.data;
 
@@ -524,7 +526,7 @@ public class MainLine {
   }
 
   private static Optional<String> getOriginDateForCycle(Map<String, Map<String, String>> originData, String type, String cycle) {
-    if (!originData.containsKey(type)) {
+    if (!originData.containsKey(cycle)) {
       return Optional.empty();
     }
 
