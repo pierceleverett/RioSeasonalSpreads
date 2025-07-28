@@ -387,7 +387,7 @@ const NomsTab: React.FC = () => {
             <table
               style={{
                 borderCollapse: "collapse",
-                width: "65%",
+                width: "75%",
                 margin: "10px auto",
                 border: "1px solid #ddd",
                 textAlign: "center",
