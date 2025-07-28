@@ -497,7 +497,7 @@ const NomsTab: React.FC = () => {
                           width: "35%",
                         }}
                       >
-                        Stubs Upstream of GBJ
+                        Upstream of GBJ
                       </th>
                       <th
                         colSpan={2}
@@ -506,7 +506,7 @@ const NomsTab: React.FC = () => {
                           padding: "4px",
                         }}
                       >
-                        Stubs Downstream of GBJ
+                        Downstream of GBJ
                       </th>
                     </tr>
                     <tr>
