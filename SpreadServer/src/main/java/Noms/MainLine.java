@@ -528,10 +528,10 @@ public class MainLine {
       return Optional.empty();
     }
 
-    Map<String, String> typeDates = originData.get(type);
+    Map<String, String> typeDates = originData.get(cycle);
     // Check if the cycle exists in the type's dates
-    if (typeDates.containsKey(cycle)) {
-      String date = typeDates.get(cycle);
+    if (typeDates.containsKey(type)) {
+      String date = typeDates.get(type);
       if (date != null && !date.trim().isEmpty()) {
         return Optional.of(date);
       }
