@@ -16,7 +16,7 @@ public class ExplorerSchedulingPackager {
 
   public static void main(String[] args) throws IOException {
     String accessToken = getAccessToken();
-    Message inputMessage = SchedulingCalendar.fetchMostRecentSchedulingCalendarEmail(accessToken, "automatedreports@rioenergy.com");
+    Message inputMessage = SchedulingCalendar.fetchSecondMostRecentCalendarEmail(accessToken, "automatedreports@rioenergy.com");
     SchedulingCalendar inputCal = SchedulingCalendar.parseCalendarFromEmail(inputMessage);
     System.out.println(eventsByCycle(inputCal));
   }

@@ -9,6 +9,7 @@ import com.microsoft.graph.models.Message;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.requests.MessageCollectionPage;
 import com.microsoft.graph.requests.MessageCollectionRequest;
+import com.microsoft.graph.requests.MessageCollectionRequestBuilder;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -122,72 +123,71 @@ public class ExplorerSchedulingCalendar {
             .authenticationProvider(authProvider)
             .buildClient();
 
-        // Create date filter for last MAX_DAYS_TO_SEARCH days
-        OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
+        // Create date filter for last 90 days (more generous window)
+        OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(90);
         String dateFilter = String.format("receivedDateTime ge %s",
             searchStartDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 
-        System.out.printf("[%s] Searching messages from last %d days (since %s)%n",
-            METHOD_NAME, 30, searchStartDate);
+        System.out.printf("[%s] Searching messages from last 90 days (since %s)%n",
+            METHOD_NAME, searchStartDate);
 
-        // Query messages with pagination support
+        // Query messages with proper filtering and include body content
         MessageCollectionRequest messageRequest = graphClient.users(userPrincipalName)
             .messages()
             .buildRequest()
             .filter(dateFilter)
             .select("subject,receivedDateTime,body")
-            .top(100)
+            .filter("contains(subject, '" + EMAIL_SUBJECT_FILTER + "')")
             .orderBy("receivedDateTime desc");
 
         MessageCollectionPage messagesPage = messageRequest.get();
-        int totalMessages = messagesPage.getCurrentPage().size();
-        System.out.printf("[%s] Found %d messages in date range%n", METHOD_NAME, totalMessages);
-
-        // Track matching emails
+        int totalMessages = 0;
         Message firstMatch = null;
         Message secondMatch = null;
 
-        // Process messages
-        for (Message message : messagesPage.getCurrentPage()) {
-          if (message.subject == null || !message.subject.contains(EMAIL_SUBJECT_FILTER)) {
-            continue;
+        // Process all pages if needed
+        while (messagesPage != null) {
+          List<Message> currentPage = messagesPage.getCurrentPage();
+          totalMessages += currentPage.size();
+
+          for (Message message : currentPage) {
+            System.out.printf("[%s] Processing email: %s (Received: %s)%n",
+                METHOD_NAME, message.subject, message.receivedDateTime);
+
+            // Verify we have body content
+            if (message.body == null || message.body.content == null) {
+              System.out.printf("[%s] Skipping message with empty body: %s%n",
+                  METHOD_NAME, message.id);
+              continue;
+            }
+
+            // Track matches
+            if (firstMatch == null) {
+              firstMatch = message;
+            } else {
+              secondMatch = message;
+              System.out.printf("[%s] Found second match, returning%n", METHOD_NAME);
+              return secondMatch;
+            }
           }
 
-          System.out.printf("[%s] Found matching email: %s (Received: %s)%n",
-              METHOD_NAME, message.subject, message.receivedDateTime);
-
-          // Ensure we have message body content
-          if (message.body == null || message.body.content == null) {
-            System.out.printf("[%s] Fetching full content for message ID: %s%n",
-                METHOD_NAME, message.id);
-            message = graphClient.users(userPrincipalName)
-                .messages(message.id)
-                .buildRequest()
-                .select("body,subject,receivedDateTime")
-                .get();
+          // Get next page if we haven't found our matches yet
+          MessageCollectionRequestBuilder nextPage = messagesPage.getNextPage();
+          if (nextPage == null || secondMatch != null) {
+            break;
           }
-
-          // Track first and second matches
-          if (firstMatch == null) {
-            firstMatch = message;
-          } else if (secondMatch == null) {
-            secondMatch = message;
-            break; // We found our second match, no need to continue
-          }
+          messagesPage = nextPage.buildRequest().get();
         }
 
-        if (secondMatch != null) {
-          System.out.printf("[%s] Returning second most recent email received at: %s%n",
-              METHOD_NAME, secondMatch.receivedDateTime);
-          return secondMatch;
-        } else if (firstMatch != null) {
-          System.out.printf("[%s] Only found one matching email, returning null%n", METHOD_NAME);
-          return null;
-        } else {
-          System.out.printf("[%s] No matching emails found in last %d days%n",
-              METHOD_NAME, 30);
-          return null;
+        System.out.printf("[%s] Processed %d total messages%n", METHOD_NAME, totalMessages);
+
+        if (firstMatch != null && secondMatch == null) {
+          System.out.printf("[%s] Only found one matching email%n", METHOD_NAME);
+        } else if (firstMatch == null) {
+          System.out.printf("[%s] No matching emails found%n", METHOD_NAME);
         }
+
+        return null;
 
       } catch (Exception e) {
         String errorMsg = String.format("[%s ERROR] Failed to fetch email: %s",
@@ -196,7 +196,6 @@ public class ExplorerSchedulingCalendar {
         throw new IOException(errorMsg, e);
       }
     }
-
 
 
     public static SchedulingCalendar parseCalendarFromEmail(Message message) {
