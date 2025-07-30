@@ -13,6 +13,7 @@ import ChicagoDiffsTab from "./tabs/ChicagoDiffsTab.tsx";
 import TransitTimesTab from "./tabs/TransitTimesTab.tsx";
 import MagellanTab from "./tabs/MagellanTab.tsx";
 import NomsTab from "./tabs/NomsTab.tsx"
+import ExplorerNomsTab from "./tabs/ExplorerScheduling.tsx"
 import "./styles/main.css";
 
 type TabOption =
@@ -21,7 +22,8 @@ type TabOption =
   | "Chicago Diffs"
   | "Transit Times"
   | "Magellan"
-  | "Nominations";
+  | "Colonial Nominations"
+  | "Explorer Scheduling";
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabOption>("Spreads");
@@ -33,7 +35,8 @@ const App: React.FC = () => {
     "Chicago Diffs",
     "Transit Times",
     "Magellan",
-    "Nominations"
+    "Colonial Nominations",
+    "Explorer Scheduling"
   ];
 
   const renderTabContent = () => {
@@ -48,8 +51,10 @@ const App: React.FC = () => {
         return <TransitTimesTab />;
       case "Magellan":
         return <MagellanTab />;
-      case "Nominations":
+      case "Colonial Nominations":
         return <NomsTab />;
+      case "Explorer Scheduling":
+        return <ExplorerNomsTab />;
       default:
         return null;
     }
