@@ -8,6 +8,7 @@ import Handlers.ActualTransitHandler;
 import Handlers.BetweenFuelSpreadHandler;
 import Handlers.ColonialTransitHandler;
 import Handlers.ColonialTransitUpdaterHandler;
+import Handlers.ExplorerBulletinDateHandler;
 import Handlers.ExplorerHandler;
 import Handlers.ExplorerSchedulingHandler;
 import Handlers.GCSpreadHandler;
@@ -103,6 +104,7 @@ public final class Server {
       Spark.get("/getDateInfo", new RecentDateInfoHandler());
       Spark.get("/getExplorerStarts", new ExplorerSchedulingHandler());
       Spark.get("/getOldExplorerStarts", new OldExplorerSchedulingHandler());
+      Spark.get("/getExplorerBulletinDates", new ExplorerBulletinDateHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);
