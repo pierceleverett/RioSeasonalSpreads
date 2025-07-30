@@ -15,6 +15,7 @@ import Handlers.GCUpdateHandler;
 import Handlers.LatestUploadHandler;
 import Handlers.MagellanGraphHandler;
 import Handlers.MainLineHandler;
+import Handlers.OldExplorerSchedulingHandler;
 import Handlers.OriginStartsHandler;
 import Handlers.RecentDateInfoHandler;
 import Handlers.RecentFungibleHandler;
@@ -101,6 +102,7 @@ public final class Server {
       Spark.get("/getStubNoms", new StubNomHandler());
       Spark.get("/getDateInfo", new RecentDateInfoHandler());
       Spark.get("/getExplorerStarts", new ExplorerSchedulingHandler());
+      Spark.get("/getOldExplorerStarts", new OldExplorerSchedulingHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);
