@@ -11,26 +11,68 @@ interface TableData {
   cycle: string;
   gasDate?: string;
   oilDate?: string;
+  gasDiff: number | null;
+  oilDiff: number | null;
 }
 
+const parseDate = (dateStr: string | undefined): Date | null => {
+  if (!dateStr) return null;
+  const [month, day] = dateStr.split("/").map(Number);
+  const year = new Date().getFullYear();
+  return new Date(year, month - 1, day);
+};
+
+const calculateDateDiff = (
+  newDateStr: string | undefined,
+  oldDateStr: string | undefined
+): number | null => {
+  if (!newDateStr || !oldDateStr) return null;
+
+  const newDate = parseDate(newDateStr);
+  const oldDate = parseDate(oldDateStr);
+
+  if (!newDate || !oldDate) return null;
+
+  const diffTime = newDate.getTime() - oldDate.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays !== 0 ? diffDays : null;
+};
+
 const ExplorerStartsComponent: React.FC = () => {
-  const [data, setData] = useState<ApiResponse | null>(null);
+  const [newData, setNewData] = useState<ApiResponse | null>(null);
+  const [oldData, setOldData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedOrigin, setSelectedOrigin] = useState<string>("PAS");
+  const [selectedOrigin, setSelectedOrigin] = useState<string>("PTN");
   const origins = ["PTN", "PTA", "PAS", "GRV", "GLN", "WDR", "HMD"];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          "https://rioseasonalspreads-production.up.railway.app/getExplorerStarts"
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        setLoading(true);
+        const [newResponse, oldResponse] = await Promise.all([
+          fetch(
+            "https://rioseasonalspreads-production.up.railway.app/getExplorerStarts"
+          ),
+          fetch(
+            "https://rioseasonalspreads-production.up.railway.app/getOldExplorerStarts"
+          ),
+        ]);
+
+        if (!newResponse.ok || !oldResponse.ok) {
+          throw new Error(
+            `HTTP error! status: ${newResponse.status}/${oldResponse.status}`
+          );
         }
-        const jsonData = await response.json();
-        setData(jsonData);
+
+        const [newJson, oldJson] = await Promise.all([
+          newResponse.json(),
+          oldResponse.json(),
+        ]);
+
+        setNewData(newJson);
+        setOldData(oldJson);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unknown error occurred"
@@ -44,41 +86,113 @@ const ExplorerStartsComponent: React.FC = () => {
   }, []);
 
   const getTableData = (
-    gasData: Record<string, Record<string, string>>,
-    oilData: Record<string, Record<string, string>>
+    newGasData: Record<string, Record<string, string>>,
+    newOilData: Record<string, Record<string, string>>,
+    oldGasData: Record<string, Record<string, string>>,
+    oldOilData: Record<string, Record<string, string>>
   ): TableData[] => {
-    if (!data) return [];
+    if (!newData || !oldData) return [];
 
-    // Get all unique cycles from both gas and oil data
     const allCycles = new Set<string>([
-      ...Object.keys(gasData),
-      ...Object.keys(oilData),
+      ...Object.keys(newGasData),
+      ...Object.keys(newOilData),
+      ...Object.keys(oldGasData),
+      ...Object.keys(oldOilData),
     ]);
 
     return Array.from(allCycles)
       .sort((a, b) => parseInt(a) - parseInt(b))
-      .map((cycle) => ({
-        cycle,
-        gasDate: gasData[cycle]?.[selectedOrigin],
-        oilDate: oilData[cycle]?.[selectedOrigin],
-      }))
-      .filter((row) => row.gasDate || row.oilDate); // Only include cycles with data
+      .map((cycle) => {
+        const newGasDate = newGasData[cycle]?.[selectedOrigin];
+        const oldGasDate = oldGasData[cycle]?.[selectedOrigin];
+        const gasDiff = calculateDateDiff(newGasDate, oldGasDate) ?? null;
+
+        const newOilDate = newOilData[cycle]?.[selectedOrigin];
+        const oldOilDate = oldOilData[cycle]?.[selectedOrigin];
+        const oilDiff = calculateDateDiff(newOilDate, oldOilDate) ?? null;
+
+        return {
+          cycle,
+          gasDate: newGasDate,
+          oilDate: newOilDate,
+          gasDiff,
+          oilDiff,
+        };
+      })
+      .filter((row) => row.gasDate || row.oilDate);
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!data) return <div>No data available</div>;
+  const renderDateWithDiff = (
+    date: string | undefined,
+    diff: number | null
+  ) => {
+    if (!date) return "-";
+
+    if (diff === null) {
+      return date;
+    }
+
+    const diffText = diff > 0 ? `+${diff}` : diff.toString();
+    const color = diff > 0 ? "red" : "green";
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span>{date}</span>
+        <span
+          style={{
+            color: color,
+            marginLeft: "5px",
+            fontWeight: "bold",
+            fontSize: "0.9em",
+          }}
+        >
+          ({diffText})
+        </span>
+      </div>
+    );
+  };
+
+  if (loading)
+    return (
+      <div style={{ textAlign: "center", padding: "20px" }}>Loading...</div>
+    );
+  if (error)
+    return (
+      <div style={{ textAlign: "center", padding: "20px", color: "red" }}>
+        Error: {error}
+      </div>
+    );
+  if (!newData || !oldData)
+    return (
+      <div style={{ textAlign: "center", padding: "20px" }}>
+        No data available
+      </div>
+    );
 
   const schedulingEndData = getTableData(
-    data["Gas Scheduling End"],
-    data["Oil Scheduling End"]
+    newData["Gas Scheduling End"],
+    newData["Oil Scheduling End"],
+    oldData["Gas Scheduling End"],
+    oldData["Oil Scheduling End"]
   );
-  const startsData = getTableData(data["Gas Starts"], data["Oil Starts"]);
+
+  const startsData = getTableData(
+    newData["Gas Starts"],
+    newData["Oil Starts"],
+    oldData["Gas Starts"],
+    oldData["Oil Starts"]
+  );
 
   return (
     <div style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <h1 style={{ marginBottom: "15px" }}>Explorer Scheduling Data</h1>
+        <h1 style={{ marginBottom: "15px" }}>Explorer Starts Data</h1>
         <div>
           <label htmlFor="origin-select" style={{ marginRight: "10px" }}>
             Select Origin:{" "}
@@ -104,7 +218,14 @@ const ExplorerStartsComponent: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "30px", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "30px",
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
         <div style={{ flex: 1, minWidth: "400px" }}>
           <h2
             style={{
@@ -113,7 +234,7 @@ const ExplorerStartsComponent: React.FC = () => {
               textAlign: "center",
             }}
           >
-            Scheduling Due Date
+            Scheduling End
           </h2>
           <table
             style={{
@@ -177,7 +298,7 @@ const ExplorerStartsComponent: React.FC = () => {
                       textAlign: "center",
                     }}
                   >
-                    {row.gasDate || "-"}
+                    {renderDateWithDiff(row.gasDate, row.gasDiff)}
                   </td>
                   <td
                     style={{
@@ -186,7 +307,7 @@ const ExplorerStartsComponent: React.FC = () => {
                       textAlign: "center",
                     }}
                   >
-                    {row.oilDate || "-"}
+                    {renderDateWithDiff(row.oilDate, row.oilDiff)}
                   </td>
                 </tr>
               ))}
@@ -202,7 +323,7 @@ const ExplorerStartsComponent: React.FC = () => {
               textAlign: "center",
             }}
           >
-            Start Date
+            Starts
           </h2>
           <table
             style={{
@@ -266,7 +387,7 @@ const ExplorerStartsComponent: React.FC = () => {
                       textAlign: "center",
                     }}
                   >
-                    {row.gasDate || "-"}
+                    {renderDateWithDiff(row.gasDate, row.gasDiff)}
                   </td>
                   <td
                     style={{
@@ -275,7 +396,7 @@ const ExplorerStartsComponent: React.FC = () => {
                       textAlign: "center",
                     }}
                   >
-                    {row.oilDate || "-"}
+                    {renderDateWithDiff(row.oilDate, row.oilDiff)}
                   </td>
                 </tr>
               ))}
