@@ -123,22 +123,24 @@ public class ExplorerSchedulingCalendar {
             .authenticationProvider(authProvider)
             .buildClient();
 
-        // Create date filter for last 90 days (more generous window)
+        // Create combined filter for date and subject
         OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(90);
         String dateFilter = String.format("receivedDateTime ge %s",
             searchStartDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        String combinedFilter = String.format("%s and contains(subject, '%s')",
+            dateFilter, EMAIL_SUBJECT_FILTER);
 
-        System.out.printf("[%s] Searching messages from last 90 days (since %s)%n",
-            METHOD_NAME, searchStartDate);
+        System.out.printf("[%s] Searching messages with filter: %s%n",
+            METHOD_NAME, combinedFilter);
 
-        // Query messages with proper filtering and include body content
+        // Query messages with combined filter
         MessageCollectionRequest messageRequest = graphClient.users(userPrincipalName)
             .messages()
             .buildRequest()
-            .filter(dateFilter)
+            .filter(combinedFilter)
             .select("subject,receivedDateTime,body")
-            .filter("contains(subject, '" + EMAIL_SUBJECT_FILTER + "')")
-            .orderBy("receivedDateTime desc");
+            .orderBy("receivedDateTime desc")
+            .top(100);
 
         MessageCollectionPage messagesPage = messageRequest.get();
         int totalMessages = 0;
@@ -156,14 +158,24 @@ public class ExplorerSchedulingCalendar {
 
             // Verify we have body content
             if (message.body == null || message.body.content == null) {
-              System.out.printf("[%s] Skipping message with empty body: %s%n",
+              System.out.printf("[%s] Fetching full content for message: %s%n",
                   METHOD_NAME, message.id);
-              continue;
+              message = graphClient.users(userPrincipalName)
+                  .messages(message.id)
+                  .buildRequest()
+                  .select("body")
+                  .get();
+
+              if (message.body == null || message.body.content == null) {
+                System.out.printf("[%s] Skipping message with empty body%n", METHOD_NAME);
+                continue;
+              }
             }
 
             // Track matches
             if (firstMatch == null) {
               firstMatch = message;
+              System.out.printf("[%s] Found first match%n", METHOD_NAME);
             } else {
               secondMatch = message;
               System.out.printf("[%s] Found second match, returning%n", METHOD_NAME);
@@ -172,11 +184,16 @@ public class ExplorerSchedulingCalendar {
           }
 
           // Get next page if we haven't found our matches yet
-          MessageCollectionRequestBuilder nextPage = messagesPage.getNextPage();
-          if (nextPage == null || secondMatch != null) {
+          if (secondMatch == null) {
+            MessageCollectionRequestBuilder nextPage = messagesPage.getNextPage();
+            if (nextPage != null) {
+              messagesPage = nextPage.buildRequest().get();
+            } else {
+              break;
+            }
+          } else {
             break;
           }
-          messagesPage = nextPage.buildRequest().get();
         }
 
         System.out.printf("[%s] Processed %d total messages%n", METHOD_NAME, totalMessages);
