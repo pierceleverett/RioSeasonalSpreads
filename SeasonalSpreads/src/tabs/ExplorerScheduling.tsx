@@ -7,6 +7,11 @@ interface ApiResponse {
   "Oil Starts": Record<string, Record<string, string>>;
 }
 
+interface BulletinDates {
+  "Old Bulletin Date": string;
+  "Recent Bulletin Date": string;
+}
+
 interface TableData {
   cycle: string;
   gasDate?: string;
@@ -42,6 +47,9 @@ const calculateDateDiff = (
 const ExplorerStartsComponent: React.FC = () => {
   const [newData, setNewData] = useState<ApiResponse | null>(null);
   const [oldData, setOldData] = useState<ApiResponse | null>(null);
+  const [bulletinDates, setBulletinDates] = useState<BulletinDates | null>(
+    null
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedOrigin, setSelectedOrigin] = useState<string>("PTN");
@@ -51,28 +59,33 @@ const ExplorerStartsComponent: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [newResponse, oldResponse] = await Promise.all([
+        const [newResponse, oldResponse, bulletinResponse] = await Promise.all([
           fetch(
             "https://rioseasonalspreads-production.up.railway.app/getExplorerStarts"
           ),
           fetch(
             "https://rioseasonalspreads-production.up.railway.app/getOldExplorerStarts"
           ),
+          fetch(
+            "https://rioseasonalspreads-production.up.railway.app/getExplorerBulletinDates"
+          ),
         ]);
 
-        if (!newResponse.ok || !oldResponse.ok) {
+        if (!newResponse.ok || !oldResponse.ok || !bulletinResponse.ok) {
           throw new Error(
-            `HTTP error! status: ${newResponse.status}/${oldResponse.status}`
+            `HTTP error! status: ${newResponse.status}/${oldResponse.status}/${bulletinResponse.status}`
           );
         }
 
-        const [newJson, oldJson] = await Promise.all([
+        const [newJson, oldJson, bulletinJson] = await Promise.all([
           newResponse.json(),
           oldResponse.json(),
+          bulletinResponse.json(),
         ]);
 
         setNewData(newJson);
         setOldData(oldJson);
+        setBulletinDates(bulletinJson);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unknown error occurred"
@@ -404,6 +417,33 @@ const ExplorerStartsComponent: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {bulletinDates && (
+        <div
+          style={{
+            marginTop: "30px",
+            textAlign: "center",
+            padding: "15px",
+            backgroundColor: "#f8f9fa",
+            borderRadius: "4px",
+            border: "1px solid #dee2e6",
+          }}
+        >
+          <h3 style={{ marginBottom: "10px" }}>Bulletin Dates</h3>
+          <div
+            style={{ display: "flex", justifyContent: "center", gap: "20px" }}
+          >
+            <div>
+              <strong>Old Bulletin:</strong>{" "}
+              {bulletinDates["Old Bulletin Date"]}
+            </div>
+            <div>
+              <strong>Recent Bulletin:</strong>{" "}
+              {bulletinDates["Recent Bulletin Date"]}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
