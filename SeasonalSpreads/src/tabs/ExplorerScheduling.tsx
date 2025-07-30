@@ -52,7 +52,7 @@ const ExplorerStartsComponent: React.FC = () => {
   );
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedOrigin, setSelectedOrigin] = useState<string>("PTN");
+  const [selectedOrigin, setSelectedOrigin] = useState<string>("PAS");
   const origins = ["PTN", "PTA", "PAS", "GRV", "GLN", "WDR", "HMD"];
 
   useEffect(() => {
