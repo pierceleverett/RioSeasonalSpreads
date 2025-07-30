@@ -7,6 +7,8 @@ import com.microsoft.graph.authentication.IAuthenticationProvider;
 import com.microsoft.graph.models.Message;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.requests.MessageCollectionPage;
+import com.squareup.moshi.Json;
+import com.squareup.moshi.JsonClass;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -25,34 +27,28 @@ public class ExplorerCalendarList {
   private static final String EMAIL_SUBJECT_FILTER = "explorer - calendar list";
   private static final String[] LOCATIONS = {"PTN", "PTA", "PAS", "GRV", "GLN", "WDR", "HMD"};
 
+  @JsonClass(generateAdapter = true)
   public static class CalendarList {
-    private final LocalDate bulletinDate;
+    @Json(name = "bulletinDate")
+    private final String bulletinDate;
+
+    @Json(name = "data")
     private final Map<String, Map<String, Map<String, String>>> data;
 
-    // Constructor
-    public CalendarList(LocalDate bulletinDate, Map<String, Map<String, Map<String, String>>> data) {
+    public CalendarList(String bulletinDate, Map<String, Map<String, Map<String, String>>> data) {
       this.bulletinDate = bulletinDate;
       this.data = data;
     }
 
-    // Getters
-    public LocalDate getBulletinDate() {
+    public String getBulletinDate() {
       return bulletinDate;
     }
 
     public Map<String, Map<String, Map<String, String>>> getData() {
       return data;
     }
-
-    // Optionally add toString() for debugging
-    @Override
-    public String toString() {
-      return "CalendarList{" +
-          "bulletinDate=" + bulletinDate +
-          ", data=" + data +
-          '}';
-    }
   }
+
 
   public static void main(String[] args) {
     try {
@@ -60,7 +56,7 @@ public class ExplorerCalendarList {
       String accessToken = getAccessToken();
       System.out.println("[DEBUG] Access token retrieved");
       Message message = fetchMostRecentCalendarEmail(accessToken, "automatedreports@rioenergy.com");
-      LocalDate bulletinDate = extractBulletinDate(message);
+      String bulletinDate = extractBulletinDate(message).toString();
       Map<String, Map<String, Map<String, String>>> output = parseCalendarList(message);
       CalendarList bulletin = new CalendarList(bulletinDate, output);
       System.out.println(bulletin);
