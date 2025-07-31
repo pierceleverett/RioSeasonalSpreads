@@ -56,51 +56,14 @@ public class GCcsvupdater {
 
     updatedLines.add(lines.get(0)); // header
 
-    boolean dateFound = false;
-    boolean dateInserted = false;
-    LocalDate newDate = parseDate(dateKey);
-
     for (int i = 1; i < lines.size(); i++) {
-      String line = lines.get(i);
-      String[] parts = line.split(",", -1);
-      LocalDate currentDate = parseDate(parts[0]);
-
+      String[] parts = lines.get(i).split(",", -1);
       if (parts[0].equals(dateKey)) {
-        // Update existing date entry
         parts[yearIndex] = String.format("%.2f", value);
-        updatedLines.add(String.join(",", parts));
-        dateFound = true;
-      } else if (!dateInserted && newDate.isBefore(currentDate)) {
-        // Insert new date in correct position
-        String[] newRow = new String[headers.length];
-        Arrays.fill(newRow, ""); // Initialize empty values
-        newRow[0] = dateKey;
-        newRow[yearIndex] = String.format("%.2f", value);
-        updatedLines.add(String.join(",", newRow));
-        updatedLines.add(line); // Add the current line after new row
-        dateInserted = true;
-        dateFound = true;
-      } else {
-        updatedLines.add(line);
       }
-    }
-
-    // If new date is after all existing dates, add it at the end
-    if (!dateFound) {
-      String[] newRow = new String[headers.length];
-      Arrays.fill(newRow, ""); // Initialize empty values
-      newRow[0] = dateKey;
-      newRow[yearIndex] = String.format("%.2f", value);
-      updatedLines.add(String.join(",", newRow));
+      updatedLines.add(String.join(",", parts));
     }
 
     Files.write(Paths.get(filePath), updatedLines);
-  }
-
-  private static LocalDate parseDate(String dateStr) {
-    String[] parts = dateStr.split("/");
-    int month = Integer.parseInt(parts[0]);
-    int day = Integer.parseInt(parts[1]);
-    return LocalDate.of(2000, month, day); // Using 2000 as a base year for comparison
   }
 }
