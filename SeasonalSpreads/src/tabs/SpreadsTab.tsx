@@ -322,18 +322,12 @@ const handleRefresh = async () => {
     try {
       setIsManualLoading(true);
       const response = await fetch(
-        "https://rioseasonalspreads-production.up.railway.app/refreshSpreadsManual",
+        `https://rioseasonalspreads-production.up.railway.app/refreshSpreadsManual?date=${manualDate}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            date: manualDate,
-            commodity: commodity,
-            startMonth: startMonth,
-            endMonth: endMonth,
-          }),
+          }
         }
       );
 
