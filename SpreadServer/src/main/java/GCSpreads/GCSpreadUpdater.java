@@ -20,6 +20,21 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class GCSpreadUpdater {
 
+  public static final Map<String, Integer> MONTH_MAP = Map.ofEntries(
+      Map.entry("Jan", 1),
+      Map.entry("Feb", 2),
+      Map.entry("Mar", 3),
+      Map.entry("Apr", 4),
+      Map.entry("May", 5),
+      Map.entry("Jun", 6),
+      Map.entry("Jul", 7),
+      Map.entry("Aug", 8),
+      Map.entry("Sep", 9),
+      Map.entry("Oct", 10),
+      Map.entry("Nov", 11),
+      Map.entry("Dec", 12)
+  );
+
   public static void main(String[] args) {
     try {
       LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv");
@@ -126,6 +141,93 @@ public class GCSpreadUpdater {
 
     return Collections.emptyMap();
   }
+
+  public static Map<String, Double> getPricingDataForDate(GraphServiceClient<?> graphClient,
+      LocalDate targetDate) throws Exception {
+
+    // Calculate date range (past 10 days)
+    OffsetDateTime endDate = OffsetDateTime.now();
+    OffsetDateTime startDate = endDate.minusDays(10);
+
+    // Search messages from the past 10 days
+    MessageCollectionPage messages = graphClient.users("automatedreports@rioenergy.com").messages()
+        .buildRequest()
+        .filter("receivedDateTime ge " + startDate.toString() +
+            " and receivedDateTime le " + endDate.toString())
+        .select("id,subject,receivedDateTime")
+        .top(100) // Increase limit to ensure we get enough messages
+        .get();
+
+    // Process all pages of results
+    while (messages != null) {
+      for (Message message : messages.getCurrentPage()) {
+        if (message.subject != null && message.subject.toLowerCase().contains("pricing quote")) {
+          // Check attachments for matching date
+          Map<String, Double> result = processMessageForDate(
+              graphClient, message, targetDate);
+
+          if (!result.isEmpty()) {
+            return result;
+          }
+        }
+      }
+
+      // Get next page if available
+      MessageCollectionRequestBuilder nextPage = messages.getNextPage();
+      if (nextPage == null) {
+        break;
+      }
+      messages = nextPage.buildRequest().get();
+    }
+
+    return Collections.emptyMap();
+  }
+
+  public static Map<String, Double> processMessageForDate(
+      GraphServiceClient<?> graphClient, Message message, LocalDate targetDate) throws Exception {
+
+    // Get all attachments
+    AttachmentCollectionPage attachments = graphClient.users("automatedreports@rioenergy.com")
+        .messages(message.id)
+        .attachments()
+        .buildRequest()
+        .get();
+
+    // Look for Excel attachments
+    for (Attachment attachment : attachments.getCurrentPage()) {
+      if (attachment instanceof FileAttachment &&
+          attachment.name != null &&
+          attachment.name.toLowerCase().endsWith(".xlsx") &&
+          getLocalDate(attachment.name) == targetDate) {
+
+        // Download the attachment
+        FileAttachment excelAttachment = (FileAttachment) graphClient
+            .users("automatedreports@rioenergy.com")
+            .messages(message.id)
+            .attachments(attachment.id)
+            .buildRequest()
+            .get();
+
+        byte[] content = excelAttachment.contentBytes;
+
+        Map<String, Double> data = parseExcelData(new ByteArrayInputStream(content));
+        return data;
+
+      }
+    }
+
+    return Collections.emptyMap();
+  }
+
+  public static LocalDate getLocalDate(String title) {
+    String[] parts = title.split("_");
+    Integer day = Integer.parseInt(parts[1]);
+    Integer month = MONTH_MAP.get(parts[2]);
+    Integer year = Integer.parseInt(parts[3]);
+    return LocalDate.of(year, month, day);
+  }
+
+
 
   public static LocalDate getLastUpdatedDateFromCSV(String filePath) throws IOException {
 
