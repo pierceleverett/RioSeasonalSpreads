@@ -16,6 +16,7 @@ import Handlers.GCUpdateHandler;
 import Handlers.LatestUploadHandler;
 import Handlers.MagellanGraphHandler;
 import Handlers.MainLineHandler;
+import Handlers.ManualSpreadUpdateHandler;
 import Handlers.OldExplorerSchedulingHandler;
 import Handlers.OriginStartsHandler;
 import Handlers.RecentDateInfoHandler;
@@ -105,6 +106,7 @@ public final class Server {
       Spark.get("/getExplorerStarts", new ExplorerSchedulingHandler());
       Spark.get("/getOldExplorerStarts", new OldExplorerSchedulingHandler());
       Spark.get("/getExplorerBulletinDates", new ExplorerBulletinDateHandler());
+      Spark.get("/refreshSpreadsManual", new ManualSpreadUpdateHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);

@@ -148,6 +148,78 @@ public class FusionCurveParser {
     return relevantMessages;
   }
 
+  public static List<Message> fetchRecentCurveReportEmails(String accessToken, String userPrincipalName) throws IOException {
+    final String METHOD_NAME = "fetchRecentCurveReportEmails";
+    System.out.printf("[%s] Starting with user: %s%n", METHOD_NAME, userPrincipalName);
+    List<Message> matchingEmails = new ArrayList<>();
+
+    try {
+      // Initialize Graph client
+      IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+      GraphServiceClient<?> graphClient = GraphServiceClient.builder()
+          .authenticationProvider(authProvider)
+          .buildClient();
+
+      // Create date filter for last 5 days
+      OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(5);
+      String dateFilter = String.format("receivedDateTime ge %s",
+          searchStartDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+      String subjectFilter = String.format("contains(subject, '%s')", "Fwd Curve Report");
+      String combinedFilter = String.format("%s and %s", dateFilter, subjectFilter);
+
+      System.out.printf("[%s] Searching messages with filter: %s%n", METHOD_NAME, combinedFilter);
+
+      // Query messages with pagination
+      MessageCollectionPage messagesPage = graphClient.users(userPrincipalName)
+          .messages()
+          .buildRequest()
+          .filter(combinedFilter)
+          .select("subject,receivedDateTime,body")
+          .orderBy("receivedDateTime desc")
+          .top(100)
+          .get();
+
+      // Process all pages
+      while (messagesPage != null) {
+        for (Message message : messagesPage.getCurrentPage()) {
+          System.out.printf("[%s] Found matching email: %s (Received: %s)%n",
+              METHOD_NAME, message.subject, message.receivedDateTime);
+
+          // Ensure we have message body content
+          if (message.body == null || message.body.content == null) {
+            System.out.printf("[%s] Fetching full content for message: %s%n",
+                METHOD_NAME, message.id);
+            message = graphClient.users(userPrincipalName)
+                .messages(message.id)
+                .buildRequest()
+                .select("body")
+                .get();
+          }
+
+          matchingEmails.add(message);
+        }
+
+        // Get next page if available
+        MessageCollectionRequestBuilder nextPage = messagesPage.getNextPage();
+        if (nextPage == null) {
+          break;
+        }
+        messagesPage = nextPage.buildRequest().get();
+      }
+
+      System.out.printf("[%s] Found %d matching emails in last 5 days%n",
+          METHOD_NAME, matchingEmails.size());
+
+    } catch (Exception e) {
+      String errorMsg = String.format("[%s ERROR] Failed to fetch emails: %s",
+          METHOD_NAME, e.getMessage());
+      System.err.println(errorMsg);
+      throw new IOException(errorMsg, e);
+    }
+
+    return matchingEmails;
+  }
+
   private static LocalDate readLastDateFromCsv(String csvPath) throws IOException {
     List<String> lines = Files.readAllLines(Paths.get(csvPath));
     System.out.println("read all lines, size: " + lines.size());
