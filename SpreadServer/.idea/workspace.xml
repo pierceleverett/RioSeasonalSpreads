@@ -6,6 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/ManualSpreadUpdateHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/ManualSpreadUpdateHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Outlook/FusionCurveParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/ManualSpreadUpdateHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/ManualSpreadUpdateHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -174,7 +180,7 @@
       <updated>1750257510543</updated>
       <workItem from="1750257511704" duration="206928000" />
       <workItem from="1752704804511" duration="18000" />
-      <workItem from="1752757281876" duration="188400000" />
+      <workItem from="1752757281876" duration="189221000" />
     </task>
     <servers />
   </component>

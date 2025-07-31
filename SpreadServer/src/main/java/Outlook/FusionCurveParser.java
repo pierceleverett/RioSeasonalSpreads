@@ -161,7 +161,7 @@ public class FusionCurveParser {
           .buildClient();
 
       // Create date filter for last 5 days
-      OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(5);
+      OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(10);
       String dateFilter = String.format("receivedDateTime ge %s",
           searchStartDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
       String subjectFilter = String.format("contains(subject, '%s')", "Fwd Curve Report");

@@ -106,7 +106,7 @@ public final class Server {
       Spark.get("/getExplorerStarts", new ExplorerSchedulingHandler());
       Spark.get("/getOldExplorerStarts", new OldExplorerSchedulingHandler());
       Spark.get("/getExplorerBulletinDates", new ExplorerBulletinDateHandler());
-      Spark.get("/refreshSpreadsManual", new ManualSpreadUpdateHandler());
+      Spark.post("/refreshSpreadsManual", new ManualSpreadUpdateHandler());
       Spark.init();
       Spark.awaitInitialization();
       System.out.println("✅ Server started at http://localhost:" + port);
