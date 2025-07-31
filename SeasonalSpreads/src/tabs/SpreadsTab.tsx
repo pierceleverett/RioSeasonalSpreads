@@ -327,7 +327,7 @@ const handleRefresh = async () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-          }
+          },
         }
       );
 

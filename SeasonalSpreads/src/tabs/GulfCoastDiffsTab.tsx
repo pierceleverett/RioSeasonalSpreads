@@ -15,6 +15,8 @@ const GulfCoastDiffsTab: React.FC = () => {
     color: string;
   }>({ message: "Checking...", color: "gray" });
   const [isLoading, setIsLoading] = useState(false);
+  const [manualDate, setManualDate] = useState<string>("");
+  const [isManualLoading, setIsManualLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
   const currentYear = new Date().getFullYear().toString();
@@ -237,6 +239,48 @@ const GulfCoastDiffsTab: React.FC = () => {
     ],
   };
 
+  const handleManualRefresh = async () => {
+    if (!manualDate) return;
+
+    try {
+      setIsManualLoading(true);
+      const response = await fetch(
+        `https://rioseasonalspreads-production.up.railway.app/refreshGCManual?date=${manualDate}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to manually update spread data");
+      }
+
+      console.log("Manual spread data update successful");
+      await fetchGCSpreads();
+    } catch (error) {
+      console.error("Error in manual refresh:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to manually refresh data"
+      );
+    } finally {
+      setIsManualLoading(false);
+    }
+  };
+
+  // Format date input to mm-dd-yyyy
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Simple validation - you might want to enhance this
+    if (value.length <= 10) {
+      setManualDate(value);
+    }
+  };
+
   const handleRefresh = async () => {
     try {
       setIsLoading(true);
@@ -414,6 +458,46 @@ const GulfCoastDiffsTab: React.FC = () => {
         >
           {refreshStatus.message}
         </span>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          marginBottom: "20px",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <span style={{ fontWeight: "bold" }}>Search Date:</span>
+          <input
+            type="text"
+            value={manualDate}
+            onChange={handleDateChange}
+            placeholder="mm-dd-yyyy"
+            style={{
+              padding: "8px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              width: "120px",
+            }}
+          />
+          <button
+            onClick={handleManualRefresh}
+            disabled={isManualLoading || !manualDate}
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#2196F3",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            {isManualLoading ? "Searching..." : "Search"}
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
