@@ -1,5 +1,6 @@
 package Handlers;
 import static Outlook.ExplorerParser.getAccessToken;
+import static Outlook.FusionCurveParser.extractDateFromAttachment;
 import static Outlook.FusionCurveParser.extractPdfAttachment;
 import static Outlook.FusionCurveParser.fetchCurveReportEmails;
 import static Outlook.FusionCurveParser.parseForwardCurvePdf;
@@ -33,9 +34,10 @@ public class SpreadsUpdaterHandler implements Route {
         System.out.println("extracted pdf");
         ForwardCurveData curveData = parseForwardCurvePdf(pdfBytes);
         System.out.println("got curved data");
-        OffsetDateTime receivedDateTime = message.receivedDateTime;
-        System.out.println("message time: " + receivedDateTime);
-        LocalDate date = receivedDateTime.toLocalDate().minusDays(1);
+
+        //See if I can get the date to be pulled from attatchement
+
+        LocalDate date = extractDateFromAttachment(accessToken, userPrincipalName, message).minusDays(1);
         System.out.println("data day: " + date);
         ForwardCurveUpdater.updateForwardCurveFiles(date, curveData);
         System.out.println("updated curves");

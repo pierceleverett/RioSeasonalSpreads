@@ -23,6 +23,21 @@ import java.util.regex.*;
 public class FusionCurveParser {
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("M/d/yyyy");
 
+  public static final Map<String, Integer> MONTH_MAP = Map.ofEntries(
+      Map.entry("Jan", 1),
+      Map.entry("Feb", 2),
+      Map.entry("Mar", 3),
+      Map.entry("Apr", 4),
+      Map.entry("May", 5),
+      Map.entry("Jun", 6),
+      Map.entry("Jul", 7),
+      Map.entry("Aug", 8),
+      Map.entry("Sep", 9),
+      Map.entry("Oct", 10),
+      Map.entry("Nov", 11),
+      Map.entry("Dec", 12)
+  );
+
   public static class ForwardCurveData {
     public Map<String, Double> hoNyh = new LinkedHashMap<>();
     public Map<String, Double> rbobNyh = new LinkedHashMap<>();
@@ -156,13 +171,13 @@ public class FusionCurveParser {
   }
 
 
-  private static LocalDate extractDateFromSubject(String subject) {
+  private static LocalDate extractDateFromPDFName(String subject) {
     try {
-      int idx = subject.lastIndexOf("-");
-      if (idx != -1) {
-        String dateStr = subject.substring(idx + 1).trim();
-        return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("M/d/yyyy"));
-      }
+      String[] words = subject.split("_");
+      Integer day = Integer.parseInt(words[1]);
+      Integer month = MONTH_MAP.get(words[2]);
+      Integer year = Integer.parseInt(words[3]);
+      return LocalDate.of(year, month, day);
     } catch (Exception e) {
       System.err.println("Failed to parse date from subject: " + subject);
     }
@@ -194,6 +209,37 @@ public class FusionCurveParser {
           throw new IOException("PDF attachment is empty");
         }
         return content;
+      }
+    }
+
+    throw new IOException("No PDF attachment found in the email");
+  }
+
+  public static LocalDate extractDateFromAttachment(String accessToken, String userPrincipalName, Message message) throws IOException {
+    IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+    GraphServiceClient<Request> graphClient = GraphServiceClient.builder()
+        .authenticationProvider(authProvider)
+        .buildClient();
+
+    AttachmentCollectionPage attachments = graphClient.users(userPrincipalName)
+        .messages(message.id)
+        .attachments()
+        .buildRequest()
+        .get();
+
+    if (attachments == null || attachments.getCurrentPage().isEmpty()) {
+      throw new IOException("No attachments found in the email");
+    }
+
+    for (Attachment attachment : attachments.getCurrentPage()) {
+      if (attachment instanceof FileAttachment &&
+          attachment.name != null &&
+          attachment.name.toLowerCase().endsWith(".pdf")) {
+        LocalDate date = extractDateFromPDFName(attachment.name);
+        if (date == null) {
+          throw new IOException("PDF attachment is empty");
+        }
+        return date;
       }
     }
 
