@@ -89,6 +89,8 @@ const [endMonth, setEndMonth] = useState<MonthCode>(getDefaultMonthCodes()[1]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
+  const [manualDate, setManualDate] = useState<string>("");
+  const [isManualLoading, setIsManualLoading] = useState(false);
 
   const monthOptions: MonthCode[] = [
     "F",
@@ -314,6 +316,54 @@ const handleRefresh = async () => {
     ],
   };
 
+  const handleManualRefresh = async () => {
+    if (!manualDate) return;
+
+    try {
+      setIsManualLoading(true);
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/refreshSpreadsManual",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            date: manualDate,
+            commodity: commodity,
+            startMonth: startMonth,
+            endMonth: endMonth,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to manually update spread data");
+      }
+
+      console.log("Manual spread data update successful");
+      await fetchSpreadData();
+    } catch (error) {
+      console.error("Error in manual refresh:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to manually refresh data"
+      );
+    } finally {
+      setIsManualLoading(false);
+    }
+  };
+
+  // Format date input to mm-dd-yyyy
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Simple validation - you might want to enhance this
+    if (value.length <= 10) {
+      setManualDate(value);
+    }
+  };
+
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -391,18 +441,25 @@ const handleRefresh = async () => {
         Spreads
       </h2>
 
+      {/* Main Controls Row */}
       <div
         style={{
           display: "flex",
           justifyContent: "center",
           gap: "10px",
-          marginBottom: "20px",
+          marginBottom: "10px",
           alignItems: "center",
+          flexWrap: "wrap",
         }}
       >
         <select
           value={commodity}
           onChange={(e) => setCommodity(e.target.value as "RBOB" | "HO")}
+          style={{
+            padding: "8px",
+            borderRadius: "4px",
+            border: "1px solid #ddd",
+          }}
         >
           <option value="RBOB">RBOB</option>
           <option value="HO">HO</option>
@@ -410,6 +467,11 @@ const handleRefresh = async () => {
         <select
           value={startMonth}
           onChange={(e) => setStartMonth(e.target.value as MonthCode)}
+          style={{
+            padding: "8px",
+            borderRadius: "4px",
+            border: "1px solid #ddd",
+          }}
         >
           {monthOptions.map((m) => (
             <option key={m} value={m}>
@@ -420,6 +482,11 @@ const handleRefresh = async () => {
         <select
           value={endMonth}
           onChange={(e) => setEndMonth(e.target.value as MonthCode)}
+          style={{
+            padding: "8px",
+            borderRadius: "4px",
+            border: "1px solid #ddd",
+          }}
         >
           {monthOptions.map((m) => (
             <option key={m} value={m}>
@@ -453,6 +520,47 @@ const handleRefresh = async () => {
         </span>
       </div>
 
+      {/* Manual Date Search Row */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px",
+          marginBottom: "20px",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <span style={{ fontWeight: "bold" }}>Search Date:</span>
+          <input
+            type="text"
+            value={manualDate}
+            onChange={handleDateChange}
+            placeholder="mm-dd-yyyy"
+            style={{
+              padding: "8px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              width: "120px",
+            }}
+          />
+          <button
+            onClick={handleManualRefresh}
+            disabled={isManualLoading || !manualDate}
+            style={{
+              padding: "8px 16px",
+              backgroundColor: "#2196F3",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            {isManualLoading ? "Searching..." : "Search"}
+          </button>
+        </div>
+      </div>
+
       {isLoading ? (
         <p style={{ textAlign: "center" }}>Loading...</p>
       ) : error ? (
@@ -463,6 +571,17 @@ const handleRefresh = async () => {
             <button
               className="reset-zoom-button"
               onClick={() => chartRef.current?.resetZoom()}
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "10px",
+                padding: "5px 10px",
+                backgroundColor: "#f8f9fa",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                cursor: "pointer",
+                zIndex: 100,
+              }}
             >
               <FaUndo /> Reset Zoom
             </button>
