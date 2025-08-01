@@ -494,7 +494,7 @@ const handleRefresh = async () => {
           style={{
             padding: "8px 16px",
             backgroundColor: "#4CAF50",
-            color: "white",
+            color: "blue",
             border: "none",
             borderRadius: "4px",
             cursor: "pointer",
