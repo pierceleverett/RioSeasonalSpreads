@@ -18,6 +18,7 @@ import spark.Route;
 public class ManualGCUpdater implements Route {
 
   public Object handle(Request request, Response response) throws Exception {
+    System.out.println("entered handler for manual refresh");
     String date = request.queryParams("date");
     LocalDate inputDate = getLocalDate(date);
     System.out.println("Looking for data for: " + date);

@@ -37,23 +37,39 @@ public class GCSpreadUpdater {
 
   public static void main(String[] args) {
     try {
-      LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv");
-      LocalDate today = LocalDate.now();
+//      LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv");
+//      LocalDate today = LocalDate.now();
+//
+//      System.out.println("Searching for emails from " + lastDataDate + " to " + today);
+//
+//      // Get all pricing data since the last data date (inclusive)
+//      Map<LocalDate, Map<String, Double>> allPricingData = getAllPricingData(lastDataDate, today);
+//
+//      if (!allPricingData.isEmpty()) {
+//        System.out.println("Updating CSVs with all missing data...");
+//        for (Map.Entry<LocalDate, Map<String, Double>> entry : allPricingData.entrySet()) {
+//          GCcsvupdater.updateSpreadCSVs(entry.getValue(), entry.getKey());
+//        }
+//      } else {
+//        System.out.println("No new pricing data found.");
+//      }
 
-      System.out.println("Searching for emails from " + lastDataDate + " to " + today);
+      System.out.println("entered handler for manual refresh");
+      String date = "7-31-2025";
+      LocalDate inputDate = getLocalDate(date);
+      System.out.println("Looking for data for: " + date);
 
-      // Get all pricing data since the last data date (inclusive)
-      Map<LocalDate, Map<String, Double>> allPricingData = getAllPricingData(lastDataDate, today);
+      String accessToken = getAccessToken();
+      IAuthenticationProvider authProvider = new SimpleAuthProvider(accessToken);
+      GraphServiceClient<?> graphClient = GraphServiceClient.builder()
+          .authenticationProvider(authProvider)
+          .buildClient();
 
-      if (!allPricingData.isEmpty()) {
-        System.out.println("Updating CSVs with all missing data...");
-        for (Map.Entry<LocalDate, Map<String, Double>> entry : allPricingData.entrySet()) {
-          GCcsvupdater.updateSpreadCSVs(entry.getValue(), entry.getKey());
-        }
-      } else {
-        System.out.println("No new pricing data found.");
-      }
-
+      Map<String, Double> data = getPricingDataForDate(graphClient, inputDate.plusDays(1));
+      System.out.println(data);
+      System.out.println("Found data, writing to csv");
+      GCcsvupdater.updateSpreadCSVs(data, inputDate.plusDays(1));
+      System.out.println("code finished successfully");
     } catch (Exception e) {
       System.err.println("Error occurred:");
       e.printStackTrace();
@@ -148,6 +164,7 @@ public class GCSpreadUpdater {
     // Calculate date range (past 10 days)
     OffsetDateTime endDate = OffsetDateTime.now();
     OffsetDateTime startDate = endDate.minusDays(10);
+    System.out.println("searching for messages from " + startDate + " to " + endDate);
 
     // Search messages from the past 10 days
     MessageCollectionPage messages = graphClient.users("automatedreports@rioenergy.com").messages()
@@ -162,6 +179,7 @@ public class GCSpreadUpdater {
     while (messages != null) {
       for (Message message : messages.getCurrentPage()) {
         if (message.subject != null && message.subject.toLowerCase().contains("pricing quote")) {
+          System.out.println("Found pricing quote email, processing");
           // Check attachments for matching date
           Map<String, Double> result = processMessageForDate(
               graphClient, message, targetDate);
@@ -187,18 +205,25 @@ public class GCSpreadUpdater {
       GraphServiceClient<?> graphClient, Message message, LocalDate targetDate) throws Exception {
 
     // Get all attachments
+    System.out.println("Getting all attachments from email");
     AttachmentCollectionPage attachments = graphClient.users("automatedreports@rioenergy.com")
         .messages(message.id)
         .attachments()
         .buildRequest()
         .get();
 
+
     // Look for Excel attachments
+    System.out.println("Checking if one of the attachments is for correct day");
     for (Attachment attachment : attachments.getCurrentPage()) {
+      System.out.println("Checking if attachment date equal to " + targetDate);
+      System.out.println("attachment date" + getAttachmentDate(attachment.name));
       if (attachment instanceof FileAttachment &&
           attachment.name != null &&
           attachment.name.toLowerCase().endsWith(".xlsx") &&
-          getLocalDate(attachment.name) == targetDate) {
+          getAttachmentDate(attachment.name).equals(targetDate)) {
+
+        System.out.println("Found correct excel attachment, downloading attachment");
 
         // Download the attachment
         FileAttachment excelAttachment = (FileAttachment) graphClient
@@ -210,6 +235,8 @@ public class GCSpreadUpdater {
 
         byte[] content = excelAttachment.contentBytes;
 
+        System.out.println("Parsing data");
+
         Map<String, Double> data = parseExcelData(new ByteArrayInputStream(content));
         return data;
 
@@ -220,10 +247,14 @@ public class GCSpreadUpdater {
   }
 
   public static LocalDate getLocalDate(String title) {
-    String[] parts = title.split("_");
+    String[] parts = title.split("-");
+    System.out.println(parts);
     Integer day = Integer.parseInt(parts[1]);
-    Integer month = MONTH_MAP.get(parts[2]);
-    Integer year = Integer.parseInt(parts[3]);
+    System.out.println("day: " + day);
+    Integer month = Integer.parseInt(parts[0]);
+    System.out.println("month: " + month);
+    Integer year = Integer.parseInt(parts[2]);
+    System.out.println("year: " + year);
     return LocalDate.of(year, month, day);
   }
 
@@ -279,5 +310,13 @@ public class GCSpreadUpdater {
       }
     }
     return result;
+  }
+
+  public static LocalDate getAttachmentDate(String title) {
+    String[] parts = title.split("_");
+    Integer day = Integer.parseInt(parts[1]);
+    Integer month = MONTH_MAP.get(parts[2]);
+    Integer year = Integer.parseInt(parts[3]);
+    return LocalDate.of(year, month, day);
   }
 }

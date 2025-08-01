@@ -10,9 +10,11 @@ public class GCcsvupdater {
   private static final String BASE_PATH = "data/spreads/";
 
   public static void updateSpreadCSVs(Map<String, Double> pricingData, LocalDate emailReceivedDate) throws IOException {
+    System.out.println("Entered updateSpreadCSVs");
     LocalDate targetDate = emailReceivedDate.minusDays(1);
     String dateKey = targetDate.format(DateTimeFormatter.ofPattern("M/d"));
-    int currentYear = LocalDate.now().getYear();
+    System.out.println("Data date: " + dateKey);
+    int currentYear = LocalDate.now().minusDays(1).getYear();
     String yearColumn = Integer.toString(currentYear);
 
     Map<String, String> fileMap = Map.of(
@@ -27,6 +29,7 @@ public class GCcsvupdater {
     );
 
     // Compute derived values
+    System.out.println("Computing chicago values");
     double chi91 = pricingData.getOrDefault("Chi91", 0.0);
     double gc93 = pricingData.getOrDefault("GC93", 0.0);
     double chiRBOB = pricingData.getOrDefault("ChiRBOB", 0.0);
@@ -38,7 +41,10 @@ public class GCcsvupdater {
     for (Map.Entry<String, String> entry : fileMap.entrySet()) {
       String key = entry.getKey();
       String filePath = BASE_PATH + entry.getValue();
+      System.out.println("Processing update for grade: " + key);
       if (pricingData.containsKey(key)) {
+        System.out.println("Updating " + filePath);
+        System.out.println("UpdateCsvInputs: dateKey = " + dateKey + " yearColumn = " + yearColumn + " pricing data: " + pricingData.get(key));
         updateCSV(filePath, dateKey, yearColumn, pricingData.get(key));
       }
     }
@@ -55,10 +61,11 @@ public class GCcsvupdater {
     }
 
     updatedLines.add(lines.get(0)); // header
-
+    System.out.println("reading all lines");
     for (int i = 1; i < lines.size(); i++) {
       String[] parts = lines.get(i).split(",", -1);
       if (parts[0].equals(dateKey)) {
+        System.out.println("Found correct row, placing in value");
         parts[yearIndex] = String.format("%.2f", value);
       }
       updatedLines.add(String.join(",", parts));
