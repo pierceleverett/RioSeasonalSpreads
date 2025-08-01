@@ -494,7 +494,7 @@ const handleRefresh = async () => {
           style={{
             padding: "8px 16px",
             backgroundColor: "#4CAF50",
-            color: "blue",
+            color: "white",
             border: "none",
             borderRadius: "4px",
             cursor: "pointer",
@@ -575,6 +575,7 @@ const handleRefresh = async () => {
                 borderRadius: "4px",
                 cursor: "pointer",
                 zIndex: 100,
+                color: "blue"
               }}
             >
               <FaUndo /> Reset Zoom
