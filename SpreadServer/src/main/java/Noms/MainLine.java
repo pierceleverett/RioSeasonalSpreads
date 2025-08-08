@@ -39,7 +39,7 @@ import java.time.DayOfWeek;
 public class MainLine {
   private static final String USER_PRINCIPAL_NAME = "automatedreports@rioenergy.com";
   private static final String EMAIL_SUBJECT_FILTER = "Colonial - DATEINFO";
-  private static final int MAX_DAYS_TO_SEARCH = 14;
+  private static final int MAX_DAYS_TO_SEARCH = 30;
   private static final String ORIGIN_CSV_PATH = "data/Colonial/Origin/HTNOrigin2025.csv";
   public static Set<LocalDate> HOLIDAYS;
 
