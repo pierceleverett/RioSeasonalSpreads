@@ -31,8 +31,16 @@ public class RecentDateInfoHandler implements Route {
     try {
       // Get data
       String accessToken = getAccessToken();
+      System.out.println("fetching most recent email");
       Message recentMessage = fetchMostRecentMainLineEmail(accessToken, "automatedreports@rioenergy.com");
+      if (recentMessage != null) {
+        System.out.println("Found most recent email");
+      }
+      System.out.println("fetching second most recent email");
       Message secondMessage = fetchSecondMostRecentDateInfoEmail(accessToken, "automatedreports@rioenergy.com");
+      if (secondMessage != null) {
+        System.out.println("Found second most recent email");
+      }
       MainLineData dateInfo = parseMainLineEmail(recentMessage);
       MainLineData secondDateInfo = parseMainLineEmail(secondMessage);
       Map<String, MainLineData> returnMap = new HashMap<>();

@@ -39,7 +39,7 @@ import java.time.DayOfWeek;
 public class MainLine {
   private static final String USER_PRINCIPAL_NAME = "automatedreports@rioenergy.com";
   private static final String EMAIL_SUBJECT_FILTER = "Colonial - DATEINFO";
-  private static final int MAX_DAYS_TO_SEARCH = 30;
+  private static final int MAX_DAYS_TO_SEARCH = 60;
   private static final String ORIGIN_CSV_PATH = "data/Colonial/Origin/HTNOrigin2025.csv";
   public static Set<LocalDate> HOLIDAYS;
 
@@ -100,25 +100,31 @@ public class MainLine {
     }
   }
 
-  public static void main(String[] args) {
-    try {
-      ClerkHolidayService service = new ClerkHolidayService("sk_test_1qlrksRhhWCq5JoqgdF5oCOMdl3paX4vn6D4EAGhkf");
-      Set<LocalDate> holidays = service.getUserHolidays("user_2yN2W6lvSdZjV746FQ7NEexyhVu");
-      HOLIDAYS = holidays;
-      System.out.println(HOLIDAYS);
-      MainLine.MainLineData mainLineData = MainLine.extractLatestMainLineData();
-      Map<String, Map<String, String>> processedDates = processMainLineDates(mainLineData);
-
-      System.out.println("Processed Dates:");
-      processedDates.forEach((cycle, dates) -> {
-        System.out.println("Cycle " + cycle + ":");
-        dates.forEach((key, date) -> System.out.println("  " + key + ": " + date));
-      });
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+  public static void main(String[] args) throws IOException {
+//    try {
+//      ClerkHolidayService service = new ClerkHolidayService("sk_test_1qlrksRhhWCq5JoqgdF5oCOMdl3paX4vn6D4EAGhkf");
+//      Set<LocalDate> holidays = service.getUserHolidays("user_2yN2W6lvSdZjV746FQ7NEexyhVu");
+//      HOLIDAYS = holidays;
+//      System.out.println(HOLIDAYS);
+//      MainLine.MainLineData mainLineData = MainLine.extractLatestMainLineData();
+//      Map<String, Map<String, String>> processedDates = processMainLineDates(mainLineData);
+//
+//      System.out.println("Processed Dates:");
+//      processedDates.forEach((cycle, dates) -> {
+//        System.out.println("Cycle " + cycle + ":");
+//        dates.forEach((key, date) -> System.out.println("  " + key + ": " + date));
+//      });
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    } catch (Exception e) {
+//      throw new RuntimeException(e);
+//    }
+    String accessToken = getAccessToken();
+    Message message = fetchSecondMostRecentDateInfoEmail(accessToken, "automatedreports@rioenergy.com");
+    if (message != null) {
+      System.out.println("success");
     }
+
   }
 
   public static MainLineData extractLatestMainLineData() throws IOException {
@@ -211,7 +217,7 @@ public class MainLine {
           .buildClient();
 
       // Create date filter for last MAX_DAYS_TO_SEARCH days
-      OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(MAX_DAYS_TO_SEARCH);
+      OffsetDateTime searchStartDate = OffsetDateTime.now(ZoneOffset.UTC).minusDays(60);
       String dateFilter = String.format("receivedDateTime ge %s",
           searchStartDate.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
 
@@ -224,7 +230,7 @@ public class MainLine {
           .buildRequest()
           .filter(dateFilter)
           .select("subject,receivedDateTime,body")
-          .top(100)
+          .top(500)
           .orderBy("receivedDateTime desc");
 
       MessageCollectionPage messagesPage = messageRequest.get();
@@ -237,6 +243,8 @@ public class MainLine {
 
       // Process messages
       for (Message message : messagesPage.getCurrentPage()) {
+        System.out.println("Subject: " + message.subject);
+        System.out.println("Received: " + message.receivedDateTime);
         if (message.subject == null || !message.subject.contains(EMAIL_SUBJECT_FILTER)) {
           continue;
         }
