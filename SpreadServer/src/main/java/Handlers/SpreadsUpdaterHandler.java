@@ -19,8 +19,9 @@ import spark.Response;
 import spark.Route;
 
 public class SpreadsUpdaterHandler implements Route {
-  @Override
+  //@Override
   public Object handle(Request request, Response response) {
+  //public static void main(String[] args) {
     try {
       String accessToken = getAccessToken();
       String userPrincipalName = "automatedreports@rioenergy.com";
