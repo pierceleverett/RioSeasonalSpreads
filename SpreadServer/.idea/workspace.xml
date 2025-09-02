@@ -6,10 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/819.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/819.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/820.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/820.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/821.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/821.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/826.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/826.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/827.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/827.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/828.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/828.pdf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -187,7 +186,7 @@
       <workItem from="1750257511704" duration="206928000" />
       <workItem from="1752704804511" duration="18000" />
       <workItem from="1752757281876" duration="207136000" />
-      <workItem from="1755790299357" duration="10724000" />
+      <workItem from="1755790299357" duration="11434000" />
     </task>
     <servers />
   </component>
