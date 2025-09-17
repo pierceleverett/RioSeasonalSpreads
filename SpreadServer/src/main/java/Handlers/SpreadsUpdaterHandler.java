@@ -50,7 +50,6 @@ public class SpreadsUpdaterHandler implements Route {
 
       response.type("application/json");
       return "{\"status\":\"success\"}";
-
   }}
 
 

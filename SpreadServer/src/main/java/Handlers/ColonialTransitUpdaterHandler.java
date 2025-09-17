@@ -6,6 +6,7 @@ import static Colonial.FungibleUpdater.processNewBulletins;
 import static Outlook.ExplorerParser.getAccessToken;
 import Colonial.ColonialOrigin;
 import Colonial.ColonialTransitUpdater;
+import java.io.IOException;
 import java.time.LocalDate;
 import spark.Request;
 import spark.Response;
@@ -13,9 +14,11 @@ import spark.Route;
 
 public class ColonialTransitUpdaterHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
-    response.type("application/json");
+  //public static void main(String[] args) throws IOException {
+    //response.type("application/json");
     String accessToken = getAccessToken();
     String curentYear = java.time.Year.now().toString();
+    System.out.println(curentYear);
     String originFile = "data/Colonial/Origin/HTNOrigin" + curentYear+ ".csv";
     String gbjDeliveryFile = "data/Colonial/Fungible/GBJ" + curentYear + ".csv";
     String lnjDeliveryFile = "data/Colonial/Fungible/LNJ" + curentYear + ".csv";
@@ -40,7 +43,7 @@ public class ColonialTransitUpdaterHandler implements Route {
     //Update the actual transit times
     System.out.println("recalculating actual transit times");
     calculateTransitTimes(originFile, gbjDeliveryFile, lnjDeliveryFile, gbjOutputFile, lnjOutputFile);
-
+    //return;
     return "{\"status\":\"success\"}";
   }
 

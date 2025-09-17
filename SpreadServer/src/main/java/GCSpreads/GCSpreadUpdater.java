@@ -37,14 +37,14 @@ public class GCSpreadUpdater {
 
   public static void main(String[] args) {
     try {
-      LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv");
+      LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv").plusDays(2);
       LocalDate today = LocalDate.now();
 
       System.out.println("Searching for emails from " + lastDataDate + " to " + today);
 
       // Get all pricing data since the last data date (inclusive)
       Map<LocalDate, Map<String, Double>> allPricingData = getAllPricingData(lastDataDate, today);
-
+      System.out.println(allPricingData);
       if (!allPricingData.isEmpty()) {
         System.out.println("Updating CSVs with all missing data...");
         for (Map.Entry<LocalDate, Map<String, Double>> entry : allPricingData.entrySet()) {
@@ -92,6 +92,7 @@ public class GCSpreadUpdater {
       OffsetDateTime until = date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
 
       try {
+        System.out.println("Fetching daily data for date: " + startDate);
         Map<String, Double> dailyData = getDailyPricingData(graphClient, since, until);
         if (!dailyData.isEmpty()) {
           result.put(date, dailyData);
@@ -118,7 +119,7 @@ public class GCSpreadUpdater {
     for (Message message : messages.getCurrentPage()) {
       System.out.println("checking email: " + message.subject);
       if (message.subject != null && message.subject.toLowerCase().contains("pricing quote")) {
-        System.out.println("Found pricing quote email");
+        System.out.println("Found pricing quote email for date: " + since);
         targetMessage = message;
         break;
       }
@@ -283,13 +284,10 @@ public class GCSpreadUpdater {
   }
 
   private static Map<String, Double> parseExcelData(InputStream excelStream, LocalDate attachmentDate) throws Exception {
-    final String METHOD_NAME = "parseExcelData";
-    System.out.printf("[%s] Starting with date: %s%n", METHOD_NAME, attachmentDate);
 
     Map<String, Double> result = new HashMap<>();
     try (XSSFWorkbook workbook = new XSSFWorkbook(excelStream)) {
       Sheet sheet = workbook.getSheetAt(0);
-      System.out.printf("[%s] Loaded workbook with sheet: %s%n", METHOD_NAME, sheet.getSheetName());
 
       Map<String, String> headerMapping = Map.of(
           "Platts Gasoline CBOB 87 USGC Houston Prompt Pipeline", "A",
@@ -308,138 +306,62 @@ public class GCSpreadUpdater {
       if (headerRow == null) {
         throw new RuntimeException("Header row (row 0) is null");
       }
-      System.out.printf("[%s] Header row found with %d cells%n", METHOD_NAME, headerRow.getLastCellNum());
 
-      // Log header values for debugging
-      System.out.printf("[%s] Header values:%n", METHOD_NAME);
-      for (int i = 0; i < headerRow.getLastCellNum(); i++) {
-        Cell headerCell = headerRow.getCell(i);
-        if (headerCell != null) {
-          System.out.printf("  Column %d: '%s'%n", i, headerCell.getStringCellValue().trim());
-        }
-      }
-
-      // Find the row with the matching date
-      System.out.printf("[%s] Looking for data row with date: %s%n", METHOD_NAME, attachmentDate);
-      Row dataRow = findRowByDate(sheet, attachmentDate.minusDays(1));
-      System.out.printf("[%s] Data row found: %s%n", METHOD_NAME, dataRow);
-
+      // NEW: Data is always on the second row (row index 1)
+      Row dataRow = sheet.getRow(1);
       if (dataRow == null) {
-        throw new RuntimeException("No data found for date: " + attachmentDate);
+        throw new RuntimeException("Data row (row 1) is null - data should be on the second row");
       }
 
-      System.out.printf("[%s] Processing data row with %d cells%n", METHOD_NAME, dataRow.getLastCellNum());
+      System.out.println("Processing data from row 1 (second row)");
 
+      // Log header and data values for debugging
       for (int i = 0; i < headerRow.getLastCellNum(); i++) {
         Cell headerCell = headerRow.getCell(i);
+        Cell dataCell = dataRow.getCell(i);
+
         if (headerCell != null) {
           String header = headerCell.getStringCellValue().trim();
-          if (headerMapping.containsKey(header)) {
-            Cell valueCell = dataRow.getCell(i);
-            if (valueCell != null) {
-              System.out.printf("[%s] Processing column %d: %s -> %s (cell type: %s)%n",
-                  METHOD_NAME, i, header, headerMapping.get(header), valueCell.getCellType());
+          System.out.printf("Column %d: Header='%s'", i, header);
 
-              if (valueCell.getCellType() == CellType.NUMERIC) {
-                double value = valueCell.getNumericCellValue();
-                System.out.printf("[%s] Found numeric value: %.4f -> %.2f (after *100)%n",
-                    METHOD_NAME, value, value * 100);
-                result.put(headerMapping.get(header), value * 100);
-              } else if (valueCell.getCellType() == CellType.STRING) {
-                System.out.printf("[%s] Found string value: '%s' (skipping)%n",
-                    METHOD_NAME, valueCell.getStringCellValue());
-              } else if (valueCell.getCellType() == CellType.BLANK) {
-                System.out.printf("[%s] Cell is blank (skipping)%n", METHOD_NAME);
-              }
+          if (dataCell != null) {
+            if (dataCell.getCellType() == CellType.NUMERIC) {
+              System.out.printf(", Value=%.4f%n", dataCell.getNumericCellValue());
+            } else if (dataCell.getCellType() == CellType.STRING) {
+              System.out.printf(", Value='%s'%n", dataCell.getStringCellValue());
             } else {
-              System.out.printf("[%s] Value cell is null for header: %s%n", METHOD_NAME, header);
+              System.out.printf(", CellType=%s%n", dataCell.getCellType().toString());
+            }
+          } else {
+            System.out.println(", Value=null");
+          }
+
+          // Check if this header is in our mapping
+          if (headerMapping.containsKey(header)) {
+            if (dataCell != null && dataCell.getCellType() == CellType.NUMERIC) {
+              double value = dataCell.getNumericCellValue();
+              result.put(headerMapping.get(header), value * 100);
+              System.out.printf("  -> Mapped to %s: %.4f%n", headerMapping.get(header), value * 100);
+            } else {
+              System.out.printf("  -> Header found but data cell is not numeric or is null: %s%n", header);
             }
           }
         }
       }
 
-      System.out.printf("[%s] Successfully extracted %d values%n", METHOD_NAME, result.size());
-      System.out.printf("[%s] Result map: %s%n", METHOD_NAME, result);
-
     } catch (Exception e) {
-      System.err.printf("[%s ERROR] Failed to parse Excel data: %s%n", METHOD_NAME, e.getMessage());
+      System.err.printf("Failed to parse Excel data: %s%n", e.getMessage());
       throw e;
     }
 
     return result;
   }
 
-  private static Row findRowByDate(Sheet sheet, LocalDate targetDate) {
-    final String METHOD_NAME = "findRowByDate";
-    System.out.printf("[%s] Starting search for target date: %s%n", METHOD_NAME, targetDate);
-
-    // The date column is column A (index 0)
-    for (int rowNum = 1; rowNum <= sheet.getLastRowNum(); rowNum++) {
-      Row row = sheet.getRow(rowNum);
-      if (row == null) {
-        System.out.printf("[%s] Row %d is null, skipping%n", METHOD_NAME, rowNum);
-        continue;
-      }
-
-      Cell dateCell = row.getCell(0);
-      if (dateCell == null) {
-        System.out.printf("[%s] Row %d - Date cell is null, skipping%n", METHOD_NAME, rowNum);
-        continue;
-      }
-
-      System.out.printf("[%s] Row %d - Cell type: %s%n", METHOD_NAME, rowNum, dateCell.getCellType());
-
-      // Handle different date formats in Excel
-      LocalDate rowDate = null;
-      try {
-        if (dateCell.getCellType() == CellType.NUMERIC) {
-          // Excel stores dates as numeric values
-          Date javaDate = dateCell.getDateCellValue();
-          System.out.printf("[%s] Row %d - Numeric date value: %s%n", METHOD_NAME, rowNum, javaDate);
-
-          rowDate = javaDate.toInstant()
-              .atZone(ZoneId.systemDefault())
-              .toLocalDate();
-
-          System.out.printf("[%s] Row %d - Parsed LocalDate: %s%n", METHOD_NAME, rowNum, rowDate);
-
-        } else if (dateCell.getCellType() == CellType.STRING) {
-          // Parse string dates like "09/Aug/2025"
-          String dateString = dateCell.getStringCellValue().trim();
-          System.out.printf("[%s] Row %d - String date value: '%s'%n", METHOD_NAME, rowNum, dateString);
-
-          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy", Locale.ENGLISH);
-          rowDate = LocalDate.parse(dateString, formatter);
-
-          System.out.printf("[%s] Row %d - Parsed LocalDate: %s%n", METHOD_NAME, rowNum, rowDate);
-        } else {
-          System.out.printf("[%s] Row %d - Unsupported cell type: %s%n", METHOD_NAME, rowNum, dateCell.getCellType());
-          continue;
-        }
-
-        if (rowDate != null) {
-          System.out.printf("[%s] Row %d - Comparing row date %s with target date %s%n",
-              METHOD_NAME, rowNum, rowDate, targetDate);
-
-          if (rowDate.equals(targetDate)) {
-            System.out.printf("[%s] SUCCESS: Found matching date at row %d%n", METHOD_NAME, rowNum);
-            return row;
-          } else {
-            System.out.printf("[%s] Row %d - Dates don't match%n", METHOD_NAME, rowNum);
-          }
-        } else {
-          System.out.printf("[%s] Row %d - Failed to parse date%n", METHOD_NAME, rowNum);
-        }
-
-      } catch (Exception e) {
-        System.out.printf("[%s] Row %d - ERROR parsing date: %s%n", METHOD_NAME, rowNum, e.getMessage());
-        // Skip rows with invalid date formats
-        continue;
-      }
-    }
-
-    System.out.printf("[%s] WARNING: No row found for target date %s%n", METHOD_NAME, targetDate);
-    return null;
+  // Helper method to find row by date (kept for backward compatibility)
+  private static Row findRowByDate(Sheet sheet, LocalDate date) {
+    // In the new format, data is always on row 1 (second row)
+    // This method is kept but will always return row 1
+    return sheet.getRow(1);
   }
 
   public static LocalDate getAttachmentDate(String title) {
