@@ -7,28 +7,8 @@
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Actual/GBJactual2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Actual/GBJactual2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Actual/LNJactual2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Actual/LNJactual2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Fungible/GBJ2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Fungible/GBJ2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Fungible/LNJ2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Fungible/LNJ2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Fungible/processed_dates.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Fungible/processed_dates.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/92.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/92.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/91Chi.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/91Chi.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/Nap.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/Nap.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Colonial/ColonialTransitUpdater.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Colonial/ColonialTransitUpdater.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/ColonialTransitUpdaterHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/ColonialTransitUpdaterHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/GCUpdateHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/GCUpdateHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,7 +100,7 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.SpreadsUpdaterHandler">
+  <component name="RunManager" selected="Application.ColonialTransitUpdaterHandler">
     <configuration name="ColonialTransitUpdaterHandler" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Handlers.ColonialTransitUpdaterHandler" />
       <module name="moshi" />
@@ -188,9 +168,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.ColonialTransitUpdaterHandler" />
         <item itemvalue="Application.SpreadsUpdaterHandler" />
         <item itemvalue="Application.ExcelUpdater" />
-        <item itemvalue="Application.ColonialTransitUpdaterHandler" />
         <item itemvalue="Application.SimpleEmailReader" />
         <item itemvalue="Application.GCSpreadUpdater" />
       </list>
@@ -208,7 +188,7 @@
       <workItem from="1752704804511" duration="18000" />
       <workItem from="1752757281876" duration="207136000" />
       <workItem from="1755790299357" duration="12476000" />
-      <workItem from="1758045470400" duration="6394000" />
+      <workItem from="1758045470400" duration="7341000" />
     </task>
     <servers />
   </component>
