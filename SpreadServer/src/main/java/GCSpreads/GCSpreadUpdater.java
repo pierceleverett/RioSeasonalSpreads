@@ -308,7 +308,7 @@ public class GCSpreadUpdater {
       }
 
       // NEW: Data is always on the second row (row index 1)
-      Row dataRow = sheet.getRow(1);
+      Row dataRow = sheet.getRow(2);
       if (dataRow == null) {
         throw new RuntimeException("Data row (row 1) is null - data should be on the second row");
       }

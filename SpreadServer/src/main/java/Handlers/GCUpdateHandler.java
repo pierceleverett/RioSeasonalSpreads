@@ -17,9 +17,9 @@ import spark.Request;
 import spark.Response;
 import spark.Route;
 
-public class GCUpdateHandler implements Route {
-  public Object handle(Request request, Response response) throws Exception {
-   // public static void main(String[] args) {
+public class GCUpdateHandler {//implements Route {
+  //public Object handle(Request request, Response response) throws Exception {
+    public static void main(String[] args) {
     try {
       LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv");
       LocalDate today = LocalDate.now();
@@ -42,7 +42,7 @@ public class GCUpdateHandler implements Route {
       System.err.println("Error occurred:");
       e.printStackTrace();
     }
-    return null;
+    //return null;
   }
 
 }
