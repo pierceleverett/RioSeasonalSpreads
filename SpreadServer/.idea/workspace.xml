@@ -5,8 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/data/pdf/101.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/102.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/103.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/106.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/926.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/929.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/930.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdfToAdd/1010.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdfToAdd/107.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdfToAdd/108.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdfToAdd/109.pdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newA.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newA.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newE.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newE.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newQ.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newQ.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newV.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newV.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newX.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newX.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newY.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newY.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/923.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/923.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/924.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/924.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/925.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/925.pdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/91Chi.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/91Chi.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" afterDir="false" />
@@ -15,11 +35,14 @@
       <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/Nap.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/Nap.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/GCUpdateHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/GCUpdateHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/HO2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/HO2025.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/HO2026.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/HO2026.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/RBOB2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/RBOB2025.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/RBOB2026.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/RBOB2026.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/SpreadsUpdaterHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/SpreadsUpdaterHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/GCSpreads/GCSpreadUpdater.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/GCSpreads/GCSpreadUpdater.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Handlers/GCUpdateHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/GCUpdateHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/SpreadsUpdaterHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/SpreadsUpdaterHandler.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -112,7 +135,7 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.SimpleEmailReader">
+  <component name="RunManager" selected="Application.ExcelUpdater">
     <configuration name="ColonialTransitUpdaterHandler" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Handlers.ColonialTransitUpdaterHandler" />
       <module name="moshi" />
@@ -180,11 +203,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.ExcelUpdater" />
+        <item itemvalue="Application.SpreadsUpdaterHandler" />
         <item itemvalue="Application.SimpleEmailReader" />
         <item itemvalue="Application.GCUpdateHandler" />
-        <item itemvalue="Application.ExcelUpdater" />
         <item itemvalue="Application.ColonialTransitUpdaterHandler" />
-        <item itemvalue="Application.SpreadsUpdaterHandler" />
       </list>
     </recent_temporary>
   </component>
@@ -200,7 +223,7 @@
       <workItem from="1752704804511" duration="18000" />
       <workItem from="1752757281876" duration="207136000" />
       <workItem from="1755790299357" duration="12476000" />
-      <workItem from="1758045470400" duration="12887000" />
+      <workItem from="1758045470400" duration="19899000" />
     </task>
     <servers />
   </component>
