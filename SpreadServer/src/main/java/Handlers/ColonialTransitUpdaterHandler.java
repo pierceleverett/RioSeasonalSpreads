@@ -14,7 +14,7 @@ import spark.Route;
 
 public class ColonialTransitUpdaterHandler implements Route {
   public Object handle(Request request, Response response) throws Exception {
-  //public static void main(String[] args) throws IOException {
+//  public static void main(String[] args) throws IOException {
     response.type("application/json");
     String accessToken = getAccessToken();
     String curentYear = java.time.Year.now().toString();
