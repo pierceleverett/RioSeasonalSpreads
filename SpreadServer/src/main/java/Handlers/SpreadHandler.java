@@ -48,38 +48,50 @@ public class SpreadHandler implements Route {
         throw new IOException("Please input months");
       }
 
-      // Get current year and check if we need to roll forward
-      int currentYear = Year.now().getValue();
-      boolean shouldRollForward = shouldRollForward(startMonth, endMonth, currentYear);
+      // Get current year and month
+      LocalDate today = LocalDate.now();
+      int currentMonth = today.getMonthValue();
 
-      // Calculate base year offset (0 for current, 1 for next year if rolled forward)
-      int baseYearOffset = shouldRollForward ? 1 : 0;
+      // Convert month codes to numbers for comparison
+      Map<String, Integer> monthToInt = Map.ofEntries(
+          Map.entry("F", 1), Map.entry("G", 2), Map.entry("H", 3), Map.entry("J", 4),
+          Map.entry("K", 5), Map.entry("M", 6), Map.entry("N", 7), Map.entry("Q", 8),
+          Map.entry("U", 9), Map.entry("V", 10), Map.entry("X", 11), Map.entry("Z", 12)
+      );
+
+      int startMonthInt = monthToInt.get(startMonth);
+      int endMonthInt = monthToInt.get(endMonth);
+
+      // For rolling spreads (start month > end month), validate they're forward-looking
+      if (startMonthInt > endMonthInt) {
+        if (startMonthInt <= currentMonth) {
+          throw new IOException("Invalid rolling spread: Start month " + startMonth +
+              " must be after current month " + currentMonth);
+        }
+      }
+
+      // Get current year
+      int currentYear = Year.now().getValue();
       ArrayList<String> yearList = new ArrayList<>();
 
-      // Calculate spreads for each year with proper rollover handling
-      Map<String, Float> spreadMap1 = spreadCalculator(commodity, startMonth, endMonth,
-          String.valueOf((currentYear - 5) + baseYearOffset));
-      yearList.add(String.valueOf((currentYear - 5) + baseYearOffset));
+      // Calculate spreads for each year
+      Map<String, Float> spreadMap1 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 5));
+      yearList.add(String.valueOf(currentYear - 5));
 
-      Map<String, Float> spreadMap2 = spreadCalculator(commodity, startMonth, endMonth,
-          String.valueOf((currentYear - 4) + baseYearOffset));
-          yearList.add(String.valueOf((currentYear - 4) + baseYearOffset));
+      Map<String, Float> spreadMap2 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 4));
+      yearList.add(String.valueOf(currentYear - 4));
 
-      Map<String, Float> spreadMap3 = spreadCalculator(commodity, startMonth, endMonth,
-          String.valueOf((currentYear - 3) + baseYearOffset));
-          yearList.add(String.valueOf((currentYear - 3) + baseYearOffset));
+      Map<String, Float> spreadMap3 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 3));
+      yearList.add(String.valueOf(currentYear - 3));
 
-      Map<String, Float> spreadMap4 = spreadCalculator(commodity, startMonth, endMonth,
-          String.valueOf((currentYear - 2) + baseYearOffset));
-          yearList.add(String.valueOf((currentYear - 2) + baseYearOffset));
+      Map<String, Float> spreadMap4 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 2));
+      yearList.add(String.valueOf(currentYear - 2));
 
-      Map<String, Float> spreadMap5 = spreadCalculator(commodity, startMonth, endMonth,
-          String.valueOf((currentYear - 1) + baseYearOffset));
-          yearList.add(String.valueOf((currentYear - 1) + baseYearOffset));
+      Map<String, Float> spreadMap5 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 1));
+      yearList.add(String.valueOf(currentYear - 1));
 
-      Map<String, Float> spreadMap6 = spreadCalculator(commodity, startMonth, endMonth,
-          String.valueOf(currentYear + baseYearOffset));
-          yearList.add(String.valueOf(currentYear + baseYearOffset));
+      Map<String, Float> spreadMap6 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear));
+      yearList.add(String.valueOf(currentYear));
 
       System.out.println("all data gathered");
 
@@ -95,10 +107,8 @@ public class SpreadHandler implements Route {
       Map<String, Float> fiveyearavg = AvgCalc(allYearSpreads, yearList);
       System.out.println("5 year avg calculated");
 
-      // Add the new year if rolled forward
-        allYearSpreads.put(yearList.get(5), spreadMap6);
-
-
+      // Add the current year
+      allYearSpreads.put(yearList.get(5), spreadMap6);
       allYearSpreads.put("5YEARAVG", fiveyearavg);
 
       System.out.println("final map created");
