@@ -37,7 +37,7 @@ public class GCSpreadUpdater {
 
   public static void main(String[] args) {
     try {
-      LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv").plusDays(2);
+      LocalDate lastDataDate = getLastUpdatedDateFromCSV("data/spreads/GulfCoast/A.csv").plusDays(1);
       LocalDate today = LocalDate.now();
 
       System.out.println("Searching for emails from " + lastDataDate + " to " + today);

@@ -5,17 +5,40 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/data/pdf/1020.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1021.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1022.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1023.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1024.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1027.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1028.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1029.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1030.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1031.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1110.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/113.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/114.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/115.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/116.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/117.pdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Actual/GBJactual2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Actual/GBJactual2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Actual/LNJactual2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Actual/LNJactual2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Fungible/GBJ2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Fungible/GBJ2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Fungible/LNJ2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Fungible/LNJ2025.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/Colonial/Fungible/processed_dates.txt" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Fungible/processed_dates.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Origin/HTNOrigin2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Origin/HTNOrigin2025.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/Colonial/Origin/HTNOrigin2026.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Origin/HTNOrigin2026.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-DISTILLATES2025.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/GBJLNJ-GAS2025.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-DISTILLATES2025.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/Colonial/Transit/HTNGBJ-GAS2025.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newA.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newA.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newE.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newE.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newQ.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newQ.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newV.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newV.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newX.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newX.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newY.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newY.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/1014.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/1014.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/1015.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/1015.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/1016.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/1016.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/1017.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/1017.pdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/91Chi.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/91Chi.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" afterDir="false" />
@@ -28,10 +51,8 @@
       <change beforePath="$PROJECT_DIR$/data/spreads/HO2026.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/HO2026.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/RBOB2025.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/RBOB2025.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data/spreads/RBOB2026.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/RBOB2026.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/ColonialTransitUpdaterHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/ColonialTransitUpdaterHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/GCUpdateHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/GCUpdateHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/SpreadsUpdaterHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/SpreadsUpdaterHandler.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Server.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/GCSpreads/GCSpreadUpdater.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/GCSpreads/GCSpreadUpdater.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,20 +137,33 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/data/pdfToAdd" />
       <recent name="$PROJECT_DIR$/data/pdf" />
+      <recent name="$PROJECT_DIR$/data/pdfToAdd" />
       <recent name="$PROJECT_DIR$/data/Explorer" />
       <recent name="$PROJECT_DIR$/data/spreads" />
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
   <component name="RunManager" selected="Application.ExcelUpdater">
-    <configuration name="ColonialTransitUpdaterHandler" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Handlers.ColonialTransitUpdaterHandler" />
+    <configuration name="ColonialOrigin" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Colonial.ColonialOrigin" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="Handlers.*" />
+          <option name="PATTERN" value="Colonial.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ColonialTransitUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Colonial.ColonialTransitUpdater" />
+      <module name="moshi" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Colonial.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -150,25 +184,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="GCUpdateHandler" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Handlers.GCUpdateHandler" />
+    <configuration name="OriginUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Colonial.OriginUpdater" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="Handlers.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="SimpleEmailReader" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Outlook.SimpleEmailReader" />
-      <module name="moshi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Outlook.*" />
+          <option name="PATTERN" value="Colonial.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -193,9 +214,9 @@
       <list>
         <item itemvalue="Application.ExcelUpdater" />
         <item itemvalue="Application.SpreadsUpdaterHandler" />
-        <item itemvalue="Application.ColonialTransitUpdaterHandler" />
-        <item itemvalue="Application.GCUpdateHandler" />
-        <item itemvalue="Application.SimpleEmailReader" />
+        <item itemvalue="Application.ColonialTransitUpdater" />
+        <item itemvalue="Application.ColonialOrigin" />
+        <item itemvalue="Application.OriginUpdater" />
       </list>
     </recent_temporary>
   </component>
@@ -213,7 +234,8 @@
       <workItem from="1755790299357" duration="12476000" />
       <workItem from="1758045470400" duration="20986000" />
       <workItem from="1760545085626" duration="618000" />
-      <workItem from="1760719264555" duration="1050000" />
+      <workItem from="1760719264555" duration="5294000" />
+      <workItem from="1762969037217" duration="3066000" />
     </task>
     <servers />
   </component>
