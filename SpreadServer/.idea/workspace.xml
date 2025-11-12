@@ -9,6 +9,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/SpreadHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/SpreadHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Utilities/SpreadCalculator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Utilities/SpreadCalculator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Handlers/SpreadHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Handlers/SpreadHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Utilities/SpreadCalculator.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Utilities/SpreadCalculator.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -185,7 +187,7 @@
       <workItem from="1758045470400" duration="20986000" />
       <workItem from="1760545085626" duration="618000" />
       <workItem from="1760719264555" duration="5294000" />
-      <workItem from="1762969037217" duration="4218000" />
+      <workItem from="1762969037217" duration="4638000" />
     </task>
     <servers />
   </component>

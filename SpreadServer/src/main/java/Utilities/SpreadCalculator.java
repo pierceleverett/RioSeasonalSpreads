@@ -72,11 +72,12 @@ public class SpreadCalculator {
     int endMonthInt = monthToInt.get(endMonth);
 
     // If start month is after end month in calendar order, end contract is from next year
-    if (startMonthInt > endMonthInt) {
+    boolean isRollingSpread = (startMonthInt > endMonthInt);
+    if (isRollingSpread) {
       endYear = String.valueOf(Integer.parseInt(baseYear) + 1);
     }
 
-    // Get contract dates
+    // Get contract expiration dates
     Map<String, String> startContract = getContractDates(startYear, startMonth);
     Map<String, String> endContract = getContractDates(endYear, endMonth);
 
@@ -87,24 +88,23 @@ public class SpreadCalculator {
     LocalDate calculationStart;
     LocalDate calculationEnd;
 
-    if (startMonthInt > endMonthInt) {
+    if (isRollingSpread) {
       // Rolling spread (e.g., Dec-Jan): Use Dec 1 of previous year to Nov 30 of current year
       calculationStart = LocalDate.of(Integer.parseInt(startYear) - 1, 12, 1);
       calculationEnd = LocalDate.of(Integer.parseInt(startYear), 11, 30);
       System.out.println("Rolling spread detected - using period: " + calculationStart + " to " + calculationEnd);
     } else {
-      // Normal spread: Use the start contract month
-      calculationStart = startContractDate.withDayOfMonth(1);
+      // Normal spread (e.g., Aug-Sep): Use Dec 1 of previous year to expiration of start contract
+      calculationStart = LocalDate.of(Integer.parseInt(startYear) - 1, 12, 1);
       calculationEnd = startContractDate;
-      System.out.println("Normal spread - using contract month calculation period");
+      System.out.println("Normal spread - using period: " + calculationStart + " to " + calculationEnd);
     }
 
-    // For rolling spreads, we need to read TWO CSV files
     Map<String, Float> firstMonthValues = new LinkedHashMap<>();
     Map<String, Float> secondMonthValues = new LinkedHashMap<>();
 
-    if (startMonthInt > endMonthInt) {
-      // Rolling spread: Read start month from current year file, end month from next year file
+    if (isRollingSpread) {
+      // Rolling spread: Read from TWO files
       String startCsvFilename = "data/spreads/" + commodity + startYear + ".csv";
       String endCsvFilename = "data/spreads/" + commodity + endYear + ".csv";
 
@@ -124,9 +124,9 @@ public class SpreadCalculator {
       secondMonthValues = extractMonthData(endSheet, endMonth, calculationStart, calculationEnd, formatter);
 
     } else {
-      // Normal spread: Read both months from the same file
+      // Normal spread: Read from SINGLE file
       String csvFilename = "data/spreads/" + commodity + baseYear + ".csv";
-      System.out.println("Using file: " + csvFilename);
+      System.out.println("Using single file: " + csvFilename);
 
       Parser csvParser = new Parser(csvFilename, new TrivialCreator(), false);
       csvParser.parse();
@@ -170,9 +170,6 @@ public class SpreadCalculator {
       }
     }
 
-    System.out.println("Start contract: " + startMonth + startYear + " (" + startContractDate + ")");
-    System.out.println("End contract: " + endMonth + endYear + " (" + endContractDate + ")");
-    System.out.println("Calculation period: " + calculationStart + " to " + calculationEnd);
     System.out.println("First month values found: " + firstMonthValues.size());
     System.out.println("Second month values found: " + secondMonthValues.size());
 
