@@ -97,19 +97,19 @@ public class SpreadHandler implements Route {
 
       // Calculate spreads for each historical year
       // Let SpreadCalculator handle the cross-year logic internally
-      Map<String, Float> spreadMap1 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 4, shouldRollForward);
+      Map<String, Float> spreadMap1 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 5, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 5));
 
-      Map<String, Float> spreadMap2 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 3, shouldRollForward);
+      Map<String, Float> spreadMap2 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 4, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 4));
 
-      Map<String, Float> spreadMap3 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 2, shouldRollForward);
+      Map<String, Float> spreadMap3 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 3, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 3));
 
-      Map<String, Float> spreadMap4 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 1, shouldRollForward);
+      Map<String, Float> spreadMap4 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 2, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 2));
 
-      Map<String, Float> spreadMap5 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear, shouldRollForward);
+      Map<String, Float> spreadMap5 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear -1, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 1));
 
       // Calculate current year spread - apply roll forward logic if needed
