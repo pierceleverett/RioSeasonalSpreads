@@ -84,6 +84,11 @@ public class SpreadCalculator {
     LocalDate startContractDate = LocalDate.parse(startContract.get("contractDate"), formatter);
     LocalDate endContractDate = LocalDate.parse(endContract.get("contractDate"), formatter);
 
+    System.out.println("=== CONTRACT DATES ===");
+    System.out.println("Start Contract (" + startMonth + startYear + "): " + startContractDate);
+    System.out.println("End Contract (" + endMonth + endYear + "): " + endContractDate);
+    System.out.println("Is Rolling Spread: " + isRollingSpread);
+
     // Calculate the correct calculation period
     LocalDate calculationStart;
     LocalDate calculationEnd;
@@ -92,14 +97,20 @@ public class SpreadCalculator {
       // Rolling spread (e.g., Dec-Jan): Use Dec 1 of previous year to Nov 30 of current year
       calculationStart = LocalDate.of(Integer.parseInt(startYear) - 1, 12, 1);
       calculationEnd = LocalDate.of(Integer.parseInt(startYear), 11, 30);
-      System.out.println("Rolling spread detected - using period: " + calculationStart + " to " + calculationEnd);
+      System.out.println("Rolling spread - using period: " + calculationStart + " to " + calculationEnd);
     } else {
-      // Normal spread (e.g., Aug-Sep): Use Dec 1 of previous year to expiration of start contract
-      calculationStart = LocalDate.of(Integer.parseInt(startYear) - 1, 12, 1);
-      calculationEnd = startContractDate;
+      // FIXED: Normal spread (e.g., Q-U): Use Aug 1 of previous year to July 31 of current year
+      calculationStart = LocalDate.of(Integer.parseInt(startYear) - 1, 8, 1);
+      calculationEnd = LocalDate.of(Integer.parseInt(startYear), 7, 31);
       System.out.println("Normal spread - using period: " + calculationStart + " to " + calculationEnd);
     }
 
+    System.out.println("=== CALCULATION PERIOD ===");
+    System.out.println("Start: " + calculationStart);
+    System.out.println("End: " + calculationEnd);
+    System.out.println("Days in period: " + java.time.temporal.ChronoUnit.DAYS.between(calculationStart, calculationEnd));
+
+    // Rest of the method remains the same...
     Map<String, Float> firstMonthValues = new LinkedHashMap<>();
     Map<String, Float> secondMonthValues = new LinkedHashMap<>();
 
@@ -108,6 +119,7 @@ public class SpreadCalculator {
       String startCsvFilename = "data/spreads/" + commodity + startYear + ".csv";
       String endCsvFilename = "data/spreads/" + commodity + endYear + ".csv";
 
+      System.out.println("=== FILE PATHS ===");
       System.out.println("Reading start month from: " + startCsvFilename);
       System.out.println("Reading end month from: " + endCsvFilename);
 
@@ -115,17 +127,18 @@ public class SpreadCalculator {
       Parser startCsvParser = new Parser(startCsvFilename, new TrivialCreator(), false);
       startCsvParser.parse();
       List<List<String>> startSheet = startCsvParser.getParsedContent();
-      firstMonthValues = extractMonthData(startSheet, startMonth, calculationStart, calculationEnd, formatter);
+      firstMonthValues = extractMonthData(startSheet, startMonth, calculationStart, calculationEnd, formatter, "START");
 
       // Parse end month data (from next year file)
       Parser endCsvParser = new Parser(endCsvFilename, new TrivialCreator(), false);
       endCsvParser.parse();
       List<List<String>> endSheet = endCsvParser.getParsedContent();
-      secondMonthValues = extractMonthData(endSheet, endMonth, calculationStart, calculationEnd, formatter);
+      secondMonthValues = extractMonthData(endSheet, endMonth, calculationStart, calculationEnd, formatter, "END");
 
     } else {
       // Normal spread: Read from SINGLE file
       String csvFilename = "data/spreads/" + commodity + baseYear + ".csv";
+      System.out.println("=== FILE PATH ===");
       System.out.println("Using single file: " + csvFilename);
 
       Parser csvParser = new Parser(csvFilename, new TrivialCreator(), false);
@@ -144,37 +157,56 @@ public class SpreadCalculator {
       Integer firstIndex = headerMap.get(startMonth);
       Integer secondIndex = headerMap.get(endMonth);
 
+      System.out.println("=== COLUMN INDICES ===");
+      System.out.println("Start month '" + startMonth + "' index: " + firstIndex);
+      System.out.println("End month '" + endMonth + "' index: " + secondIndex);
+
       sheet.remove(0);
+      int processedRows = 0;
+      int validRows = 0;
+
       for (List<String> row : sheet) {
+        processedRows++;
         if (row.get(0).equals("Date") || row.get(0).isEmpty()) continue;
 
         try {
           LocalDate date = LocalDate.parse(row.get(0), formatter);
 
           if (!date.isBefore(calculationStart) && !date.isAfter(calculationEnd)) {
+            validRows++;
             // Get first month value
-            if (firstIndex < row.size() && !row.get(firstIndex).isEmpty()) {
+            if (firstIndex != null && firstIndex < row.size() && !row.get(firstIndex).isEmpty()) {
               Float firstValue = Float.parseFloat(row.get(firstIndex));
               firstMonthValues.put(date.toString().substring(5), firstValue);
             }
 
             // Get second month value
-            if (secondIndex < row.size() && !row.get(secondIndex).isEmpty()) {
+            if (secondIndex != null && secondIndex < row.size() && !row.get(secondIndex).isEmpty()) {
               Float secondValue = Float.parseFloat(row.get(secondIndex));
               secondMonthValues.put(date.toString().substring(5), secondValue);
             }
           }
         } catch (Exception e) {
-          System.err.println("Error processing row: " + row);
+          System.err.println("Error processing row " + processedRows + ": " + row);
+          System.err.println("Error: " + e.getMessage());
         }
       }
+      System.out.println("Processed " + processedRows + " rows, " + validRows + " within calculation period");
     }
 
+    System.out.println("=== DATA EXTRACTION RESULTS ===");
     System.out.println("First month values found: " + firstMonthValues.size());
     System.out.println("Second month values found: " + secondMonthValues.size());
 
+    if (firstMonthValues.size() > 0) {
+      System.out.println("First month sample dates: " + firstMonthValues.keySet().stream().limit(5).toList());
+    }
+    if (secondMonthValues.size() > 0) {
+      System.out.println("Second month sample dates: " + secondMonthValues.keySet().stream().limit(5).toList());
+    }
+
     HashMap<String, Float> spreadMap = new LinkedHashMap<>();
-    System.out.println("calculating differences");
+    System.out.println("=== CALCULATING SPREADS ===");
 
     for (String d : firstMonthValues.keySet()) {
       if (secondMonthValues.containsKey(d)) {
@@ -182,17 +214,21 @@ public class SpreadCalculator {
         Float secondValue = secondMonthValues.get(d);
         Float difference = firstValue - secondValue;
         spreadMap.put(d, difference);
-        System.out.println("Spread for " + d + ": " + difference);
       }
     }
 
     System.out.println("Final spread map size: " + spreadMap.size());
+    if (spreadMap.size() > 0) {
+      System.out.println("Sample spreads: " + spreadMap.entrySet().stream().limit(5).toList());
+    }
+
+    System.out.println("=== SPREAD CALCULATION COMPLETE ===");
     return spreadMap;
   }
 
   private static Map<String, Float> extractMonthData(List<List<String>> sheet, String monthCode,
       LocalDate calculationStart, LocalDate calculationEnd,
-      DateTimeFormatter formatter) {
+      DateTimeFormatter formatter, String source) {
     Map<String, Float> result = new LinkedHashMap<>();
 
     HashMap<String, Integer> headerMap = new LinkedHashMap<>();
@@ -206,27 +242,38 @@ public class SpreadCalculator {
 
     Integer monthIndex = headerMap.get(monthCode);
     if (monthIndex == null) {
-      throw new RuntimeException("Month " + monthCode + " not found in CSV headers");
+      System.err.println("ERROR: Month " + monthCode + " not found in CSV headers from " + source);
+      System.err.println("Available headers: " + headers);
+      throw new RuntimeException("Month " + monthCode + " not found in CSV headers from " + source);
     }
 
+    System.out.println(source + " - Month '" + monthCode + "' index: " + monthIndex);
+
     sheet.remove(0);
+    int processedRows = 0;
+    int validRows = 0;
+
     for (List<String> row : sheet) {
+      processedRows++;
       if (row.get(0).equals("Date") || row.get(0).isEmpty()) continue;
 
       try {
         LocalDate date = LocalDate.parse(row.get(0), formatter);
 
         if (!date.isBefore(calculationStart) && !date.isAfter(calculationEnd)) {
+          validRows++;
           if (monthIndex < row.size() && !row.get(monthIndex).isEmpty()) {
             Float value = Float.parseFloat(row.get(monthIndex));
             result.put(date.toString().substring(5), value);
           }
         }
       } catch (Exception e) {
-        System.err.println("Error processing row: " + row);
+        System.err.println("Error processing row " + processedRows + " from " + source + ": " + row);
+        System.err.println("Error: " + e.getMessage());
       }
     }
 
+    System.out.println(source + " - Processed " + processedRows + " rows, " + validRows + " within calculation period");
     return result;
   }
 }
