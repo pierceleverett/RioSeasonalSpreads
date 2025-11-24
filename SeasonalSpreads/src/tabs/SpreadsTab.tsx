@@ -161,7 +161,7 @@ const SpreadsTab: React.FC = () => {
 
   useEffect(() => {
     fetchSpreadData();
-  }, [commodity, startMonth, endMonth]);
+  }, [commodity, startMonth, endMonth, rollForward]);
 
   const fetchSpreadData = async () => {
     setIsLoading(true);
