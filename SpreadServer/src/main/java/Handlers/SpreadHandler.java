@@ -43,12 +43,35 @@ public class SpreadHandler implements Route {
       String startMonth = request.queryParams("startMonth");
       String endMonth = request.queryParams("endMonth");
       String commodity = request.queryParams("commodity");
+      String rollForwardParam = request.queryParams("rollforward");
 
       if (startMonth == null || endMonth == null) {
         throw new IOException("Please input months");
       }
 
-      // Get current year and month
+      // Get current year
+      int currentYear = Year.now().getValue();
+
+      // Track if we automatically rolled forward
+      boolean wasRollForwardParamNull = (rollForwardParam == null);
+      boolean automaticallyRolledForward = false;
+
+      // Determine if we should roll forward
+      boolean shouldRollForward;
+      if (rollForwardParam == null) {
+        // If rollforward param is null, use the shouldRollForward logic
+        shouldRollForward = shouldRollForward(startMonth, endMonth, currentYear);
+        automaticallyRolledForward = shouldRollForward; // Only automatic if param was null AND we decided to roll
+      } else {
+        // If rollforward param is provided, use its boolean value
+        shouldRollForward = Boolean.parseBoolean(rollForwardParam);
+        automaticallyRolledForward = false; // Not automatic if parameter was explicitly set
+      }
+
+      System.out.println("Roll forward: " + shouldRollForward);
+      System.out.println("Automatically rolled forward: " + automaticallyRolledForward);
+
+      // Get current year and month for validation
       LocalDate today = LocalDate.now();
       int currentMonth = today.getMonthValue();
 
@@ -70,32 +93,44 @@ public class SpreadHandler implements Route {
         }
       }
 
-      // Get current year
-      int currentYear = Year.now().getValue();
       ArrayList<String> yearList = new ArrayList<>();
 
-      // Calculate spreads for each year
-      Map<String, Float> spreadMap1 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 5));
+      // Calculate spreads for each historical year
+      // Let SpreadCalculator handle the cross-year logic internally
+      Map<String, Float> spreadMap1 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 5, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 5));
 
-      Map<String, Float> spreadMap2 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 4));
+      Map<String, Float> spreadMap2 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 4, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 4));
 
-      Map<String, Float> spreadMap3 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 3));
+      Map<String, Float> spreadMap3 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 3, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 3));
 
-      Map<String, Float> spreadMap4 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 2));
+      Map<String, Float> spreadMap4 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 2, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 2));
 
-      Map<String, Float> spreadMap5 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear - 1));
+      Map<String, Float> spreadMap5 = getSpreadForBaseYear(commodity, startMonth, endMonth, currentYear - 1, shouldRollForward);
       yearList.add(String.valueOf(currentYear - 1));
 
-      Map<String, Float> spreadMap6 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentYear));
-      yearList.add(String.valueOf(currentYear));
+      // Calculate current year spread - apply roll forward logic if needed
+      Map<String, Float> spreadMap6;
+      int currentDisplayYear = currentYear;
+      if (shouldRollForward) {
+        // If rolling forward, use next year as the base year
+        currentDisplayYear = currentYear + 1;
+        System.out.println("Using rolled forward data for current year (base year: " + currentDisplayYear + ")");
+      } else {
+        System.out.println("Using current year data (base year: " + currentDisplayYear + ")");
+      }
+      spreadMap6 = spreadCalculator(commodity, startMonth, endMonth, String.valueOf(currentDisplayYear));
+      yearList.add(String.valueOf(currentYear)); // Keep the label as current year for display
 
       System.out.println("all data gathered");
 
-      // Prepare the response map
+      // Prepare the response map with a wrapper that includes metadata
+      Map<String, Object> responseWrapper = new LinkedHashMap<>();
+
+      // Add the main spreads data
       Map<String, Map<String, Float>> allYearSpreads = new LinkedHashMap<>();
       allYearSpreads.put(yearList.get(0), spreadMap1);
       allYearSpreads.put(yearList.get(1), spreadMap2);
@@ -107,19 +142,26 @@ public class SpreadHandler implements Route {
       Map<String, Float> fiveyearavg = AvgCalc(allYearSpreads, yearList);
       System.out.println("5 year avg calculated");
 
-      // Add the current year
+      // Add the current year (which may be rolled forward)
       allYearSpreads.put(yearList.get(5), spreadMap6);
       allYearSpreads.put("5YEARAVG", fiveyearavg);
+
+      // Add the spreads to the response wrapper
+      responseWrapper.put("spreads", allYearSpreads);
+
+      // Add metadata including roll forward information
+      responseWrapper.put("RolledForward", automaticallyRolledForward);
+      responseWrapper.put("RollForwardRequested", shouldRollForward);
+      responseWrapper.put("RollForwardParamWasNull", wasRollForwardParamNull);
 
       System.out.println("final map created");
 
       // Set up Moshi for JSON serialization
       Moshi moshi = new Moshi.Builder().build();
-      Type innerMapType = Types.newParameterizedType(Map.class, String.class, Float.class);
-      Type outerMapType = Types.newParameterizedType(Map.class, String.class, innerMapType);
-      JsonAdapter<Map<String, Map<String, Float>>> adapter = moshi.adapter(outerMapType);
+      Type responseWrapperType = Types.newParameterizedType(Map.class, String.class, Object.class);
+      JsonAdapter<Map<String, Object>> adapter = moshi.adapter(responseWrapperType);
 
-      return adapter.toJson(allYearSpreads);
+      return adapter.toJson(responseWrapper);
 
     } catch (Exception e) {
       System.err.println("ERROR RETURNING MAP");
@@ -127,6 +169,18 @@ public class SpreadHandler implements Route {
       response.status(500);
       return "{\"error\":\"" + e.getMessage() + "\"}";
     }
+  }
+
+  /**
+   * Gets spread for a base year, applying roll forward logic to historical years if needed
+   * to maintain consistency with the current year roll forward decision
+   */
+  private Map<String, Float> getSpreadForBaseYear(String commodity, String startMonth, String endMonth,
+      int baseYear, boolean shouldRollForward) throws Exception {
+    // For historical years, we don't apply roll forward logic
+    // because we want to compare the same relative time periods
+    // SpreadCalculator will handle cross-year spreads internally
+    return spreadCalculator(commodity, startMonth, endMonth, String.valueOf(baseYear));
   }
 
   /**
@@ -145,13 +199,13 @@ public class SpreadHandler implements Route {
     int expirationMonth = Integer.parseInt(startConfig[2]);
     int expirationDay = Integer.parseInt(startConfig[3]);
 
-
     // Create expiration date for current year
     LocalDate expirationDate = LocalDate.of(expirationYear, expirationMonth, expirationDay);
     LocalDate today = LocalDate.now();
 
     // If today is after expiration date, we should roll forward
-    System.out.println(today.isAfter(expirationDate));
-    return today.isAfter(expirationDate);
+    boolean shouldRoll = today.isAfter(expirationDate);
+    System.out.println("Contract expiration: " + expirationDate + ", Today: " + today + ", Should roll: " + shouldRoll);
+    return shouldRoll;
   }
 }

@@ -41,47 +41,62 @@ type MonthCode =
   | "X"
   | "Z";
 
+interface SpreadResponse {
+  spreads: {
+    [year: string]: {
+      [date: string]: number;
+    };
+  };
+  RolledForward: boolean;
+  RollForwardRequested: boolean;
+  RollForwardParamWasNull: boolean;
+}
+
 const SpreadsTab: React.FC = () => {
-const [commodity, setCommodity] = useState<"RBOB" | "HO">("RBOB");
-const MONTH_TO_CODE_MAPPING: Record<number, MonthCode> = {
-  1: 'F',
-  2: 'G',
-  3: 'H',
-  4: 'J',
-  5: 'K',
-  6: 'M',
-  7: 'N',
-  8: 'Q',
-  9: 'U',
-  10: 'V',
-  11: 'X',
-  12: 'Z'
-};
+  const [commodity, setCommodity] = useState<"RBOB" | "HO">("RBOB");
+  const MONTH_TO_CODE_MAPPING: Record<number, MonthCode> = {
+    1: "F",
+    2: "G",
+    3: "H",
+    4: "J",
+    5: "K",
+    6: "M",
+    7: "N",
+    8: "Q",
+    9: "U",
+    10: "V",
+    11: "X",
+    12: "Z",
+  };
 
-const [refreshStatus, setRefreshStatus] = useState<{
-  message: string;
-  color: string;
-}>({ message: "Checking...", color: "gray" });
+  const [refreshStatus, setRefreshStatus] = useState<{
+    message: string;
+    color: string;
+  }>({ message: "Checking...", color: "gray" });
 
-// Function to get the next month codes
-const getDefaultMonthCodes = (): [MonthCode, MonthCode] => {
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-11
-  
-  // Calculate next month (current + 1) and month after (current + 2)
-  const nextMonth = currentMonth + 1 > 12 ? 1 : currentMonth + 1;
-  const monthAfter = nextMonth + 1 > 12 ? 1 : nextMonth + 1;
-  
-  // Get the corresponding codes
-  const nextMonthCode = MONTH_TO_CODE_MAPPING[nextMonth];
-  const monthAfterCode = MONTH_TO_CODE_MAPPING[monthAfter];
-  
-  return [nextMonthCode, monthAfterCode];
-};
+  // Function to get the next month codes
+  const getDefaultMonthCodes = (): [MonthCode, MonthCode] => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-11
 
-// Then in your component:
-const [startMonth, setStartMonth] = useState<MonthCode>(getDefaultMonthCodes()[0]);
-const [endMonth, setEndMonth] = useState<MonthCode>(getDefaultMonthCodes()[1]);
+    // Calculate next month (current + 1) and month after (current + 2)
+    const nextMonth = currentMonth + 1 > 12 ? 1 : currentMonth + 1;
+    const monthAfter = nextMonth + 1 > 12 ? 1 : nextMonth + 1;
+
+    // Get the corresponding codes
+    const nextMonthCode = MONTH_TO_CODE_MAPPING[nextMonth];
+    const monthAfterCode = MONTH_TO_CODE_MAPPING[monthAfter];
+
+    return [nextMonthCode, monthAfterCode];
+  };
+
+  // Then in your component:
+  const [startMonth, setStartMonth] = useState<MonthCode>(
+    getDefaultMonthCodes()[0]
+  );
+  const [endMonth, setEndMonth] = useState<MonthCode>(
+    getDefaultMonthCodes()[1]
+  );
   const [spreadData, setSpreadData] = useState<
     Map<string, Map<string, number>>
   >(new Map());
@@ -91,6 +106,7 @@ const [endMonth, setEndMonth] = useState<MonthCode>(getDefaultMonthCodes()[1]);
   const chartRef = useRef<ChartJS<"line"> | null>(null);
   const [manualDate, setManualDate] = useState<string>("");
   const [isManualLoading, setIsManualLoading] = useState(false);
+  const [rollForward, setRollForward] = useState<boolean | null>(null); // null = use API decision
 
   const monthOptions: MonthCode[] = [
     "F",
@@ -106,39 +122,42 @@ const [endMonth, setEndMonth] = useState<MonthCode>(getDefaultMonthCodes()[1]);
     "X",
     "Z",
   ];
-const handleRefresh = async () => {
-  try {
-    setIsLoading(true);
-    const response = await fetch(
-      "https://rioseasonalspreads-production.up.railway.app/updateSpreads",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          commodity: commodity,
-          startMonth: startMonth,
-          endMonth: endMonth,
-        }),
+
+  const handleRefresh = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        "https://rioseasonalspreads-production.up.railway.app/updateSpreads",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            commodity: commodity,
+            startMonth: startMonth,
+            endMonth: endMonth,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update spread data");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Failed to update spread data");
+      console.log("Spread data updated successfully");
+      // Refresh the data after updating
+      await fetchSpreadData();
+      checkDataFreshness();
+    } catch (error) {
+      console.error("Error updating spread data:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to refresh data"
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    console.log("Spread data updated successfully");
-    // Refresh the data after updating
-    await fetchSpreadData();
-    checkDataFreshness();
-  } catch (error) {
-    console.error("Error updating spread data:", error);
-    setError(error instanceof Error ? error.message : "Failed to refresh data");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     fetchSpreadData();
@@ -148,17 +167,35 @@ const handleRefresh = async () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Build URL with rollforward parameter if user has explicitly set it
+      const params = new URLSearchParams({
+        commodity: commodity,
+        startMonth: startMonth,
+        endMonth: endMonth,
+      });
+
+      if (rollForward !== null) {
+        params.append("rollforward", rollForward.toString());
+      }
+
       const response = await fetch(
-        `https://rioseasonalspreads-production.up.railway.app/getSpread?commodity=${commodity}&startMonth=${startMonth}&endMonth=${endMonth}`
+        `https://rioseasonalspreads-production.up.railway.app/getSpread?${params.toString()}`
       );
       if (!response.ok) throw new Error("Failed to fetch spread data");
-      const data = await response.json();
+      const data: SpreadResponse = await response.json();
 
-      const years = Object.keys(data).filter((year) => !year.includes("AVG"));
+      // Update rollForward state based on API response (only if user hasn't explicitly set it)
+      if (rollForward === null) {
+        setRollForward(data.RolledForward);
+      }
+
+      const years = Object.keys(data.spreads).filter(
+        (year) => !year.includes("AVG")
+      );
       setAvailableYears(years.sort());
 
       const mapData = new Map<string, Map<string, number>>(
-        Object.entries(data).map(([year, entries]) => [
+        Object.entries(data.spreads).map(([year, entries]) => [
           year,
           new Map(Object.entries(entries as Record<string, number>)),
         ])
@@ -358,6 +395,11 @@ const handleRefresh = async () => {
     }
   };
 
+  const handleRollForwardChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = e.target.checked;
+    setRollForward(isChecked);
+  };
+
   const chartOptions: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
@@ -488,6 +530,23 @@ const handleRefresh = async () => {
             </option>
           ))}
         </select>
+
+        {/* Roll Forward Checkbox */}
+        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <input
+            type="checkbox"
+            id="rollForward"
+            checked={rollForward || false}
+            onChange={handleRollForwardChange}
+            style={{
+              transform: "scale(1.2)",
+            }}
+          />
+          <label htmlFor="rollForward" style={{ fontWeight: "bold" }}>
+            Roll Forward
+          </label>
+        </div>
+
         <button
           onClick={handleRefresh}
           disabled={isLoading}
@@ -575,7 +634,7 @@ const handleRefresh = async () => {
                 borderRadius: "4px",
                 cursor: "pointer",
                 zIndex: 100,
-                color: "blue"
+                color: "blue",
               }}
             >
               <FaUndo /> Reset Zoom

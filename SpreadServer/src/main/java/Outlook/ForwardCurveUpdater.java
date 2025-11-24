@@ -5,6 +5,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -19,7 +20,14 @@ public class ForwardCurveUpdater {
   );
 
   public static void updateForwardCurveFiles(LocalDate date, ForwardCurveData data) {
-    int year = date.getYear();
+    // Check if we need to fill forward from Friday
+    LocalDate effectiveDate = getEffectiveBusinessDate(date);
+
+    if (!date.equals(effectiveDate)) {
+      System.out.println("Weekend detected (" + date.getDayOfWeek() + "), using data from Friday: " + effectiveDate);
+    }
+
+    int year = effectiveDate.getYear();
     int nextYear = year + 1;
 
     List<String> filesToUpdate = List.of(
@@ -34,7 +42,7 @@ public class ForwardCurveUpdater {
           Map<String, Double> curve = fileName.contains("RBOB") ? data.rbobNyh : data.hoNyh;
           System.out.println("Processing file: " + fileName);
           System.out.println(curve);
-          updateCsvRowForDate(path, date, curve);
+          updateCsvRowForDate(path, effectiveDate, curve, date);
         } catch (IOException e) {
           System.err.println("Error updating " + fileName + ": " + e.getMessage());
         }
@@ -44,7 +52,24 @@ public class ForwardCurveUpdater {
     }
   }
 
-  private static void updateCsvRowForDate(Path filePath, LocalDate date, Map<String, Double> curveData) throws IOException {
+  /**
+   * Returns the effective business date for data retrieval.
+   * For Saturday and Sunday, returns the previous Friday.
+   * For weekdays, returns the date itself.
+   */
+  private static LocalDate getEffectiveBusinessDate(LocalDate date) {
+    DayOfWeek dayOfWeek = date.getDayOfWeek();
+
+    if (dayOfWeek == DayOfWeek.SATURDAY) {
+      return date.minusDays(1); // Friday
+    } else if (dayOfWeek == DayOfWeek.SUNDAY) {
+      return date.minusDays(2); // Friday
+    } else {
+      return date; // Monday-Friday use the actual date
+    }
+  }
+
+  private static void updateCsvRowForDate(Path filePath, LocalDate effectiveDate, Map<String, Double> curveData, LocalDate originalDate) throws IOException {
     List<String> lines = Files.readAllLines(filePath, StandardCharsets.UTF_8);
     if (lines.isEmpty()) {
       System.out.println("File is empty: " + filePath);
@@ -69,7 +94,8 @@ public class ForwardCurveUpdater {
     int fileYear = Integer.parseInt(fileName.replaceAll("\\D+", ""));
 
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M/d/yyyy");
-    String targetDate = date.format(formatter);
+    String targetDate = originalDate.format(formatter); // Use original date for the row
+    String effectiveDateStr = effectiveDate.format(formatter); // The date we're getting data from
 
     // Check if this date already exists in the file
     for (int i = 1; i < lines.size(); i++) {
@@ -83,23 +109,36 @@ public class ForwardCurveUpdater {
       }
     }
 
+    // Look for Friday's data to fill forward
+    String[] fridayRow = findExistingRowData(lines, effectiveDateStr, headers.length, formatter);
+
     // Create new row
     String[] newRow = new String[headers.length];
     newRow[0] = targetDate;
 
-    for (int j = 1; j < headers.length; j++) {
-      String monthCode = headers[j].trim();
-      String monthName = MONTH_CODES.entrySet().stream()
-          .filter(e -> e.getValue().equals(monthCode))
-          .map(Map.Entry::getKey)
-          .findFirst()
-          .orElse(null);
+    if (fridayRow != null) {
+      // Use Friday's data for weekend fill-forward
+      System.out.println("Using fill-forward data from " + effectiveDateStr + " for " + targetDate);
+      for (int j = 1; j < headers.length; j++) {
+        newRow[j] = fridayRow[j];
+      }
+    } else {
+      // No Friday data found, use current curve data (fallback)
+      System.out.println("No existing data found for " + effectiveDateStr + ", using current curve data");
+      for (int j = 1; j < headers.length; j++) {
+        String monthCode = headers[j].trim();
+        String monthName = MONTH_CODES.entrySet().stream()
+            .filter(e -> e.getValue().equals(monthCode))
+            .map(Map.Entry::getKey)
+            .findFirst()
+            .orElse(null);
 
-      if (monthName != null) {
-        String key = monthName + "/" + fileYear;
-        newRow[j] = curveData.containsKey(key) ? String.valueOf(curveData.get(key)) : "";
-      } else {
-        newRow[j] = "";
+        if (monthName != null) {
+          String key = monthName + "/" + fileYear;
+          newRow[j] = curveData.containsKey(key) ? String.valueOf(curveData.get(key)) : "";
+        } else {
+          newRow[j] = "";
+        }
       }
     }
 
@@ -117,7 +156,7 @@ public class ForwardCurveUpdater {
       String existingDateStr = line.split(",", 2)[0];
       try {
         LocalDate existingDate = LocalDate.parse(existingDateStr, formatter);
-        if (date.isBefore(existingDate)) {
+        if (originalDate.isBefore(existingDate)) {
           break; // Found the position to insert
         }
       } catch (DateTimeParseException e) {
@@ -134,4 +173,27 @@ public class ForwardCurveUpdater {
     System.out.println("✅ Inserted new line to " + fileName + " at position " + insertPosition + ": " + newLine);
   }
 
+  /**
+   * Finds existing row data for a specific date in the CSV file
+   */
+  private static String[] findExistingRowData(List<String> lines, String targetDate, int expectedColumns, DateTimeFormatter formatter) {
+    for (int i = 1; i < lines.size(); i++) {
+      String line = lines.get(i);
+      if (!line.trim().isEmpty()) {
+        String[] columns = line.split(",", -1); // -1 to preserve trailing empty fields
+        if (columns.length > 0 && columns[0].equals(targetDate)) {
+          // Ensure the row has the expected number of columns
+          String[] result = new String[expectedColumns];
+          System.arraycopy(columns, 0, result, 0, Math.min(columns.length, expectedColumns));
+
+          // Fill any missing columns with empty strings
+          for (int j = columns.length; j < expectedColumns; j++) {
+            result[j] = "";
+          }
+          return result;
+        }
+      }
+    }
+    return null;
+  }
 }
