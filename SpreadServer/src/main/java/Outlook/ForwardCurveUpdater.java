@@ -60,12 +60,15 @@ public class ForwardCurveUpdater {
   private static LocalDate getEffectiveBusinessDate(LocalDate date) {
     DayOfWeek dayOfWeek = date.getDayOfWeek();
 
-    if (dayOfWeek == DayOfWeek.SATURDAY) {
-      return date.minusDays(1); // Friday
-    } else if (dayOfWeek == DayOfWeek.SUNDAY) {
-      return date.minusDays(2); // Friday
-    } else {
-      return date; // Monday-Friday use the actual date
+    switch (dayOfWeek) {
+      case SATURDAY:
+        return date.minusDays(1); // Friday
+      case SUNDAY:
+        return date.minusDays(2); // Friday
+      case MONDAY:
+        return date.minusDays(3); // Friday
+      default:
+        return date; // Tuesday-Friday use the actual date
     }
   }
 
