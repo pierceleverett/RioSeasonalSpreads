@@ -101,7 +101,7 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.ExcelUpdater">
+  <component name="RunManager" selected="Application.SimpleEmailReader">
     <configuration name="ExcelUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="ExcelUtil.ExcelUpdater" />
       <module name="moshi" />
@@ -163,8 +163,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.ExcelUpdater" />
         <item itemvalue="Application.SimpleEmailReader" />
+        <item itemvalue="Application.ExcelUpdater" />
         <item itemvalue="Application.GCUpdateHandler" />
         <item itemvalue="Application.Server" />
         <item itemvalue="Application.SpreadsUpdaterHandler" />
