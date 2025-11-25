@@ -99,7 +99,7 @@ public final class Server {
       Spark.post("/updateColonialTransit", new ColonialTransitUpdaterHandler());
       Spark.get("/getRealTransit", new ActualTransitHandler());
       Spark.get("/getRecentFungible", new RecentFungibleHandler());
-      Spark.post("/updateGC", new GCUpdateHandler());
+      //Spark.post("/updateGC", new GCUpdateHandler());
       Spark.get("/getMainLine", new MainLineHandler());
       Spark.get("/getOriginStart", new OriginStartsHandler());
       Spark.get("/getStubNoms", new StubNomHandler());

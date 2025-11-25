@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/../JaneStKnight/src/main/java/AllPossibleRoutes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -97,33 +97,7 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Server">
-    <configuration name="ColonialOrigin" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Colonial.ColonialOrigin" />
-      <module name="moshi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Colonial.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="ColonialTransitUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Colonial.ColonialTransitUpdater" />
-      <module name="moshi" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="Colonial.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="Application.SimpleEmailReader">
     <configuration name="ExcelUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="ExcelUtil.ExcelUpdater" />
       <module name="moshi" />
@@ -137,9 +111,35 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="GCUpdateHandler" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Handlers.GCUpdateHandler" />
+      <module name="moshi" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Handlers.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Server" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Server" />
       <module name="moshi" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SimpleEmailReader" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Outlook.SimpleEmailReader" />
+      <module name="moshi" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="Outlook.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -159,11 +159,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.SimpleEmailReader" />
+        <item itemvalue="Application.GCUpdateHandler" />
         <item itemvalue="Application.Server" />
         <item itemvalue="Application.SpreadsUpdaterHandler" />
         <item itemvalue="Application.ExcelUpdater" />
-        <item itemvalue="Application.ColonialTransitUpdater" />
-        <item itemvalue="Application.ColonialOrigin" />
       </list>
     </recent_temporary>
   </component>
