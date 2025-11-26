@@ -6,10 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/1119.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/1119.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/1120.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/1120.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/1121.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/1121.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/11:18.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/11:18.pdf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -94,8 +90,8 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/data/pdf" />
       <recent name="$PROJECT_DIR$/data/pdfToAdd" />
+      <recent name="$PROJECT_DIR$/data/pdf" />
       <recent name="$PROJECT_DIR$/data/Explorer" />
       <recent name="$PROJECT_DIR$/data/spreads" />
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
