@@ -155,8 +155,41 @@ const fetchChartData = async () => {
 
   const getLast30Dates = () => {
     const all = getAllDates();
-    const valid = all.filter((d) => chartData.get("2025")?.has(d));
-    return (valid.length >= 30 ? valid.slice(-30) : all.slice(-30)).reverse();
+    // Use the dynamic currentYear variable instead of hardcoded "2025"
+    const currentYearData = chartData.get(currentYear);
+
+    if (!currentYearData || currentYearData.size === 0) {
+      // Fallback if no data for current year yet
+      return all.slice(-30).reverse();
+    }
+
+    // 1. Find the latest date string (e.g., "01/05") available in the current year
+    const currentDates = Array.from(currentYearData.keys());
+    const sortedCurrent = currentDates.sort((a, b) => {
+      const [aM, aD] = a.split("/").map(Number);
+      const [bM, bD] = b.split("/").map(Number);
+      return (
+        new Date(2000, aM - 1, aD).getTime() -
+        new Date(2000, bM - 1, bD).getTime()
+      );
+    });
+
+    const latestDateStr = sortedCurrent[sortedCurrent.length - 1];
+
+    // 2. Find where that date sits in the master list (01/01 -> 12/31)
+    const latestIndex = all.indexOf(latestDateStr);
+
+    if (latestIndex === -1) return all.slice(-30).reverse();
+
+    // 3. Walk backwards 30 steps, wrapping around the array boundary
+    const result = [];
+    for (let i = 0; i < 30; i++) {
+      // The modulo operator with (index + length) ensures we wrap from index 0 to index 364
+      const targetIndex = (latestIndex - i + all.length) % all.length;
+      result.push(all[targetIndex]);
+    }
+
+    return result;
   };
 
 

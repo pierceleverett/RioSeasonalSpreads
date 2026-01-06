@@ -395,10 +395,40 @@ const GulfCoastDiffsTab: React.FC = () => {
 
   const getLast30Dates = () => {
     const all = getAllDates();
-    const valid = all.filter((d) => dataMap.get(currentYear)?.has(d));
-    return (valid.length >= 30 ? valid.slice(-30) : all.slice(-30)).reverse();
-  };
+    const currentYearData = dataMap.get(currentYear);
 
+    if (!currentYearData || currentYearData.size === 0) {
+      return all.slice(-30).reverse();
+    }
+
+    // 1. Find the chronologically "latest" date we have for the current year
+    const currentDates = Array.from(currentYearData.keys());
+    const sortedCurrent = currentDates.sort((a, b) => {
+      const [aM, aD] = a.split(/[\/-]/).map(Number);
+      const [bM, bD] = b.split(/[\/-]/).map(Number);
+      return (
+        new Date(2000, aM - 1, aD).getTime() -
+        new Date(2000, bM - 1, bD).getTime()
+      );
+    });
+
+    const latestDateStr = sortedCurrent[sortedCurrent.length - 1];
+
+    // 2. Find where that date sits in our master sorted list (01/01 -> 12/31)
+    const latestIndex = all.indexOf(latestDateStr);
+
+    if (latestIndex === -1) return all.slice(-30).reverse();
+
+    // 3. Collect 30 days by walking BACKWARDS from that index
+    // If we hit the start of the year (Index 0), we wrap to the end of the array (December)
+    const result = [];
+    for (let i = 0; i < 30; i++) {
+      const targetIndex = (latestIndex - i + all.length) % all.length;
+      result.push(all[targetIndex]);
+    }
+
+    return result; // Already effectively reversed because we walked backwards
+  };
   const last30Days = getLast30Dates();
 
   const selectedYears = Array.from(dataMap.keys()).filter((year) =>
