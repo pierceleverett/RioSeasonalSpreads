@@ -14,7 +14,7 @@ public class GCcsvupdater {
     LocalDate targetDate = emailReceivedDate.minusDays(1);
     String dateKey = targetDate.format(DateTimeFormatter.ofPattern("M/d"));
     System.out.println("Data date: " + dateKey);
-    int currentYear = LocalDate.now().minusDays(1).getYear();
+    int currentYear = targetDate.getYear();
     String yearColumn = Integer.toString(currentYear);
 
     Map<String, String> fileMap = Map.of(

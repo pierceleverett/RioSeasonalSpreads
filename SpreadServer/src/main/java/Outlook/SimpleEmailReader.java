@@ -46,7 +46,7 @@ public class SimpleEmailReader {
       while (messagesPage != null) {
         for (Message message : messagesPage.getCurrentPage()) {
           System.out.printf("[%s] Email: %s (Received: %s)%n",
-              METHOD_NAME, message.subject, message.receivedDateTime);
+                  METHOD_NAME, message.subject, message.receivedDateTime);
           emails.add(message);
         }
 

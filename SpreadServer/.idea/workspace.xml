@@ -5,7 +5,59 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6616d78e-73af-4b5a-ba35-032e44fcd5a6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/IntelliLang.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/0101.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/0102.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1126.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1127.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1128.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1201.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1202.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1203.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1204.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1205.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1208.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1209.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1210.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1211.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1212.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1215.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1216.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1217.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1218.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1222.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1223.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1224.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1225.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1226.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1229.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1230.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdf/1231.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/pdfToAdd/0105.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newA.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newA.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newE.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newE.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newQ.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newQ.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newV.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newV.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newX.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newX.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/newY.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/data/newY.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/pdfToAdd/1125.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/data/pdf/1219.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/91Chi.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/91Chi.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/ChiCBOB.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/A.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/D.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/F.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/H.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/M.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/spreads/GulfCoast/Nap.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data/spreads/GulfCoast/Nap.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GCSpreads/GCSpreadUpdater.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/GCSpreads/GCcsvupdater.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GCSpreads/GCcsvupdater.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Handlers/SpreadsUpdaterHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Handlers/SpreadsUpdaterHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Outlook/SimpleEmailReader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Outlook/SimpleEmailReader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/GCSpreads/GCSpreadUpdater.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/GCSpreads/GCSpreadUpdater.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/GCSpreads/GCcsvupdater.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/GCSpreads/GCcsvupdater.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,59 +83,62 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.AccessTokenGenerator.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ColonialActual.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ColonialFungible.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ColonialOrigin.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ColonialTransitTime.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ColonialTransitUpdater.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ColonialTransitUpdaterHandler.executor&quot;: &quot;Run&quot;,
-    &quot;Application.CsvToMap.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ExcelUpdater.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ExplorerCalendarList.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ExplorerParser.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ExplorerScheduling.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ExplorerSchedulingCalendar$SchedulingCalendar.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ExplorerSchedulingCalendar.executor&quot;: &quot;Run&quot;,
-    &quot;Application.ExplorerSchedulingPackager.executor&quot;: &quot;Run&quot;,
-    &quot;Application.FungibleUpdater.executor&quot;: &quot;Run&quot;,
-    &quot;Application.FusionCurveParser.executor&quot;: &quot;Run&quot;,
-    &quot;Application.GCSpreadCalc.executor&quot;: &quot;Run&quot;,
-    &quot;Application.GCSpreadUpdater.executor&quot;: &quot;Run&quot;,
-    &quot;Application.GCUpdateHandler.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MainLine.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MinColonialFungible.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MinColonialUpdater.executor&quot;: &quot;Run&quot;,
-    &quot;Application.MostRecentOrigin.executor&quot;: &quot;Run&quot;,
-    &quot;Application.OriginUpdater.executor&quot;: &quot;Run&quot;,
-    &quot;Application.OutlookEmailReader.executor&quot;: &quot;Run&quot;,
-    &quot;Application.PDFToExcel.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Server.executor&quot;: &quot;Run&quot;,
-    &quot;Application.SimpleEmailReader.executor&quot;: &quot;Run&quot;,
-    &quot;Application.SpreadCalculator.executor&quot;: &quot;Run&quot;,
-    &quot;Application.SpreadsUpdaterHandler.executor&quot;: &quot;Run&quot;,
-    &quot;Application.StubLineNoms.executor&quot;: &quot;Run&quot;,
-    &quot;Application.TransitDifferenceCalculator.executor&quot;: &quot;Run&quot;,
-    &quot;Application.TransitTimeParser.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/pierceleverett/RioSeasonalSpreads/SpreadServer/data/pdfToAdd&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.AccessTokenGenerator.executor": "Run",
+    "Application.ColonialActual.executor": "Run",
+    "Application.ColonialFungible.executor": "Run",
+    "Application.ColonialOrigin.executor": "Run",
+    "Application.ColonialTransitTime.executor": "Run",
+    "Application.ColonialTransitUpdater.executor": "Run",
+    "Application.ColonialTransitUpdaterHandler.executor": "Run",
+    "Application.CsvToMap.executor": "Run",
+    "Application.ExcelUpdater.executor": "Run",
+    "Application.ExplorerCalendarList.executor": "Run",
+    "Application.ExplorerParser.executor": "Run",
+    "Application.ExplorerScheduling.executor": "Run",
+    "Application.ExplorerSchedulingCalendar$SchedulingCalendar.executor": "Run",
+    "Application.ExplorerSchedulingCalendar.executor": "Run",
+    "Application.ExplorerSchedulingPackager.executor": "Run",
+    "Application.FungibleUpdater.executor": "Run",
+    "Application.FusionCurveParser.executor": "Run",
+    "Application.GCSpreadCalc.executor": "Run",
+    "Application.GCSpreadUpdater.executor": "Run",
+    "Application.GCUpdateHandler.executor": "Run",
+    "Application.MainLine.executor": "Run",
+    "Application.MinColonialFungible.executor": "Run",
+    "Application.MinColonialUpdater.executor": "Run",
+    "Application.MostRecentOrigin.executor": "Run",
+    "Application.OriginUpdater.executor": "Run",
+    "Application.OutlookEmailReader.executor": "Run",
+    "Application.PDFToExcel.executor": "Run",
+    "Application.Server.executor": "Run",
+    "Application.SimpleEmailReader.executor": "Run",
+    "Application.SpreadCalculator.executor": "Run",
+    "Application.SpreadsUpdaterHandler.executor": "Run",
+    "Application.StubLineNoms.executor": "Run",
+    "Application.TransitDifferenceCalculator.executor": "Run",
+    "Application.TransitTimeParser.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/pierceleverett/RioSeasonalSpreads/SpreadServer",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/data/pdfToAdd" />
@@ -97,13 +152,13 @@
       <recent name="$PROJECT_DIR$/data/spreads/GulfCoast" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.SimpleEmailReader">
-    <configuration name="ExcelUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="ExcelUtil.ExcelUpdater" />
+  <component name="RunManager" selected="Application.Server">
+    <configuration name="ColonialTransitUpdaterHandler" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Handlers.ColonialTransitUpdaterHandler" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="ExcelUtil.*" />
+          <option name="PATTERN" value="Handlers.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -111,12 +166,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="GCUpdateHandler" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Handlers.GCUpdateHandler" />
+    <configuration name="ExcelUpdater" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="ExcelUtil.ExcelUpdater" />
       <module name="moshi" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="Handlers.*" />
+          <option name="PATTERN" value="ExcelUtil.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -159,13 +214,20 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.SimpleEmailReader" />
-        <item itemvalue="Application.ExcelUpdater" />
-        <item itemvalue="Application.GCUpdateHandler" />
         <item itemvalue="Application.Server" />
+        <item itemvalue="Application.ColonialTransitUpdaterHandler" />
         <item itemvalue="Application.SpreadsUpdaterHandler" />
+        <item itemvalue="Application.ExcelUpdater" />
+        <item itemvalue="Application.SimpleEmailReader" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-26cb7f24e5b0-intellij.indexing.shared.core-IU-253.29346.138" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -183,6 +245,7 @@
       <workItem from="1760545085626" duration="618000" />
       <workItem from="1760719264555" duration="5294000" />
       <workItem from="1762969037217" duration="11649000" />
+      <workItem from="1767651088967" duration="5021000" />
     </task>
     <servers />
   </component>
